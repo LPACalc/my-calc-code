@@ -108,7 +108,7 @@ button {
   align-items: center; 
   background-color: #fff; 
   text-align: center;
-  padding: 1rem;
+  padding: 2rem 1rem;   /* extra vertical padding => more whitespace */
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
   z-index: 9999;          /* on top of content */
 }
@@ -443,7 +443,7 @@ button {
   border-radius: 9999px;   /* pill shape */
   background-color: #1a2732;
   color: #fff;
-  font-size: 16px;
+  font-size: 20px;
   font-weight: 600;
   padding: 1.75rem 3rem;
   cursor: pointer;
