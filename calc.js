@@ -841,177 +841,200 @@ $(document).ready(async function() {
   // 2) Fetch data & build top programs
   await initializeApp().catch(err => console.error("initApp error =>", err));
 
-  // ========== A) HIDE ALL STATES EXCEPT DEFAULT HERO ==========
+  // ====================================================
+  // A) On load, hide all states, show default hero & stage graphic
+  // ====================================================
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
 
-  // ========== B) “GET STARTED” => GO TO INPUT STATE ==========
-  $("#get-started-btn").show(); // ensure it's visible on load
-  $("#get-started-btn").on("click", function() {
-    // Hide default hero, hide "Get Started"
+  // ====================================================
+  // B) “GET STARTED” => Goes to Input State
+  // ====================================================
+  // Ensure it’s visible on load
+  $("#get-started-btn").show().on("click", function() {
+    // Hide default hero
     $("#default-hero").hide();
-    $(this).hide();  // “this” is the get-started-btn
-    
+    // Hide "Get Started" button
+    $(this).hide();
+
     // Show input state
     $("#input-state").show();
     updateStageGraphic("input");
 
-    // *No next button visible yet, until we add a program*
+    // No next button in input state yet until a program is added
     $("#input-next-btn").hide();
   });
 
-  // ========== C) WATCH PROGRAM ADDITIONS (to show Next) ==========
-  // Whenever we add a program, we call updateChosenProgramsDisplay(),
-  // but we also want to check if chosenPrograms.length > 0 => show #input-next-btn.
-
-  // Already in your code, we have a function "updateNextCTAVisibility()" 
-  // that runs after toggling programs. Let’s tweak it:
-
-  function updateNextCTAVisibility() {
-    // Only show "input-next-btn" if at least 1 program chosen 
-    // AND we're currently in the input-state
-    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
-      $("#input-next-btn").show();
-    } else {
-      $("#input-next-btn").hide();
-    }
-  }
-
-  // (Replace your existing updateNextCTAVisibility function with the above version.)
-
-  // ========== D) “Clear All” & “Top Program Box” listeners remain the same ==========
-  // (No changes needed, they already call updateNextCTAVisibility.)
-
-  // ========== E) "Input -> Next" => Calculator State ==========
-  // The #input-next-btn click handler is mostly fine, 
-  // just ensure it hides input-state & shows calculator-state. 
-  // (You already have that in your code.)
-
-  $("#input-next-btn").on("click", function() {
-    hideAllStates();
-    $("#calculator-state").fadeIn();
-    updateStageGraphic("calc");
-
-    // Build program rows now that we have chosenPrograms
-    $("#program-container").empty();
-    chosenPrograms.forEach(recordId => addProgramRow(recordId));
-  });
-
-  // ====== F) CALCULATOR => Back => Input
-  $("#calc-back-btn").on("click", function() {
-    hideAllStates();
-    $("#input-state").fadeIn();
-    updateStageGraphic("input");
-
-    // Possibly re-run updateNextCTAVisibility to show/hide next based on chosenPrograms
-    updateNextCTAVisibility();
-  });
-
-  // ====== G) CALCULATOR => Next => Output
-  $("#to-output-btn").on("click", function() {
-    hideAllStates();
-    $("#output-state").show();
-    updateStageGraphic("output");
-
-    // Default view is "Travel"
-    $(".toggle-btn").removeClass("active");
-    $(".toggle-btn[data-view='travel']").addClass("active");
-    buildOutputRows("travel");
-  });
-
-  // ====== H) OUTPUT => Back => Calculator
-  $("#output-back-btn").on("click", function() {
-    hideAllStates();
-    $("#calculator-state").show();
-    updateStageGraphic("calc");
-  });
-
-  // (and so on for your usecase -> next -> send-report, etc.)
-
-  // ========== I) The Rest of Your Document Ready Logic ==========
-
-  // 3) Listen for user typing in program-search => filter the programs
+  // ====================================================
+  // C) Toggle Searching Programs => filter 
+  // (already set up in your code)
+  // ====================================================
   $("#program-search").on("input", filterPrograms);
 
-  // 4) If user presses Enter and only one preview item => auto-select it
+  // If user presses Enter and only one preview item => auto-select
   $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       $(".preview-item").click();
     }
   });
 
-  // 5) Preview item => toggle selection
+  //  Preview item => toggle selection
   $(document).on("click", ".preview-item", function() {
     toggleSearchItemSelection($(this));
     $("#program-preview").hide().empty();
   });
 
-  // 6) Remove row => recalc
-  $(document).on("click", ".remove-btn", function() {
-    $(this).closest(".program-row").remove();
-    calculateTotal();
-  });
-
-  // 7) Toggle between “Travel” vs “Cash” in output => Re-build rows
-  $(document).on("click", ".toggle-btn", function() {
-    $(".toggle-btn").removeClass("active");
-    $(this).addClass("active");
-    const viewType = $(this).data("view"); // "travel" or "cash"
-    buildOutputRows(viewType);
-  });
-
-  // 8) Clicking an .output-row => expand/collapse the use-case accordion
-  $(document).on("click", ".output-row", function() {
-    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return; // do nothing if Cash is active
-    }
-    $(".usecase-accordion:visible").slideUp();
-    const panel = $(this).next(".usecase-accordion");
-    if (panel.is(":visible")) {
-      panel.slideUp();
-    } else {
-      panel.slideDown();
-    }
-  });
-
-  // 9) “Clear All”
+  // ====================================================
+  // D) “Clear All” & Top Program Box => toggles
+  // ====================================================
   $("#clear-all-btn").on("click", function() {
     clearAllPrograms();
   });
-
-  // 10) Clicking a popular program => toggle
   $(document).on("click", ".top-program-box", function() {
     toggleProgramSelection($(this));
   });
 
-  // 11) “Go Back” in submission takeover => returns to output
+  // ====================================================
+  // E) Show/hide “Next” in Input State once programs are added
+  // ====================================================
+  // (We tweak updateNextCTAVisibility to only show input-next-btn if ≥1 programs)
+
+  function updateNextCTAVisibility() {
+    // If we’re in input-state and have at least 1 chosen program => show next
+    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
+      $("#input-next-btn").show();
+    } else {
+      $("#input-next-btn").hide();
+    }
+  }
+  // We'll also call this in toggleSearchItemSelection / toggleProgramSelection (which you already do).
+
+  // ====================================================
+  // F) Input -> Next => Calculator
+  // ====================================================
+  $("#input-next-btn").on("click", function() {
+    hideAllStates();
+    $("#calculator-state").fadeIn();
+    updateStageGraphic("calc");
+
+    // Build program rows from chosenPrograms
+    $("#program-container").empty();
+    chosenPrograms.forEach(recordId => addProgramRow(recordId));
+
+    // Show the “Next” for calc -> output
+    $("#to-output-btn").show();
+  });
+
+  // ====================================================
+  // G) Calculator -> Back => Input
+  // ====================================================
+  $("#calc-back-btn").on("click", function() {
+    hideAllStates();
+    $("#input-state").fadeIn();
+    updateStageGraphic("input");
+
+    updateNextCTAVisibility(); // re-check if input-next-btn should show
+  });
+
+  // ====================================================
+  // H) Calculator -> Next => Output
+  // ====================================================
+  $("#to-output-btn").on("click", function() {
+    hideAllStates();
+    $("#output-state").show();
+    updateStageGraphic("output");
+
+    // Default is "Travel" on arrival
+    $(".toggle-btn").removeClass("active");
+    $(".toggle-btn[data-view='travel']").addClass("active");
+
+    buildOutputRows("travel");
+  });
+
+  // ====================================================
+  // I) Output -> Back => Calculator
+  // ====================================================
+  $("#output-back-btn").on("click", function() {
+    hideAllStates();
+    $("#calculator-state").show();
+    updateStageGraphic("calc");
+  });
+
+  // ====================================================
+  // J) #unlock-report-btn => reveal #save-results-section
+  // ====================================================
+  $("#unlock-report-btn").on("click", function() {
+    $("#save-results-section").show();
+  });
+
+  // ====================================================
+  // K) Usecase -> Back => Output
+  // ====================================================
+  $("#usecase-back-btn").on("click", function() {
+    hideAllStates();
+    $("#output-state").show();
+    updateStageGraphic("output");
+  });
+
+  // ====================================================
+  // L) Usecase -> Next => Send-Report
+  // ====================================================
+  $("#usecase-next-btn").on("click", function() {
+    hideAllStates();
+    $("#send-report-state").fadeIn();
+    updateStageGraphic("sendReport");
+  });
+
+  // ====================================================
+  // M) Send-Report -> Back => Usecase
+  // ====================================================
+  $("#send-report-back-btn").on("click", function() {
+    hideAllStates();
+    $("#usecase-state").fadeIn();
+    updateStageGraphic("usecase");
+  });
+
+  // ====================================================
+  // N) Send-Report -> Next => Submission Takeover
+  // ====================================================
+  $("#send-report-next-btn").on("click", function() {
+    hideAllStates();
+    $("#submission-takeover").fadeIn();
+  });
+
+  // ====================================================
+  // O) Go Back in submission takeover => output
+  // ====================================================
   $("#go-back-btn").on("click", function() {
     hideAllStates();
     $("#output-state").fadeIn();
   });
 
-  // 12) “Explore Concierge” => opens link in new tab
+  // Explore Concierge => external link
   $("#explore-concierge-btn").on("click", function() {
     window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
 
-  // 13) Attach sendReport() to “Send Report” button
+  // ====================================================
+  // P) Attach sendReport() => “Send Report” button
+  // ====================================================
   const sendBtn = document.getElementById("send-results-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", sendReport);
   }
 
-  // 14) If user re-types an email after sending => revert the button text
+  // If user re-types an email after sending => revert the button text
   document.getElementById("email-input").addEventListener("input", function() {
-    const sendBtn = document.getElementById("send-results-btn");
     if (sendBtn.textContent === "Report Sent") {
       sendBtn.textContent = "Send Report";
       sendBtn.disabled = false;
     }
   });
 
-  // 15) “mini-pill” => switch use case details inside expanded panel
+  // ====================================================
+  // Q) mini-pill => switch use case details
+  // ====================================================
   $(document).on("click", ".mini-pill", function(e) {
     e.stopPropagation();
     $(this).siblings().removeClass("active");
@@ -1030,7 +1053,26 @@ $(document).ready(async function() {
     titleEl.text(useCaseObj["Use Case Title"] || "Untitled");
     bodyEl.text(useCaseObj["Use Case Body"] || "No description");
   });
+
+  // ====================================================
+  // R) Removing row => recalc
+  // ====================================================
+  $(document).on("click", ".remove-btn", function() {
+    $(this).closest(".program-row").remove();
+    calculateTotal();
+  });
+
+  // ====================================================
+  // S) Toggle “Travel” vs “Cash” => buildOutputRows
+  // ====================================================
+  $(document).on("click", ".toggle-btn", function() {
+    $(".toggle-btn").removeClass("active");
+    $(this).addClass("active");
+    const viewType = $(this).data("view"); // "travel" or "cash"
+    buildOutputRows(viewType);
+  });
 });
+
 
 
 
