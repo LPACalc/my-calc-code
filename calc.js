@@ -851,34 +851,33 @@ $(document).ready(async function() {
   // ====================================================
   // B) “GET STARTED” => Goes to Input State
   // ====================================================
-  // Ensure it’s visible on load
   $("#get-started-btn").show().on("click", function() {
     // Hide default hero
     $("#default-hero").hide();
-    // Hide "Get Started" button
+    // Hide "Get Started"
     $(this).hide();
 
     // Show input state
     $("#input-state").show();
     updateStageGraphic("input");
 
-    // No next button in input state yet until a program is added
+    // No next button in input until a program is added
     $("#input-next-btn").hide();
   });
 
   // ====================================================
-  // C) Toggle Searching Programs => filter
+  // C) Program Search => Filter
   // ====================================================
   $("#program-search").on("input", filterPrograms);
 
-  // If user presses Enter and only one preview item => auto-select
+  // If user presses Enter & only one preview => auto-select
   $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       $(".preview-item").click();
     }
   });
 
-  // Preview item => toggle selection
+  // Preview item => toggle
   $(document).on("click", ".preview-item", function() {
     toggleSearchItemSelection($(this));
     $("#program-preview").hide().empty();
@@ -895,17 +894,16 @@ $(document).ready(async function() {
   });
 
   // ====================================================
-  // E) Show/hide “Next” in Input State once programs are added
+  // E) Show/hide “Next” for Input, once programs are added
   // ====================================================
   function updateNextCTAVisibility() {
-    // If we’re in input-state and have at least 1 chosen program => show next
+    // Show #input-next-btn only if ≥1 chosen & #input-state is visible
     if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
       $("#input-next-btn").show();
     } else {
       $("#input-next-btn").hide();
     }
   }
-  // We call this in toggleSearchItemSelection / toggleProgramSelection
 
   // ====================================================
   // F) Input -> Next => Calculator
@@ -915,14 +913,14 @@ $(document).ready(async function() {
     $("#calculator-state").fadeIn();
     updateStageGraphic("calc");
 
-    // Build program rows from chosenPrograms
+    // Build rows from chosenPrograms
     $("#program-container").empty();
     chosenPrograms.forEach(recordId => addProgramRow(recordId));
 
-    // Show the “Next” for calc -> output
+    // Show calc->output button
     $("#to-output-btn").show();
 
-    // Hide the input-next-btn so it doesn't remain visible in calc
+    // Hide input->next so it doesn’t remain in Calc
     $("#input-next-btn").hide();
   });
 
@@ -933,9 +931,7 @@ $(document).ready(async function() {
     hideAllStates();
     $("#input-state").fadeIn();
     updateStageGraphic("input");
-
-    // Re-check if input-next-btn should show
-    updateNextCTAVisibility();
+    updateNextCTAVisibility(); // Re-check if we should show input-next
   });
 
   // ====================================================
@@ -946,11 +942,14 @@ $(document).ready(async function() {
     $("#output-state").show();
     updateStageGraphic("output");
 
-    // Default is "Travel" on arrival
+    // Default to Travel mode in Output
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
-
     buildOutputRows("travel");
+
+    // Swap buttons: hide this, show “Unlock Full Report” button
+    $(this).hide();
+    $("#unlock-report-btn").show();
   });
 
   // ====================================================
@@ -963,7 +962,7 @@ $(document).ready(async function() {
   });
 
   // ====================================================
-  // J) #unlock-report-btn => reveal #save-results-section
+  // J) Unlock => show email entry
   // ====================================================
   $("#unlock-report-btn").on("click", function() {
     $("#save-results-section").show();
@@ -997,7 +996,7 @@ $(document).ready(async function() {
   });
 
   // ====================================================
-  // N) Send-Report -> Next => Submission Takeover
+  // N) Send-Report -> Next => Submission
   // ====================================================
   $("#send-report-next-btn").on("click", function() {
     hideAllStates();
@@ -1005,7 +1004,7 @@ $(document).ready(async function() {
   });
 
   // ====================================================
-  // O) Go Back in submission takeover => output
+  // O) “Go Back” in submission => output
   // ====================================================
   $("#go-back-btn").on("click", function() {
     hideAllStates();
@@ -1018,14 +1017,14 @@ $(document).ready(async function() {
   });
 
   // ====================================================
-  // P) Attach sendReport() => “Send Report” button
+  // P) Attach sendReport() => “Send Report”
   // ====================================================
   const sendBtn = document.getElementById("send-results-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", sendReport);
   }
 
-  // If user re-types an email after sending => revert the button text
+  // If user re-types email after sending => revert
   document.getElementById("email-input").addEventListener("input", function() {
     if (sendBtn.textContent === "Report Sent") {
       sendBtn.textContent = "Send Report";
@@ -1072,7 +1071,26 @@ $(document).ready(async function() {
     const viewType = $(this).data("view"); // "travel" or "cash"
     buildOutputRows(viewType);
   });
+
+  // ====================================================
+  // T) .output-row => Expand Use Case Accordion
+  // ====================================================
+  $(document).on("click", ".output-row", function() {
+    // If we want only travel mode to show use-case:
+    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
+      return; // do nothing in Cash mode
+    }
+    // Close any open
+    $(".usecase-accordion:visible").slideUp();
+    const panel = $(this).next(".usecase-accordion");
+    if (panel.is(":visible")) {
+      panel.slideUp();
+    } else {
+      panel.slideDown();
+    }
+  });
 });
+
 
 
 
