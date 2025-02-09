@@ -867,8 +867,7 @@ $(document).ready(async function() {
   });
 
   // ====================================================
-  // C) Toggle Searching Programs => filter 
-  // (already set up in your code)
+  // C) Toggle Searching Programs => filter
   // ====================================================
   $("#program-search").on("input", filterPrograms);
 
@@ -879,7 +878,7 @@ $(document).ready(async function() {
     }
   });
 
-  //  Preview item => toggle selection
+  // Preview item => toggle selection
   $(document).on("click", ".preview-item", function() {
     toggleSearchItemSelection($(this));
     $("#program-preview").hide().empty();
@@ -898,8 +897,6 @@ $(document).ready(async function() {
   // ====================================================
   // E) Show/hide “Next” in Input State once programs are added
   // ====================================================
-  // (We tweak updateNextCTAVisibility to only show input-next-btn if ≥1 programs)
-
   function updateNextCTAVisibility() {
     // If we’re in input-state and have at least 1 chosen program => show next
     if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
@@ -908,7 +905,7 @@ $(document).ready(async function() {
       $("#input-next-btn").hide();
     }
   }
-  // We'll also call this in toggleSearchItemSelection / toggleProgramSelection (which you already do).
+  // We call this in toggleSearchItemSelection / toggleProgramSelection
 
   // ====================================================
   // F) Input -> Next => Calculator
@@ -924,6 +921,9 @@ $(document).ready(async function() {
 
     // Show the “Next” for calc -> output
     $("#to-output-btn").show();
+
+    // Hide the input-next-btn so it doesn't remain visible in calc
+    $("#input-next-btn").hide();
   });
 
   // ====================================================
@@ -934,7 +934,8 @@ $(document).ready(async function() {
     $("#input-state").fadeIn();
     updateStageGraphic("input");
 
-    updateNextCTAVisibility(); // re-check if input-next-btn should show
+    // Re-check if input-next-btn should show
+    updateNextCTAVisibility();
   });
 
   // ====================================================
@@ -1072,6 +1073,7 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 });
+
 
 
 
