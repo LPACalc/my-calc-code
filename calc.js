@@ -1,3 +1,4 @@
+
 "use strict";
 
 /*******************************************************
@@ -58,6 +59,13 @@ function updateStageGraphic(stageKey) {
  * B) FETCH & DATA-RELATED UTILITIES
  *******************************************************/
 
+/**
+ * fetchWithTimeout => basic fetch wrapper with timeouts and built-in retry logic.
+ * @param {string} url           The endpoint or resource to fetch
+ * @param {object} options       Fetch options (headers, method, etc.)
+ * @param {number} timeout       Milliseconds before we abort this request
+ * @param {number} maxRetries    Number of times to retry on timeout/HTTP error
+ */
 async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries = 2) {
   let attempt = 0;
 
@@ -71,44 +79,55 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
       const response = await fetch(url, { ...options, signal });
       clearTimeout(timeoutId);
 
+      // If we get an OK response, return it
       if (response.ok) {
         return response;
       }
 
+      // Otherwise, try again or throw an error if out of retries
       if (attempt > maxRetries) {
         throw new Error(`Non-OK HTTP status: ${response.status}`);
       }
       console.log(`Retry #${attempt} after HTTP status: ${response.status} ...`);
-      await new Promise(res => setTimeout(res, 500));
+      await new Promise(res => setTimeout(res, 500)); // small delay before retry
 
     } catch (err) {
       clearTimeout(timeoutId);
 
+      // If we aborted due to timeout => err.name === "AbortError"
       if (err.name === "AbortError") {
         if (attempt > maxRetries) {
           throw new Error("Request timed out multiple times.");
         }
         console.log(`Timeout/AbortError. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500));
+        await new Promise(res => setTimeout(res, 500)); // small delay
       } else {
+        // Other network errors
         if (attempt > maxRetries) {
-          throw err;
+          throw err; // throw if out of retries
         }
         console.log(`Network error: ${err.message}. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500));
+        await new Promise(res => setTimeout(res, 500)); // small delay
       }
     }
   }
 
+  // If we exit the loop, we've exhausted retries
   throw new Error("Failed to fetch after maxRetries attempts.");
 }
 
+/**
+ * fetchAirtableTable => fetch data from an Airtable proxy using our
+ * fetchWithTimeout method. We rely on fetchWithTimeout’s retry logic,
+ * so no extra loop is needed here.
+ */
 async function fetchAirtableTable(tableName) {
+  // Adjust timeout or maxRetries if needed
   const response = await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
     {},
-    10000,
-    2
+    10000,   // e.g. 10s timeout
+    2        // e.g. up to 2 retries
   );
 
   if (!response.ok) {
@@ -150,7 +169,7 @@ async function initializeApp() {
 
   } catch (err) {
     console.error("Error fetching Points Calculator data:", err);
-    return;
+    return; // Stop if this fails
   }
 
   // 2) Fetch Real-World Use Cases
@@ -179,6 +198,7 @@ function buildTopProgramsSection() {
   const container = document.getElementById("top-programs-grid");
   if (!container) return;
 
+  // Filter top programs
   const topRecords = Object.keys(loyaltyPrograms).filter(recordId => {
     const prog = loyaltyPrograms[recordId];
     return !!prog["Top Programs"];
@@ -228,6 +248,7 @@ function filterPrograms() {
   const filtered = Object.keys(loyaltyPrograms).filter(recordId => {
     const program = loyaltyPrograms[recordId];
     if (!program || !program["Program Name"]) return false;
+    // If it’s already added:
     const alreadyAdded = $(
       `#program-container .program-row[data-record-id='${recordId}']`
     ).length > 0;
@@ -277,6 +298,7 @@ function addProgramRow(recordId) {
   const program = loyaltyPrograms[recordId];
   if (!program) return;
 
+  // Hide hero, show calc
   $("#default-hero").hide();
   $("#started-state").show();
   $("#started-empty-state").hide();
@@ -359,6 +381,7 @@ function toggleSearchItemSelection(itemEl) {
     chosenPrograms.push(recordId);
     itemEl.addClass("selected-state");
 
+    // Also sync top-program if present
     const matchingBox = $(`.top-program-box[data-record-id='${recordId}']`);
     if (matchingBox.length) {
       matchingBox.addClass("selected-state");
@@ -395,6 +418,7 @@ function toggleProgramSelection(boxEl) {
     boxEl.addClass("selected-state");
     boxEl.find(".add-btn").text("✓");
 
+    // Remove from search preview if present
     const matchingSearch = $(`.preview-item[data-record-id='${recordId}']`);
     if (matchingSearch.length) matchingSearch.remove();
   } else {
@@ -511,6 +535,7 @@ function calculateTotal() {
     totalTravel += rowTravel;
     totalCash   += rowCash;
   });
+  // If no rows => revert to started-state (optional)
 }
 
 /*******************************************************
@@ -589,9 +614,10 @@ async function sendReport() {
   const errorEl = document.getElementById("email-error");
   const sendBtn = document.getElementById("send-results-btn");
 
-  if (!emailEl || !sendBtn) return;
+  if (!emailEl || !sendBtn) return; // sanity check
   const email = emailEl.value.trim();
 
+  // 1) Validate
   if (!isValidEmail(email)) {
     errorEl.textContent = "Invalid email address.";
     errorEl.style.display = "block";
@@ -603,6 +629,7 @@ async function sendReport() {
     emailEl.classList.remove("input-error");
   }
 
+  // 2) Gather data
   const programs = gatherProgramData();
   let totalTravel = 0;
   let totalCash = 0;
@@ -611,14 +638,16 @@ async function sendReport() {
     totalCash += item.cashValue;
   });
 
+  // 3) Update button => "Sending..."
   sendBtn.disabled = true;
-  const originalBtnText = "Send Report";
+  const originalBtnText = "Send Report"; // ensure we store the original text
   sendBtn.textContent = "Sending...";
   const slowTimeout = setTimeout(() => {
     sendBtn.textContent = "Still working...";
   }, 7000);
 
   try {
+    // 4) Post to your endpoint
     const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -639,6 +668,7 @@ async function sendReport() {
       return;
     }
 
+    // 5) On success => show "Report Sent", not full takeover
     sendBtn.textContent = "Report Sent";
 
   } catch (err) {
@@ -650,49 +680,42 @@ async function sendReport() {
 }
 
 
+
 /*******************************************************
  * T) BUILD USE CASE ACCORDION => Per-Program
- *   Filter out use cases that require more points
- *   than the user currently has.
+ *   - Only recommended
+ *   - Up to 4
+ *   - Sort by ascending Points Required
+ *   - First is default "active"
  *******************************************************/
-
-function getUserTotalPoints() {
-  let totalPoints = 0;
-  $(".program-row").each(function() {
-    const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
-    const points = parseInt(pointsStr, 10) || 0;
-    totalPoints += points;
-  });
-  return totalPoints;
-}
-
 function buildUseCaseAccordionContent(recordId) {
   const program = loyaltyPrograms[recordId];
   if (!program) {
-    return `<div style="padding:1rem;">No data found for this program.</div>`;
+    return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  const userPoints = getUserTotalPoints();
-
+  // Filter recommended = true
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     const linked = uc["Program Name"] || [];
-    if (!linked.includes(recordId)) return false;
-
-    const pointsReq = uc["Points Required"] || 0;
-    return userPoints >= pointsReq;
+    return linked.includes(recordId);
   });
+
+  // Sort ascending
+  matchingUseCases.sort((a, b) => {
+    const aPoints = a["Points Required"] || 0;
+    const bPoints = b["Points Required"] || 0;
+    return aPoints - bPoints;
+  });
+
+  // Limit to 4
+  matchingUseCases = matchingUseCases.slice(0, 4);
 
   if (!matchingUseCases.length) {
-    return `<div style="padding:1rem;">No applicable use cases for your points.</div>`;
+    return `<div style="padding:1rem;">No recommended use cases found.</div>`;
   }
 
-  matchingUseCases.sort((a, b) => {
-    const aReq = a["Points Required"] || 0;
-    const bReq = b["Points Required"] || 0;
-    return aReq - bReq;
-  });
-
+  // Build pills
   let pillsHTML = "";
   matchingUseCases.forEach((uc, i) => {
     const pointsReq = uc["Points Required"] || 0;
@@ -706,16 +729,17 @@ function buildUseCaseAccordionContent(recordId) {
 
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"] || "";
-  const title = first["Use Case Title"] || "Untitled";
-  const body = first["Use Case Body"] || "No description";
+  const title    = first["Use Case Title"] || "Untitled";
+  const body     = first["Use Case Body"]  || "No description";
 
   return `
     <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
-      <div class="pills-container" style="display:flex; flex-wrap:wrap; gap:8px;">
+      <!-- Pills row -->
+      <div class="pills-container" style="display:flex; flex-wrap:wrap;">
         ${pillsHTML}
       </div>
-
-      <div class="usecase-details" style="display:flex; gap:1rem;">
+      <!-- Image left, text right -->
+      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
         <div class="image-wrap" style="max-width:180px;">
           <img
             src="${imageURL}"
@@ -725,34 +749,12 @@ function buildUseCaseAccordionContent(recordId) {
         </div>
         <div class="text-wrap" style="flex:1;">
           <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;">${title}</h4>
-          <p class="uc-body" style="font-size:14px; line-height:1.4; margin:0; color:#555;">
-            ${body}
-          </p>
+          <p class="uc-body" style="font-size:14px; line-height:1.4; color:#555; margin:0;">${body}</p>
         </div>
       </div>
     </div>
   `;
 }
-
-$(document).on("click", ".mini-pill", function(e) {
-  e.stopPropagation();
-  $(this).siblings().removeClass("active");
-  $(this).addClass("active");
-
-  const usecaseId = $(this).data("usecase-id");
-  const useCaseObj = realWorldUseCases[usecaseId];
-  if (!useCaseObj) return;
-
-  const panel  = $(this).closest(".usecases-panel");
-  const imageEl= panel.find(".image-wrap img");
-  const titleEl= panel.find(".uc-title");
-  const bodyEl = panel.find(".uc-body");
-
-  imageEl.attr("src", useCaseObj["Use Case URL"] || "");
-  titleEl.text(useCaseObj["Use Case Title"] || "Untitled");
-  bodyEl.text(useCaseObj["Use Case Body"] || "No description");
-});
-
 
 /*******************************************************
  * U) REPLACE buildOutputRows => Show "Total Value", row clickable
@@ -767,10 +769,15 @@ function buildOutputRows(viewType) {
     const logoUrl = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unknown";
 
-    let rowValue = (viewType === "travel") ? item.travelValue : item.cashValue;
+    // Decide which column to use
+    let rowValue = (viewType === "travel")
+      ? item.travelValue
+      : item.cashValue;
+
     totalValue += rowValue;
     const formattedRowVal = `$${rowValue.toFixed(2)}`;
 
+    // Basic row 
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -783,6 +790,7 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
+    // If Travel => build the hidden accordion; if Cash => skip
     if (viewType === "travel") {
       const accordionHtml = `
         <div class="usecase-accordion" style="display:none;">
@@ -824,44 +832,45 @@ function hideAllStates() {
 }
 
 
-/*******************************************************
- * CTA HELPER => showCTAsForState
- *******************************************************/
 function showCTAsForState(state) {
-  // Hide all CTA buttons in the sticky footer
+  // Hide every CTA in the sticky footer
   $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
 
-  // Show only what's relevant for the given state
   switch (state) {
     case "default":
+      // Only "Get Started"
       $("#get-started-btn").show();
       break;
 
     case "input":
-      // Show #input-next-btn only if at least one program is chosen
+      // Possibly show "Next" if programs are chosen
       if (chosenPrograms.length > 0) {
         $("#input-next-btn").show();
       }
       break;
 
     case "calculator":
+      // Show the “Next” to output
       $("#to-output-btn").show();
       break;
 
     case "output":
+      // Show “Unlock Full Report” if that’s your default CTA in output
       $("#unlock-report-btn").show();
       break;
 
     case "usecase":
+      // Show the "Next" that leads to send-report
       $("#usecase-next-btn").show();
       break;
 
     case "send-report":
+      // Show the “Submit” that leads to submission
       $("#send-report-next-btn").show();
       break;
-
+      
     default:
-      // no CTA
+      // If needed, do nothing or revert to no buttons
       break;
   }
 }
@@ -870,177 +879,258 @@ function showCTAsForState(state) {
 /*======================================================
   SECTION V: DOCUMENT READY
 ======================================================*/
-// 1) “Get Started” => default hero to input
-$("#get-started-btn").on("click", function() {
-  hideAllStates();
-  $("#input-state").show();
-  updateStageGraphic("input");
-});
+$(document).ready(async function() {
+  /*******************************************************
+   * A) Initialize + Helper
+   *******************************************************/
 
-// 2) “Input -> Back” => default hero
-$("#input-back-btn").on("click", function() {
+  // 1) Initialize static pills in #usecase-state (if used)
+  initNavyShowcase();
+
+  // 2) Fetch data & build top programs
+  await initializeApp().catch(err => console.error("initApp error =>", err));
+
+  /**
+   * showCTAsForState => hides all footer CTAs, then shows
+   * only the relevant button(s) for a given "state" key.
+   */
+  function showCTAsForState(state) {
+    // Hide every CTA
+    $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
+
+    // Show only what's relevant
+    switch (state) {
+      case "default":
+        $("#get-started-btn").show();
+        break;
+
+      case "input":
+        // Show input-next if chosenPrograms > 0
+        if (chosenPrograms.length > 0) {
+          $("#input-next-btn").show();
+        }
+        break;
+
+      case "calculator":
+        $("#to-output-btn").show();
+        break;
+
+      case "output":
+        // “Unlock Full Report” button for output
+        $("#unlock-report-btn").show();
+        break;
+
+      case "usecase":
+        $("#usecase-next-btn").show();
+        break;
+
+      case "send-report":
+        $("#send-report-next-btn").show();
+        break;
+
+      default:
+        // no buttons
+        break;
+    }
+  }
+
+  /**
+   * updateNextCTAVisibility => decides if #input-next-btn
+   * should show while in Input State
+   */
+  function updateNextCTAVisibility() {
+    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
+      $("#input-next-btn").show();
+    } else {
+      $("#input-next-btn").hide();
+    }
+  }
+
+  // Hide all states (and CTAs) at start => show default hero
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
-});
+  showCTAsForState("default");
 
-// 3) “Input -> Next” => calculator
-$("#input-next-btn").on("click", function() {
-  hideAllStates();
-  $("#calculator-state").fadeIn();
-  updateStageGraphic("calc");
+  /*******************************************************
+   * B) Transitions
+   *******************************************************/
 
-  $("#program-container").empty();
-  chosenPrograms.forEach(recordId => addProgramRow(recordId));
-});
+  // “Get Started” => goes to Input
+  $("#get-started-btn").on("click", function() {
+    hideAllStates();
+    $("#input-state").show();
+    updateStageGraphic("input");
 
-// 4) “Calculator -> Back” => input
-$("#calc-back-btn").on("click", function() {
-  hideAllStates();
-  $("#input-state").fadeIn();
-  updateStageGraphic("input");
-});
+    showCTAsForState("input"); // let user add programs before Next is shown
+  });
 
-// 5) “Calculator -> Next” => output
-$("#to-output-btn").on("click", function() {
-  hideAllStates();
-  $("#output-state").fadeIn();
-  updateStageGraphic("output");
+  // “Clear All”
+  $("#clear-all-btn").on("click", function() {
+    clearAllPrograms();
+  });
 
-  $(".toggle-btn").removeClass("active");
-  $(".toggle-btn[data-view='travel']").addClass("active");
-  buildOutputRows("travel");
-});
+  // “Input -> Next” => Calculator
+  $("#input-next-btn").on("click", function() {
+    hideAllStates();
+    $("#calculator-state").fadeIn();
+    updateStageGraphic("calc");
 
-// 6) “Output -> Back” => calculator
-$("#output-back-btn").on("click", function() {
-  hideAllStates();
-  $("#calculator-state").show();
-  updateStageGraphic("calc");
-});
+    // Build rows from chosenPrograms
+    $("#program-container").empty();
+    chosenPrograms.forEach(recordId => addProgramRow(recordId));
 
-// 7) “Unlock => Show Email” in output
-$("#unlock-report-btn").on("click", function() {
-  $("#save-results-section").show();
-});
+    showCTAsForState("calculator");
+  });
 
-// 8) “Usecase -> Back” => output
-$("#usecase-back-btn").on("click", function() {
-  hideAllStates();
-  $("#output-state").show();
-  updateStageGraphic("output");
-});
+  // “Calculator -> Back” => Input
+  $("#calc-back-btn").on("click", function() {
+    hideAllStates();
+    $("#input-state").fadeIn();
+    updateStageGraphic("input");
 
-// 9) “Usecase -> Next” => send-report
-$("#usecase-next-btn").on("click", function() {
-  hideAllStates();
-  $("#send-report-state").fadeIn();
-  updateStageGraphic("sendReport");
-});
+    showCTAsForState("input");
+  });
 
-// 10) “Send-Report -> Back” => usecase
-$("#send-report-back-btn").on("click", function() {
-  hideAllStates();
-  $("#usecase-state").fadeIn();
-  updateStageGraphic("usecase");
-});
+  // “Calculator -> Next” => Output
+  $("#to-output-btn").on("click", function() {
+    hideAllStates();
+    $("#output-state").fadeIn();
+    updateStageGraphic("output");
 
-// 11) “Send-Report -> Next” => submission
-$("#send-report-next-btn").on("click", function() {
-  hideAllStates();
-  $("#submission-takeover").fadeIn();
-});
+    // Default to Travel
+    $(".toggle-btn").removeClass("active");
+    $(".toggle-btn[data-view='travel']").addClass("active");
+    buildOutputRows("travel");
 
-// 12) SUBMISSION => “Go Back” => output
-$("#go-back-btn").on("click", function() {
-  hideAllStates();
-  $("#output-state").fadeIn();
-  updateStageGraphic("output");
-});
+    showCTAsForState("output");
+  });
 
-// 13) “Explore Concierge” => external link
-$("#explore-concierge-btn").on("click", function() {
-  window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
-});
+  // “Output -> Back” => Calculator
+  $("#output-back-btn").on("click", function() {
+    hideAllStates();
+    $("#calculator-state").show();
+    updateStageGraphic("calc");
 
-// 14) Toggle “Travel” vs “Cash” in output
-$(document).on("click", ".toggle-btn", function() {
-  $(".toggle-btn").removeClass("active");
-  $(this).addClass("active");
-  const viewType = $(this).data("view");
-  buildOutputRows(viewType);
-});
+    showCTAsForState("calculator");
+  });
 
-// 15) Clicking an .output-row => expand/collapse usecase-accordion (if Travel)
-$(document).on("click", ".output-row", function() {
-  if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-    return;
+  // “Unlock Full Report” => show email
+  $("#unlock-report-btn").on("click", function() {
+    $("#save-results-section").show();
+  });
+
+  // “Usecase -> Back” => Output
+  $("#usecase-back-btn").on("click", function() {
+    hideAllStates();
+    $("#output-state").show();
+    updateStageGraphic("output");
+
+    showCTAsForState("output");
+  });
+
+  // “Usecase -> Next” => Send-Report
+  $("#usecase-next-btn").on("click", function() {
+    hideAllStates();
+    $("#send-report-state").fadeIn();
+    updateStageGraphic("sendReport");
+
+    showCTAsForState("send-report");
+  });
+
+  // “Send-Report -> Back” => Usecase
+  $("#send-report-back-btn").on("click", function() {
+    hideAllStates();
+    $("#usecase-state").fadeIn();
+    updateStageGraphic("usecase");
+
+    showCTAsForState("usecase");
+  });
+
+  // “Send-Report -> Next” => Submission
+  $("#send-report-next-btn").on("click", function() {
+    hideAllStates();
+    $("#submission-takeover").fadeIn();
+  });
+
+  // “Go Back” in submission => Output
+  $("#go-back-btn").on("click", function() {
+    hideAllStates();
+    $("#output-state").fadeIn();
+    updateStageGraphic("output");
+
+    showCTAsForState("output");
+  });
+
+  // Explore Concierge => external link
+  $("#explore-concierge-btn").on("click", function() {
+    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
+  });
+
+  /*******************************************************
+   * C) Other Listeners (Search, Program Toggling, etc.)
+   *******************************************************/
+
+  // Program search => filter
+  $("#program-search").on("input", filterPrograms);
+
+  // If user presses Enter & only one => auto-add
+  $(document).on("keypress", "#program-search", function(e) {
+    if (e.key === "Enter" && $(".preview-item").length === 1) {
+      $(".preview-item").click();
+    }
+  });
+
+  // Preview item => toggle
+  $(document).on("click", ".preview-item", function() {
+    toggleSearchItemSelection($(this));
+    $("#program-preview").hide().empty();
+  });
+
+  // “Top Program Box” => toggle
+  $(document).on("click", ".top-program-box", function() {
+    toggleProgramSelection($(this));
+  });
+
+  // Remove row => recalc
+  $(document).on("click", ".remove-btn", function() {
+    $(this).closest(".program-row").remove();
+    calculateTotal();
+  });
+
+  // Toggle “Travel” vs “Cash”
+  $(document).on("click", ".toggle-btn", function() {
+    $(".toggle-btn").removeClass("active");
+    $(this).addClass("active");
+    const viewType = $(this).data("view");
+    buildOutputRows(viewType);
+  });
+
+  // Clicking output-row => expand/collapse use-case (travel only)
+  $(document).on("click", ".output-row", function() {
+    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
+      return;
+    }
+    $(".usecase-accordion:visible").slideUp();
+    const panel = $(this).next(".usecase-accordion");
+    if (panel.is(":visible")) {
+      panel.slideUp();
+    } else {
+      panel.slideDown();
+    }
+  });
+
+  /*******************************************************
+   * D) Attach “Send Report” + Email Retype
+   *******************************************************/
+  const sendBtn = document.getElementById("send-results-btn");
+  if (sendBtn) {
+    sendBtn.addEventListener("click", sendReport);
   }
-  $(".usecase-accordion:visible").slideUp();
-  const panel = $(this).next(".usecase-accordion");
-  if (panel.is(":visible")) {
-    panel.slideUp();
-  } else {
-    panel.slideDown();
-  }
+  document.getElementById("email-input").addEventListener("input", function() {
+    if (sendBtn.textContent === "Report Sent") {
+      sendBtn.textContent = "Send Report";
+      sendBtn.disabled = false;
+    }
+  });
 });
-
-// 16) Program search => filter on input
-$("#program-search").on("input", filterPrograms);
-
-// 17) Clicking a preview item => toggle selection
-$(document).on("click", ".preview-item", function() {
-  toggleSearchItemSelection($(this));
-  $("#program-preview").hide().empty();
-});
-
-// 18) Clicking a top-program box => toggle selection
-$(document).on("click", ".top-program-box", function() {
-  toggleProgramSelection($(this));
-});
-
-// 19) “Clear All”
-$("#clear-all-btn").on("click", function() {
-  clearAllPrograms();
-});
-
-// 20) Clicking a remove button => remove row
-$(document).on("click", ".remove-btn", function() {
-  $(this).closest(".program-row").remove();
-  calculateTotal();
-});
-
-// 21) “Send Results” => sendReport
-const sendBtn = document.getElementById("send-results-btn");
-if (sendBtn) {
-  sendBtn.addEventListener("click", sendReport);
-}
-
-// 22) If user re-types an email => revert
-document.getElementById("email-input").addEventListener("input", function() {
-  if (sendBtn.textContent === "Report Sent") {
-    sendBtn.textContent = "Send Report";
-    sendBtn.disabled = false;
-  }
-});
-
-// 23) Clicking a .mini-pill => useCaseObj
-$(document).on("click", ".mini-pill", function(e) {
-  e.stopPropagation();
-  $(this).siblings().removeClass("active");
-  $(this).addClass("active");
-
-  const usecaseId = $(this).data("usecase-id");
-  const useCaseObj = realWorldUseCases[usecaseId];
-  if (!useCaseObj) return;
-
-  const panel  = $(this).closest(".usecases-panel");
-  const imageEl= panel.find(".image-wrap img");
-  const titleEl= panel.find(".uc-title");
-  const bodyEl = panel.find(".uc-body");
-
-  imageEl.attr("src", useCaseObj["Use Case URL"] || "");
-  titleEl.text(useCaseObj["Use Case Title"] || "Untitled");
-  bodyEl.text(useCaseObj["Use Case Body"] || "No description");
-});
-
