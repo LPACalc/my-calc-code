@@ -101,16 +101,16 @@ button {
 
 
 .calc-footer {
-  position: sticky;    /* “sticks” relative to the .right-column container */
-  bottom: 0;           /* pinned to bottom of the right column */
-  display: flex;       /* use Flexbox */
+  position: sticky;       /* sticks within the .right-column container */
+  bottom: 0;              /* pinned to bottom of .right-column */
+  display: flex;
   justify-content: center; 
   align-items: center; 
-  background-color: #fff;
+  background-color: #fff; 
   text-align: center;
   padding: 1rem;
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-  z-index: 9999;       /* on top of the content */
+  z-index: 9999;          /* on top of content */
 }
 
 
@@ -437,24 +437,23 @@ button {
   z-index: 9999;        /* on top of content */
 }
 
-/* Next button => pill style */
+/* Reuse .next-btn as the style for all CTAs */
 .next-btn {
   border: none;
-  border-radius: 9999px; /* full pill shape */
-  background-color: #1a2732; /* dark blue */
+  border-radius: 9999px;   /* pill shape */
+  background-color: #1a2732;
   color: #fff;
   font-size: 16px;
   font-weight: 600;
   padding: 0.75rem 2rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin: 0 auto;  /* helps center if used in a flex or text-align context */
-  display: inline-block;
+  margin: 0 0.5rem;        /* small horizontal spacing if you have multiple buttons */
 }
+
 .next-btn:hover {
   background-color: #141d28;
 }
-
 /* Inline back button */
 .back-btn {
   border: none;
