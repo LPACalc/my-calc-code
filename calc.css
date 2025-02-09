@@ -724,7 +724,7 @@ button {
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 1rem;
-  background-color: #f5f7fa; /* a subtle background like your ref */
+  background-color: ; /* a subtle background like your ref */
 }
 .section-title {
   text-align: center;
