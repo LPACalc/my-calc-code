@@ -683,37 +683,59 @@ async function sendReport() {
 
 /*******************************************************
  * T) BUILD USE CASE ACCORDION => Per-Program
- *   - Only recommended
- *   - Up to 4
- *   - Sort by ascending Points Required
- *   - First is default "active"
+ *   Filter out use cases that require more points
+ *   than the user currently has.
  *******************************************************/
+
+/**
+ * getUserTotalPoints => sums up the user's total points
+ * from chosen programs or .program-row input fields.
+ */
+function getUserTotalPoints() {
+  let totalPoints = 0;
+  // Example approach:
+  $(".program-row").each(function() {
+    const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
+    const points = parseInt(pointsStr, 10) || 0;
+    totalPoints += points;
+  });
+  return totalPoints;
+}
+
+/**
+ * buildUseCaseAccordionContent => returns HTML
+ * for a hidden accordion containing recommended use cases
+ * that match the user's total points.
+ */
 function buildUseCaseAccordionContent(recordId) {
   const program = loyaltyPrograms[recordId];
   if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
+    return `<div style="padding:1rem;">No data found for this program.</div>`;
   }
 
-  // Filter recommended = true
+  // How many points does user have?
+  const userPoints = getUserTotalPoints();
+
+  // Filter out use cases the user can't afford
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     const linked = uc["Program Name"] || [];
-    return linked.includes(recordId);
-  });
+    if (!linked.includes(recordId)) return false;
 
-  // Sort ascending
-  matchingUseCases.sort((a, b) => {
-    const aPoints = a["Points Required"] || 0;
-    const bPoints = b["Points Required"] || 0;
-    return aPoints - bPoints;
+    const pointsReq = uc["Points Required"] || 0;
+    return userPoints >= pointsReq; // user must have enough points
   });
-
-  // Limit to 4
-  matchingUseCases = matchingUseCases.slice(0, 4);
 
   if (!matchingUseCases.length) {
-    return `<div style="padding:1rem;">No recommended use cases found.</div>`;
+    return `<div style="padding:1rem;">No applicable use cases for your points.</div>`;
   }
+
+  // Sort by ascending "Points Required"
+  matchingUseCases.sort((a, b) => {
+    const aReq = a["Points Required"] || 0;
+    const bReq = b["Points Required"] || 0;
+    return aReq - bReq;
+  });
 
   // Build pills
   let pillsHTML = "";
@@ -727,19 +749,21 @@ function buildUseCaseAccordionContent(recordId) {
     `;
   });
 
+  // Default to the first use case's content
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"] || "";
-  const title    = first["Use Case Title"] || "Untitled";
-  const body     = first["Use Case Body"]  || "No description";
+  const title = first["Use Case Title"] || "Untitled";
+  const body = first["Use Case Body"] || "No description";
 
   return `
     <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
       <!-- Pills row -->
-      <div class="pills-container" style="display:flex; flex-wrap:wrap;">
+      <div class="pills-container" style="display:flex; flex-wrap:wrap; gap:8px;">
         ${pillsHTML}
       </div>
-      <!-- Image left, text right -->
-      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
+
+      <!-- Display area (image + text) -->
+      <div class="usecase-details" style="display:flex; gap:1rem;">
         <div class="image-wrap" style="max-width:180px;">
           <img
             src="${imageURL}"
@@ -749,12 +773,38 @@ function buildUseCaseAccordionContent(recordId) {
         </div>
         <div class="text-wrap" style="flex:1;">
           <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;">${title}</h4>
-          <p class="uc-body" style="font-size:14px; line-height:1.4; color:#555; margin:0;">${body}</p>
+          <p class="uc-body" style="font-size:14px; line-height:1.4; margin:0; color:#555;">
+            ${body}
+          </p>
         </div>
       </div>
     </div>
   `;
 }
+
+/**
+ * Click Handler => .mini-pill
+ * Swap image/title/body for the clicked use case
+ */
+$(document).on("click", ".mini-pill", function(e) {
+  e.stopPropagation();
+  $(this).siblings().removeClass("active");
+  $(this).addClass("active");
+
+  const usecaseId = $(this).data("usecase-id");
+  const useCaseObj = realWorldUseCases[usecaseId];
+  if (!useCaseObj) return;
+
+  const panel  = $(this).closest(".usecases-panel");
+  const imageEl= panel.find(".image-wrap img");
+  const titleEl= panel.find(".uc-title");
+  const bodyEl = panel.find(".uc-body");
+
+  imageEl.attr("src", useCaseObj["Use Case URL"] || "");
+  titleEl.text(useCaseObj["Use Case Title"] || "Untitled");
+  bodyEl.text(useCaseObj["Use Case Body"] || "No description");
+});
+
 
 /*******************************************************
  * U) REPLACE buildOutputRows => Show "Total Value", row clickable
@@ -880,100 +930,44 @@ function showCTAsForState(state) {
   SECTION V: DOCUMENT READY
 ======================================================*/
 $(document).ready(async function() {
-  /*******************************************************
-   * A) Initialize + Helper
-   *******************************************************/
-
   // 1) Initialize any static pills in #usecase-state (if used)
   initNavyShowcase();
 
   // 2) Fetch data & build top programs
   await initializeApp().catch(err => console.error("initApp error =>", err));
 
-  /**
-   * showCTAsForState => hides all footer CTAs, then shows
-   * only the relevant button(s) for a given "state" key.
-   */
-  function showCTAsForState(state) {
-    // Hide every CTA
-    $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
-
-    // Show only what's relevant
-    switch (state) {
-      case "default":
-        $("#get-started-btn").show();
-        break;
-
-      case "input":
-        // Show input-next if chosenPrograms > 0
-        if (chosenPrograms.length > 0) {
-          $("#input-next-btn").show();
-        }
-        break;
-
-      case "calculator":
-        $("#to-output-btn").show();
-        break;
-
-      case "output":
-        $("#unlock-report-btn").show();
-        break;
-
-      case "usecase":
-        $("#usecase-next-btn").show();
-        break;
-
-      case "send-report":
-        $("#send-report-next-btn").show();
-        break;
-
-      default:
-        // no buttons
-        break;
-    }
-  }
-
-  /**
-   * updateNextCTAVisibility => decides if #input-next-btn
-   * should show while in Input State
-   */
-  function updateNextCTAVisibility() {
-    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
-      $("#input-next-btn").show();
-    } else {
-      $("#input-next-btn").hide();
-    }
-  }
-
-  // Hide all states (and CTAs) at start => show default hero
+  /********************************************
+   * A) Hide all states initially => show default
+   ********************************************/
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
-  showCTAsForState("default");
+  // If using a “showCTAsForState” helper, call it here:
+  // showCTAsForState("default");
 
-  /*******************************************************
-   * B) Transitions
-   *******************************************************/
+  /********************************************
+   * B) STATE TRANSITIONS
+   ********************************************/
 
-  // “Get Started” => goes to Input
+  // GET STARTED => default hero to input
   $("#get-started-btn").on("click", function() {
     hideAllStates();
     $("#input-state").show();
     updateStageGraphic("input");
 
-    showCTAsForState("input");
+    // Possibly show or hide CTAs for input state
+    // showCTAsForState("input");
   });
 
-  // “Input -> Back” => Default Hero
+  // INPUT => BACK => default hero
   $("#input-back-btn").on("click", function() {
     hideAllStates();
     $("#default-hero").show();
     updateStageGraphic("default");
-
-    showCTAsForState("default");
+    // showCTAsForState("default");
   });
 
-  // “Input -> Next” => Calculator
+  // INPUT => NEXT => calculator
   $("#input-next-btn").on("click", function() {
     hideAllStates();
     $("#calculator-state").fadeIn();
@@ -983,125 +977,92 @@ $(document).ready(async function() {
     $("#program-container").empty();
     chosenPrograms.forEach(recordId => addProgramRow(recordId));
 
-    showCTAsForState("calculator");
+    // showCTAsForState("calculator");
   });
 
-  // “Calculator -> Back” => Input
+  // CALCULATOR => BACK => input
   $("#calc-back-btn").on("click", function() {
     hideAllStates();
     $("#input-state").fadeIn();
     updateStageGraphic("input");
-
-    showCTAsForState("input");
+    // showCTAsForState("input");
   });
 
-  // “Calculator -> Next” => Output
+  // CALCULATOR => NEXT => output
   $("#to-output-btn").on("click", function() {
     hideAllStates();
     $("#output-state").fadeIn();
     updateStageGraphic("output");
 
-    // Default to Travel
+    // Default to Travel view
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
 
-    showCTAsForState("output");
+    // showCTAsForState("output");
   });
 
-  // “Output -> Back” => Calculator
+  // OUTPUT => BACK => calculator
   $("#output-back-btn").on("click", function() {
     hideAllStates();
     $("#calculator-state").show();
     updateStageGraphic("calc");
-
-    showCTAsForState("calculator");
+    // showCTAsForState("calculator");
   });
 
-  // “Unlock Full Report” => show email entry
+  // UNLOCK => show email section in output
   $("#unlock-report-btn").on("click", function() {
     $("#save-results-section").show();
   });
 
-  // “Usecase -> Back” => Output
+  // USECASE => BACK => output
   $("#usecase-back-btn").on("click", function() {
     hideAllStates();
     $("#output-state").show();
     updateStageGraphic("output");
-
-    showCTAsForState("output");
+    // showCTAsForState("output");
   });
 
-  // “Usecase -> Next” => Send-Report
+  // USECASE => NEXT => send-report
   $("#usecase-next-btn").on("click", function() {
     hideAllStates();
     $("#send-report-state").fadeIn();
     updateStageGraphic("sendReport");
-
-    showCTAsForState("send-report");
+    // showCTAsForState("send-report");
   });
 
-  // “Send-Report -> Back” => Usecase
+  // SEND-REPORT => BACK => usecase
   $("#send-report-back-btn").on("click", function() {
     hideAllStates();
     $("#usecase-state").fadeIn();
     updateStageGraphic("usecase");
-
-    showCTAsForState("usecase");
+    // showCTAsForState("usecase");
   });
 
-  // “Send-Report -> Next” => Submission Takeover
+  // SEND-REPORT => NEXT => submission
   $("#send-report-next-btn").on("click", function() {
     hideAllStates();
     $("#submission-takeover").fadeIn();
   });
 
-  // “Go Back” in submission => output
+  // SUBMISSION => “Go Back” => output
   $("#go-back-btn").on("click", function() {
     hideAllStates();
     $("#output-state").fadeIn();
     updateStageGraphic("output");
-
-    showCTAsForState("output");
+    // showCTAsForState("output");
   });
 
-  // Explore Concierge => external link
+  // Explore concierge => external link
   $("#explore-concierge-btn").on("click", function() {
     window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
 
-  /*******************************************************
-   * C) Other Listeners (Search, Program Toggling, etc.)
-   *******************************************************/
 
-  // Program search => filter
-  $("#program-search").on("input", filterPrograms);
-
-  // If user presses Enter & only one => auto-add
-  $(document).on("keypress", "#program-search", function(e) {
-    if (e.key === "Enter" && $(".preview-item").length === 1) {
-      $(".preview-item").click();
-    }
-  });
-
-  // Preview item => toggle
-  $(document).on("click", ".preview-item", function() {
-    toggleSearchItemSelection($(this));
-    $("#program-preview").hide().empty();
-  });
-
-  // “Top Program Box” => toggle
-  $(document).on("click", ".top-program-box", function() {
-    toggleProgramSelection($(this));
-  });
-
-  // Remove row => recalc
-  $(document).on("click", ".remove-btn", function() {
-    $(this).closest(".program-row").remove();
-    calculateTotal();
-  });
-
-  // Toggle “Travel” vs “Cash”
+  /********************************************
+   * C) OUTPUT ROW LOGIC + TOGGLE “TRAVEL” vs “CASH”
+   ********************************************/
+  // Travel vs Cash toggles
   $(document).on("click", ".toggle-btn", function() {
     $(".toggle-btn").removeClass("active");
     $(this).addClass("active");
@@ -1109,12 +1070,16 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // Clicking output-row => expand/collapse use-case (travel only)
+  // Clicking an .output-row => expand/collapse usecase-accordion (travel only)
   $(document).on("click", ".output-row", function() {
+    // If cash active => do nothing
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return; // do nothing in Cash mode
+      return;
     }
+    // Hide any open accordion
     $(".usecase-accordion:visible").slideUp();
+
+    // Toggle this row’s panel
     const panel = $(this).next(".usecase-accordion");
     if (panel.is(":visible")) {
       panel.slideUp();
@@ -1123,13 +1088,38 @@ $(document).ready(async function() {
     }
   });
 
-  /*******************************************************
-   * D) Attach “Send Report” + Email Retype
-   *******************************************************/
+
+  /********************************************
+   * D) PROGRAM SEARCH, CLEAR ALL, ETC.
+   ********************************************/
+  $("#program-search").on("input", filterPrograms);
+
+  $(document).on("click", ".preview-item", function() {
+    toggleSearchItemSelection($(this));
+    $("#program-preview").hide().empty();
+  });
+  $(document).on("click", ".top-program-box", function() {
+    toggleProgramSelection($(this));
+  });
+  $("#clear-all-btn").on("click", function() {
+    clearAllPrograms();
+  });
+
+  $(document).on("click", ".remove-btn", function() {
+    $(this).closest(".program-row").remove();
+    calculateTotal();
+  });
+
+
+  /********************************************
+   * E) SENDING REPORT
+   ********************************************/
   const sendBtn = document.getElementById("send-results-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", sendReport);
   }
+
+  // If user re-types email after sending => revert
   document.getElementById("email-input").addEventListener("input", function() {
     if (sendBtn.textContent === "Report Sent") {
       sendBtn.textContent = "Send Report";
@@ -1137,6 +1127,7 @@ $(document).ready(async function() {
     }
   });
 });
+
 
 
 
