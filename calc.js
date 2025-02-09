@@ -824,32 +824,44 @@ function hideAllStates() {
 }
 
 
+/*******************************************************
+ * CTA HELPER => showCTAsForState
+ *******************************************************/
 function showCTAsForState(state) {
-  // Hide every CTA in the sticky footer
+  // Hide all CTA buttons in the sticky footer
   $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
 
+  // Show only what's relevant for the given state
   switch (state) {
     case "default":
       $("#get-started-btn").show();
       break;
+
     case "input":
+      // Show #input-next-btn only if at least one program is chosen
       if (chosenPrograms.length > 0) {
         $("#input-next-btn").show();
       }
       break;
+
     case "calculator":
       $("#to-output-btn").show();
       break;
+
     case "output":
       $("#unlock-report-btn").show();
       break;
+
     case "usecase":
       $("#usecase-next-btn").show();
       break;
+
     case "send-report":
       $("#send-report-next-btn").show();
       break;
+
     default:
+      // no CTA
       break;
   }
 }
@@ -858,155 +870,177 @@ function showCTAsForState(state) {
 /*======================================================
   SECTION V: DOCUMENT READY
 ======================================================*/
-$(document).ready(async function() {
-  initNavyShowcase();
-  await initializeApp().catch(err => console.error("initApp error =>", err));
+// 1) “Get Started” => default hero to input
+$("#get-started-btn").on("click", function() {
+  hideAllStates();
+  $("#input-state").show();
+  updateStageGraphic("input");
+});
 
+// 2) “Input -> Back” => default hero
+$("#input-back-btn").on("click", function() {
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
-
-  // GET STARTED => default hero to input
-  $("#get-started-btn").on("click", function() {
-    hideAllStates();
-    $("#input-state").show();
-    updateStageGraphic("input");
-  });
-
-  // INPUT => BACK => default hero
-  $("#input-back-btn").on("click", function() {
-    hideAllStates();
-    $("#default-hero").show();
-    updateStageGraphic("default");
-  });
-
-  // INPUT => NEXT => calculator
-  $("#input-next-btn").on("click", function() {
-    hideAllStates();
-    $("#calculator-state").fadeIn();
-    updateStageGraphic("calc");
-
-    $("#program-container").empty();
-    chosenPrograms.forEach(recordId => addProgramRow(recordId));
-  });
-
-  // CALCULATOR => BACK => input
-  $("#calc-back-btn").on("click", function() {
-    hideAllStates();
-    $("#input-state").fadeIn();
-    updateStageGraphic("input");
-  });
-
-  // CALCULATOR => NEXT => output
-  $("#to-output-btn").on("click", function() {
-    hideAllStates();
-    $("#output-state").fadeIn();
-    updateStageGraphic("output");
-
-    $(".toggle-btn").removeClass("active");
-    $(".toggle-btn[data-view='travel']").addClass("active");
-    buildOutputRows("travel");
-  });
-
-  // OUTPUT => BACK => calculator
-  $("#output-back-btn").on("click", function() {
-    hideAllStates();
-    $("#calculator-state").show();
-    updateStageGraphic("calc");
-  });
-
-  // UNLOCK => show email
-  $("#unlock-report-btn").on("click", function() {
-    $("#save-results-section").show();
-  });
-
-  // USECASE => BACK => output
-  $("#usecase-back-btn").on("click", function() {
-    hideAllStates();
-    $("#output-state").show();
-    updateStageGraphic("output");
-  });
-
-  // USECASE => NEXT => send-report
-  $("#usecase-next-btn").on("click", function() {
-    hideAllStates();
-    $("#send-report-state").fadeIn();
-    updateStageGraphic("sendReport");
-  });
-
-  // SEND-REPORT => BACK => usecase
-  $("#send-report-back-btn").on("click", function() {
-    hideAllStates();
-    $("#usecase-state").fadeIn();
-    updateStageGraphic("usecase");
-  });
-
-  // SEND-REPORT => NEXT => submission
-  $("#send-report-next-btn").on("click", function() {
-    hideAllStates();
-    $("#submission-takeover").fadeIn();
-  });
-
-  // SUBMISSION => “Go Back” => output
-  $("#go-back-btn").on("click", function() {
-    hideAllStates();
-    $("#output-state").fadeIn();
-    updateStageGraphic("output");
-  });
-
-  $("#explore-concierge-btn").on("click", function() {
-    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
-  });
-
-  // Travel vs Cash
-  $(document).on("click", ".toggle-btn", function() {
-    $(".toggle-btn").removeClass("active");
-    $(this).addClass("active");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
-  });
-
-  // Clicking an .output-row => expand/collapse usecase-accordion
-  $(document).on("click", ".output-row", function() {
-    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return;
-    }
-    $(".usecase-accordion:visible").slideUp();
-    const panel = $(this).next(".usecase-accordion");
-    if (panel.is(":visible")) {
-      panel.slideUp();
-    } else {
-      panel.slideDown();
-    }
-  });
-
-  $("#program-search").on("input", filterPrograms);
-
-  $(document).on("click", ".preview-item", function() {
-    toggleSearchItemSelection($(this));
-    $("#program-preview").hide().empty();
-  });
-  $(document).on("click", ".top-program-box", function() {
-    toggleProgramSelection($(this));
-  });
-  $("#clear-all-btn").on("click", function() {
-    clearAllPrograms();
-  });
-
-  $(document).on("click", ".remove-btn", function() {
-    $(this).closest(".program-row").remove();
-    calculateTotal();
-  });
-
-  const sendBtn = document.getElementById("send-results-btn");
-  if (sendBtn) {
-    sendBtn.addEventListener("click", sendReport);
-  }
-
-  document.getElementById("email-input").addEventListener("input", function() {
-    if (sendBtn.textContent === "Report Sent") {
-      sendBtn.textContent = "Send Report";
-      sendBtn.disabled = false;
-    }
-  });
 });
+
+// 3) “Input -> Next” => calculator
+$("#input-next-btn").on("click", function() {
+  hideAllStates();
+  $("#calculator-state").fadeIn();
+  updateStageGraphic("calc");
+
+  $("#program-container").empty();
+  chosenPrograms.forEach(recordId => addProgramRow(recordId));
+});
+
+// 4) “Calculator -> Back” => input
+$("#calc-back-btn").on("click", function() {
+  hideAllStates();
+  $("#input-state").fadeIn();
+  updateStageGraphic("input");
+});
+
+// 5) “Calculator -> Next” => output
+$("#to-output-btn").on("click", function() {
+  hideAllStates();
+  $("#output-state").fadeIn();
+  updateStageGraphic("output");
+
+  $(".toggle-btn").removeClass("active");
+  $(".toggle-btn[data-view='travel']").addClass("active");
+  buildOutputRows("travel");
+});
+
+// 6) “Output -> Back” => calculator
+$("#output-back-btn").on("click", function() {
+  hideAllStates();
+  $("#calculator-state").show();
+  updateStageGraphic("calc");
+});
+
+// 7) “Unlock => Show Email” in output
+$("#unlock-report-btn").on("click", function() {
+  $("#save-results-section").show();
+});
+
+// 8) “Usecase -> Back” => output
+$("#usecase-back-btn").on("click", function() {
+  hideAllStates();
+  $("#output-state").show();
+  updateStageGraphic("output");
+});
+
+// 9) “Usecase -> Next” => send-report
+$("#usecase-next-btn").on("click", function() {
+  hideAllStates();
+  $("#send-report-state").fadeIn();
+  updateStageGraphic("sendReport");
+});
+
+// 10) “Send-Report -> Back” => usecase
+$("#send-report-back-btn").on("click", function() {
+  hideAllStates();
+  $("#usecase-state").fadeIn();
+  updateStageGraphic("usecase");
+});
+
+// 11) “Send-Report -> Next” => submission
+$("#send-report-next-btn").on("click", function() {
+  hideAllStates();
+  $("#submission-takeover").fadeIn();
+});
+
+// 12) SUBMISSION => “Go Back” => output
+$("#go-back-btn").on("click", function() {
+  hideAllStates();
+  $("#output-state").fadeIn();
+  updateStageGraphic("output");
+});
+
+// 13) “Explore Concierge” => external link
+$("#explore-concierge-btn").on("click", function() {
+  window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
+});
+
+// 14) Toggle “Travel” vs “Cash” in output
+$(document).on("click", ".toggle-btn", function() {
+  $(".toggle-btn").removeClass("active");
+  $(this).addClass("active");
+  const viewType = $(this).data("view");
+  buildOutputRows(viewType);
+});
+
+// 15) Clicking an .output-row => expand/collapse usecase-accordion (if Travel)
+$(document).on("click", ".output-row", function() {
+  if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
+    return;
+  }
+  $(".usecase-accordion:visible").slideUp();
+  const panel = $(this).next(".usecase-accordion");
+  if (panel.is(":visible")) {
+    panel.slideUp();
+  } else {
+    panel.slideDown();
+  }
+});
+
+// 16) Program search => filter on input
+$("#program-search").on("input", filterPrograms);
+
+// 17) Clicking a preview item => toggle selection
+$(document).on("click", ".preview-item", function() {
+  toggleSearchItemSelection($(this));
+  $("#program-preview").hide().empty();
+});
+
+// 18) Clicking a top-program box => toggle selection
+$(document).on("click", ".top-program-box", function() {
+  toggleProgramSelection($(this));
+});
+
+// 19) “Clear All”
+$("#clear-all-btn").on("click", function() {
+  clearAllPrograms();
+});
+
+// 20) Clicking a remove button => remove row
+$(document).on("click", ".remove-btn", function() {
+  $(this).closest(".program-row").remove();
+  calculateTotal();
+});
+
+// 21) “Send Results” => sendReport
+const sendBtn = document.getElementById("send-results-btn");
+if (sendBtn) {
+  sendBtn.addEventListener("click", sendReport);
+}
+
+// 22) If user re-types an email => revert
+document.getElementById("email-input").addEventListener("input", function() {
+  if (sendBtn.textContent === "Report Sent") {
+    sendBtn.textContent = "Send Report";
+    sendBtn.disabled = false;
+  }
+});
+
+// 23) Clicking a .mini-pill => useCaseObj
+$(document).on("click", ".mini-pill", function(e) {
+  e.stopPropagation();
+  $(this).siblings().removeClass("active");
+  $(this).addClass("active");
+
+  const usecaseId = $(this).data("usecase-id");
+  const useCaseObj = realWorldUseCases[usecaseId];
+  if (!useCaseObj) return;
+
+  const panel  = $(this).closest(".usecases-panel");
+  const imageEl= panel.find(".image-wrap img");
+  const titleEl= panel.find(".uc-title");
+  const bodyEl = panel.find(".uc-body");
+
+  imageEl.attr("src", useCaseObj["Use Case URL"] || "");
+  titleEl.text(useCaseObj["Use Case Title"] || "Untitled");
+  bodyEl.text(useCaseObj["Use Case Body"] || "No description");
+});
+
