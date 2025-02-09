@@ -884,7 +884,7 @@ $(document).ready(async function() {
    * A) Initialize + Helper
    *******************************************************/
 
-  // 1) Initialize static pills in #usecase-state (if used)
+  // 1) Initialize any static pills in #usecase-state (if used)
   initNavyShowcase();
 
   // 2) Fetch data & build top programs
@@ -916,7 +916,6 @@ $(document).ready(async function() {
         break;
 
       case "output":
-        // “Unlock Full Report” button for output
         $("#unlock-report-btn").show();
         break;
 
@@ -962,12 +961,16 @@ $(document).ready(async function() {
     $("#input-state").show();
     updateStageGraphic("input");
 
-    showCTAsForState("input"); // let user add programs before Next is shown
+    showCTAsForState("input");
   });
 
-  // “Clear All”
-  $("#clear-all-btn").on("click", function() {
-    clearAllPrograms();
+  // “Input -> Back” => Default Hero
+  $("#input-back-btn").on("click", function() {
+    hideAllStates();
+    $("#default-hero").show();
+    updateStageGraphic("default");
+
+    showCTAsForState("default");
   });
 
   // “Input -> Next” => Calculator
@@ -976,7 +979,7 @@ $(document).ready(async function() {
     $("#calculator-state").fadeIn();
     updateStageGraphic("calc");
 
-    // Build rows from chosenPrograms
+    // Build program rows from chosenPrograms
     $("#program-container").empty();
     chosenPrograms.forEach(recordId => addProgramRow(recordId));
 
@@ -1015,7 +1018,7 @@ $(document).ready(async function() {
     showCTAsForState("calculator");
   });
 
-  // “Unlock Full Report” => show email
+  // “Unlock Full Report” => show email entry
   $("#unlock-report-btn").on("click", function() {
     $("#save-results-section").show();
   });
@@ -1047,13 +1050,13 @@ $(document).ready(async function() {
     showCTAsForState("usecase");
   });
 
-  // “Send-Report -> Next” => Submission
+  // “Send-Report -> Next” => Submission Takeover
   $("#send-report-next-btn").on("click", function() {
     hideAllStates();
     $("#submission-takeover").fadeIn();
   });
 
-  // “Go Back” in submission => Output
+  // “Go Back” in submission => output
   $("#go-back-btn").on("click", function() {
     hideAllStates();
     $("#output-state").fadeIn();
@@ -1109,7 +1112,7 @@ $(document).ready(async function() {
   // Clicking output-row => expand/collapse use-case (travel only)
   $(document).on("click", ".output-row", function() {
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return;
+      return; // do nothing in Cash mode
     }
     $(".usecase-accordion:visible").slideUp();
     const panel = $(this).next(".usecase-accordion");
