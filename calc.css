@@ -99,27 +99,8 @@ button {
   gap: 1.5rem; /* spacing between cards (adjust as needed) */
 }
 
-@media (max-width: 767px) {
-  .three-cards-section .card-container {
-    grid-template-columns: repeat(1, 1fr); /* 1 column on smaller screens */
-  }
-}
 
-/* 
-   COMMENTED OUT the conflicting Flexbox rule below to avoid overriding the Grid layout.
 
-   Use flexbox and force no wrapping 
-   .three-cards-section .card-container {
-     display: flex;
-     flex-wrap: nowrap;
-     gap: 1.5rem;
-     justify-content: space-between; 
-   }
-
-   .three-cards-section .offer-card {
-     flex: 1 1 0;
-   }
-*/
 
 /*******************************************************
  * SECTION C: HERO (Default)
