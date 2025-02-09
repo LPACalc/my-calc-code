@@ -841,6 +841,96 @@ $(document).ready(async function() {
   // 2) Fetch data & build top programs
   await initializeApp().catch(err => console.error("initApp error =>", err));
 
+  // ========== A) HIDE ALL STATES EXCEPT DEFAULT HERO ==========
+  hideAllStates();
+  $("#default-hero").show();
+  updateStageGraphic("default");
+
+  // ========== B) “GET STARTED” => GO TO INPUT STATE ==========
+  $("#get-started-btn").show(); // ensure it's visible on load
+  $("#get-started-btn").on("click", function() {
+    // Hide default hero, hide "Get Started"
+    $("#default-hero").hide();
+    $(this).hide();  // “this” is the get-started-btn
+    
+    // Show input state
+    $("#input-state").show();
+    updateStageGraphic("input");
+
+    // *No next button visible yet, until we add a program*
+    $("#input-next-btn").hide();
+  });
+
+  // ========== C) WATCH PROGRAM ADDITIONS (to show Next) ==========
+  // Whenever we add a program, we call updateChosenProgramsDisplay(),
+  // but we also want to check if chosenPrograms.length > 0 => show #input-next-btn.
+
+  // Already in your code, we have a function "updateNextCTAVisibility()" 
+  // that runs after toggling programs. Let’s tweak it:
+
+  function updateNextCTAVisibility() {
+    // Only show "input-next-btn" if at least 1 program chosen 
+    // AND we're currently in the input-state
+    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
+      $("#input-next-btn").show();
+    } else {
+      $("#input-next-btn").hide();
+    }
+  }
+
+  // (Replace your existing updateNextCTAVisibility function with the above version.)
+
+  // ========== D) “Clear All” & “Top Program Box” listeners remain the same ==========
+  // (No changes needed, they already call updateNextCTAVisibility.)
+
+  // ========== E) "Input -> Next" => Calculator State ==========
+  // The #input-next-btn click handler is mostly fine, 
+  // just ensure it hides input-state & shows calculator-state. 
+  // (You already have that in your code.)
+
+  $("#input-next-btn").on("click", function() {
+    hideAllStates();
+    $("#calculator-state").fadeIn();
+    updateStageGraphic("calc");
+
+    // Build program rows now that we have chosenPrograms
+    $("#program-container").empty();
+    chosenPrograms.forEach(recordId => addProgramRow(recordId));
+  });
+
+  // ====== F) CALCULATOR => Back => Input
+  $("#calc-back-btn").on("click", function() {
+    hideAllStates();
+    $("#input-state").fadeIn();
+    updateStageGraphic("input");
+
+    // Possibly re-run updateNextCTAVisibility to show/hide next based on chosenPrograms
+    updateNextCTAVisibility();
+  });
+
+  // ====== G) CALCULATOR => Next => Output
+  $("#to-output-btn").on("click", function() {
+    hideAllStates();
+    $("#output-state").show();
+    updateStageGraphic("output");
+
+    // Default view is "Travel"
+    $(".toggle-btn").removeClass("active");
+    $(".toggle-btn[data-view='travel']").addClass("active");
+    buildOutputRows("travel");
+  });
+
+  // ====== H) OUTPUT => Back => Calculator
+  $("#output-back-btn").on("click", function() {
+    hideAllStates();
+    $("#calculator-state").show();
+    updateStageGraphic("calc");
+  });
+
+  // (and so on for your usecase -> next -> send-report, etc.)
+
+  // ========== I) The Rest of Your Document Ready Logic ==========
+
   // 3) Listen for user typing in program-search => filter the programs
   $("#program-search").on("input", filterPrograms);
 
@@ -871,7 +961,7 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // 8) Clicking an .output-row => expand/collapse the use-case accordion (if Travel)
+  // 8) Clicking an .output-row => expand/collapse the use-case accordion
   $(document).on("click", ".output-row", function() {
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
       return; // do nothing if Cash is active
@@ -912,90 +1002,7 @@ $(document).ready(async function() {
     sendBtn.addEventListener("click", sendReport);
   }
 
-  // 14) Hide all states initially; show the default hero
-  hideAllStates();
-  $("#default-hero").show();
-  updateStageGraphic("default");
-
-  // 15) “Get Started” => hero => input
-  $("#get-started-btn").on("click", function() {
-    hideAllStates();
-    $("#input-state").show();
-    updateStageGraphic("input");
-  });
-
-  // 16) input => back => hero
-  $("#input-back-btn").on("click", function() {
-    hideAllStates();
-    $("#default-hero").show();
-    updateStageGraphic("default");
-  });
-
-  // 17) calc => back => input
-  $("#calc-back-btn").on("click", function() {
-    hideAllStates();
-    $("#input-state").fadeIn();
-    updateStageGraphic("input");
-  });
-
-  // 18) calc => next => output
-  $("#to-output-btn").on("click", function() {
-    hideAllStates();
-    $("#output-state").show();
-    updateStageGraphic("output");
-
-    // Default view is "Travel" on arrival
-    $(".toggle-btn").removeClass("active");
-    $(".toggle-btn[data-view='travel']").addClass("active");
-
-    buildOutputRows("travel");
-  });
-
-  // 19) output => back => calc
-  $("#output-back-btn").on("click", function() {
-    hideAllStates();
-    $("#calculator-state").show();
-    updateStageGraphic("calc");
-  });
-
-  /* 
-     REMOVED the old #to-usecases-btn code 
-     that triggered going to usecase-state 
-  */
-
-  // 20) #unlock-report-btn => reveal hidden #save-results-section
-  $("#unlock-report-btn").on("click", function() {
-    $("#save-results-section").show();
-  });
-
-  // 21) usecase => back => output
-  $("#usecase-back-btn").on("click", function() {
-    hideAllStates();
-    $("#output-state").show();
-    updateStageGraphic("output");
-  });
-
-  // 22) usecase => next => send-report
-  $("#usecase-next-btn").on("click", function() {
-    hideAllStates();
-    $("#send-report-state").fadeIn();
-    updateStageGraphic("sendReport");
-  });
-
-  // 23) send-report => back => usecase
-  $("#send-report-back-btn").on("click", function() {
-    hideAllStates();
-    $("#usecase-state").fadeIn();
-    updateStageGraphic("usecase");
-  });
-
-  // 24) send-report => next => final submission takeover
-  $("#send-report-next-btn").on("click", function() {
-    hideAllStates();
-    $("#submission-takeover").fadeIn();
-  });
-
-  // 25) If user re-types an email after sending => revert the button text
+  // 14) If user re-types an email after sending => revert the button text
   document.getElementById("email-input").addEventListener("input", function() {
     const sendBtn = document.getElementById("send-results-btn");
     if (sendBtn.textContent === "Report Sent") {
@@ -1004,7 +1011,7 @@ $(document).ready(async function() {
     }
   });
 
-  // 26) “mini-pill” => switch use case details inside expanded panel
+  // 15) “mini-pill” => switch use case details inside expanded panel
   $(document).on("click", ".mini-pill", function(e) {
     e.stopPropagation();
     $(this).siblings().removeClass("active");
@@ -1024,6 +1031,7 @@ $(document).ready(async function() {
     bodyEl.text(useCaseObj["Use Case Body"] || "No description");
   });
 });
+
 
 
 
