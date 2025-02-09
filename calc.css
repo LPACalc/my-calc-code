@@ -104,18 +104,22 @@ button {
     grid-template-columns: repeat(1, 1fr); /* 1 column on smaller screens */
   }
 }
-/* Use flexbox and force no wrapping */
-.three-cards-section .card-container {
-  display: flex;
-  flex-wrap: nowrap; /* no wrapping => 3 across, but might overflow on small screens */
-  gap: 1.5rem;
-  justify-content: space-between; 
-}
 
-.three-cards-section .offer-card {
-  flex: 1 1 0; /* or specify a min-width if you want them a certain size */
-}
+/* 
+   COMMENTED OUT the conflicting Flexbox rule below to avoid overriding the Grid layout.
 
+   Use flexbox and force no wrapping 
+   .three-cards-section .card-container {
+     display: flex;
+     flex-wrap: nowrap;
+     gap: 1.5rem;
+     justify-content: space-between; 
+   }
+
+   .three-cards-section .offer-card {
+     flex: 1 1 0;
+   }
+*/
 
 /*******************************************************
  * SECTION C: HERO (Default)
