@@ -1,0 +1,966 @@
+/*******************************************************
+ * SECTION A: BASE & RESET
+ *******************************************************/
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+html, body {
+  height: 100%;
+  background-color: #F8FAFD;
+  color: #1D3A5F;
+  font-family: "Inter", Arial, sans-serif;
+  line-height: 1.5;
+}
+a {
+  text-decoration: none;
+}
+button {
+  cursor: pointer;
+  outline: none;
+  border: none;
+}
+
+/*******************************************************
+ * SECTION B: PAGE LAYOUT WRAPPER
+ *******************************************************/
+.page-wrap {
+  display: flex;
+  position: relative;
+  flex-wrap: nowrap;
+  width: 100%;
+  min-height: 100vh; /* ensure it fills the full height */
+}
+
+.left-column {
+  width: 25%;
+  min-width: 250px;
+  background-color: #F8FAFD;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  min-height: 100vh;
+}
+.stage-graphic {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 100px;
+  height: auto;
+  z-index: 1;
+  pointer-events: none;
+}
+.banner-fill {
+  width: auto;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 
+   RIGHT COLUMN as a vertical layout:
+   - Takes up 75% width
+   - 100vh tall to match left column
+   - Flexible scrolling content above the CTA 
+*/
+.right-column {
+  width: 75%;
+  display: flex;
+  flex-direction: column; 
+  height: 100vh;         /* match left column's height */
+  position: relative; 
+}
+
+.container {
+  /* 
+    This container will hold your main content and scroll if it’s taller than the viewport.
+    The sticky footer (calc-footer) is a sibling within .right-column.
+  */
+  flex: 1 1 auto;       /* take remaining vertical space */
+  overflow-y: auto;     /* scroll the content if it’s too tall */
+  padding: 0;
+  margin: 0;
+}
+
+
+
+/*******************************************************
+ * SECTION C: HERO (Default)
+ *******************************************************/
+.hero-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  text-align: center;
+  background: linear-gradient(160deg, #FFFFFF 0%, #F8FAFD 100%);
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  margin-bottom: 40px;
+}
+.hero-section h1 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: #000;
+  margin-bottom: 16px;
+}
+.hero-section h2 {
+  font-size: 20px;
+  font-weight: 400;
+  color: #555;
+  max-width: 800px;
+  margin: 0 auto 32px;
+}
+.cta-btn {
+  background-color: #007ACC;
+  color: #fff;
+  font-size: 18px;
+  padding: 14px 28px;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+.cta-btn:hover {
+  background-color: #005fa3;
+}
+
+/*******************************************************
+ * SECTION D: INPUT STATE
+ *******************************************************/
+#input-state {
+  display: none;
+  text-align: center;
+  padding: 20px;
+  max-width: 40rem;
+  margin: auto;
+}
+#input-state h1 {
+  font-size: 32px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: #333;
+}
+.points-info-box {
+  max-width: 600px;
+  margin: 0 auto 20px auto;
+  background-color: rgb(245 245 247);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  text-align: left;
+}
+.info-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.points-info-box p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
+  margin: 0;
+}
+.started-search-area {
+  margin: 20px auto 10px auto;
+  max-width: 600px;
+  position: relative;
+  text-align: center;
+}
+#program-search {
+  background: #fff url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/735e4cc6-bf47-4579-8c73-a95b66e4af18/icone-loupe-gris.png")
+    no-repeat right 16px center;
+  background-size: 20px 20px;
+  padding: 1rem;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid rgb(223, 229, 235);
+  outline: none;
+}
+#program-search:focus {
+  box-shadow: 0 0 4px rgba(0,0,0,0.15);
+}
+#program-preview {
+  position: absolute;
+  width: 100%;
+  max-width: 600px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffffff;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 9999;
+  display: none;
+}
+.preview-item {
+  padding: 12px 18px;
+  font-size: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  color: #2b2d42;
+}
+.preview-item:hover {
+  background-color: #f8fafd;
+}
+.preview-item.chosen-state {
+  background-color: #daf0ff; /* a light blue color */
+}
+.top-programs-section {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: left;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.popular-program-title {
+  margin: 10px 0;
+  text-align: left;
+}
+.top-programs-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.top-programs-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+.top-program-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: calc(33.333% - 15px);
+  background-color: #fff;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+  transition: box-shadow 0.2s ease;
+}
+.top-program-box:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.top-program-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  margin-right: 10px;
+}
+.top-program-label {
+  flex: 1;
+  font-size: 0.625rem;
+  font-weight: 400;
+  color: #2b2d42;
+  line-height: 1rem;
+  text-align: left;
+}
+.add-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #eee;
+  background-color: #fff;
+  color: #ccc;
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.5rem;
+  margin: 0;
+  cursor: pointer;
+  outline: none;
+}
+.add-btn:hover {
+  background-color: #ddd;
+  border-color: #bbb;
+}
+.top-program-box.selected-state .add-btn {
+  background-color: #007bff;
+  color: #fff;
+  content: "✓";
+  border: none;
+}
+.seleted-program-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  display: none; 
+  text-align: left;
+}
+
+/*******************************************************
+ * SECTION E: CALCULATOR STATE
+ *******************************************************/
+.calculator-state {
+  display: none;
+  padding: 20px;
+  max-height: 70vh;
+  overflow-y: auto;
+  max-width: 40rem;
+  margin: auto;
+  text-align: left;
+}
+.calc-header {
+  margin-bottom: 20px;
+  text-align: center;
+}
+.calc-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1D3A5F;
+  margin-bottom: 12px;
+}
+.info-box {
+  background-color: #f7f9fc;
+  border: 1px solid #e7eaf3;
+  border-radius: 8px;
+  padding: 16px;
+}
+.info-box p {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
+}
+.info-box em {
+  font-style: normal;
+  font-weight: 600;
+  color: #444;
+}
+.programs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/*******************************************************
+ * SECTION F: OUTPUT STATE
+ *******************************************************/
+.output-state {
+  display: none;
+  padding: 20px;
+  max-width: 40rem;
+  margin: 0 auto;
+  text-align: left;
+}
+.output-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; 
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.output-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
+.toggle-container {
+  display: inline-flex;
+  background-color: rgb(245 245 247);
+  border: 1px solid #dce3eb;
+  border-radius: 0.5rem;
+  padding: 4px;
+}
+.toggle-btn {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 18px;
+  color: #666;
+  padding: 1rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.toggle-btn:not(.active):hover {
+  background-color: #eaeaea;
+}
+.toggle-btn.active {
+  background-color: #fff;
+  color: #333;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  font-weight: 700;
+}
+
+/*******************************************************
+ * SECTION G: NEXT & BACK BUTTONS (Shared Footer)
+ *******************************************************/
+/* Sticky to the bottom of the right column only. */
+.calc-footer {
+  /* Place it below the scrolling .container in .right-column */
+  position: sticky;     /* “sticks” relative to the .right-column container */
+  bottom: 0;            /* pinned to bottom of right column */
+  background-color: #fff;
+  text-align: center;   
+  padding: 1rem;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+  z-index: 9999;        /* on top of content */
+}
+
+/* Next button => pill style */
+.next-btn {
+  border: none;
+  border-radius: 9999px; /* full pill shape */
+  background-color: #1a2732; /* dark blue */
+  color: #fff;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin: 0 auto;  /* helps center if used in a flex or text-align context */
+  display: inline-block;
+}
+.next-btn:hover {
+  background-color: #141d28;
+}
+
+/* Inline back button */
+.back-btn {
+  border: none;
+  border-radius: 0;
+  background: none;
+  color: #1a2732;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 10px;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.back-btn::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
+              no-repeat center center;
+  background-size: 24px 24px;
+  transition: opacity 0.2s ease;
+}
+.back-btn:hover::before {
+  opacity: 0.7;
+}
+
+/* A small container for the back button + title inline */
+.state-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+.state-title {
+  margin: 0;
+  padding: 0;
+  line-height: 1.2;
+}
+
+
+
+/*******************************************************
+ * SECTION H: ROWS, FIELDS, ETC.
+ *******************************************************/
+.output-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #DFE5EB;
+  padding: 1rem 0;
+  background-color: #fff;
+  cursor: pointer;
+  border: 1px solid #e5e9ef;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  transition: background-color 0.2s ease;
+}
+.output-row:hover {
+  background-color: #f8faff; /* slight hover highlight */
+}
+.output-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.output-logo {
+  width: 32px;
+  height: auto;
+  object-fit: contain;
+}
+.program-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1D3A5F;
+}
+.output-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a2732;
+}
+.program-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #DFE5EB;
+  padding: 1rem 0;
+  background-color: #fff;
+}
+.program-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.program-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.points-input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  text-align: left;
+  font-size: 16px;
+  color: #555;
+  width: 100%;
+}
+.program-logo {
+  width: 32px;
+  height: auto;
+  object-fit: contain;
+  margin-right: 1rem;
+}
+.dollar-input-container {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #DFE5EB;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  height: 2.75rem;
+  padding: 0 1rem;
+}
+.program-values {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  display: none;
+  gap: 1rem;
+}
+.value-card .label {
+  display: block;
+  font-size: 14px;
+  color: #555;
+}
+.value-card .amount {
+  font-size: 16px;
+  color: #007bff;
+  font-weight: 700;
+}
+.remove-btn {
+  font-size: 20px;
+  color: #dc3545;
+  cursor: pointer;
+  background: none;
+}
+
+/*******************************************************
+ * SECTION I: CLEAR ALL
+ *******************************************************/
+.clear-all-btn {
+  background-color: #dc3545;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+.clear-all-btn:hover {
+  background-color: #b32431;
+}
+
+/*******************************************************
+ * SECTION J: MODULE CONTAINERS & USECASE
+ *******************************************************/
+.module-container {
+  width: 100%;
+  background-color: #1a2732;
+  padding: 0px 0px 0px 0px;
+  margin: 0 auto;
+}
+.inner-content {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #fff;
+  padding: 0 20px;
+}
+.module-title h1 {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  margin-top: 0;
+  text-align: center;
+  color: #fff;
+}
+.module-subtitle {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+.points-options {
+  display: flex;
+  justify-content: center;
+  column-gap: 40px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+.point-option {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 20px;
+  position: relative;
+  margin: 10px 0;
+  transition: background-color 0.2s;
+}
+.point-option.active,
+.point-option:hover {
+  background-color: #2e4461;
+}
+.points-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.points-view-img {
+  flex: 0 1 400px;
+  max-width: 400px;
+}
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  max-height:225px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  display: block;
+}
+.points-view-content {
+  flex: 1 1 300px;
+  text-align: left;
+}
+.points-state-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.points-state-description {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #f0f0f0;
+  max-width: 400px;
+}
+
+/*******************************************************
+ * SECTION K: USECASE STATE
+ *******************************************************/
+#usecase-state {
+  background-color: #1a2732; /* Or whatever shade of blue you want */
+  color: #fff;              /* Ensure text is visible on dark bg */
+  min-height: 100vh; 
+  padding: 40px 20px;
+  height: 100%; 
+  object-fit: cover; /* fills the column’s vertical space */
+}
+#usecase-state .module-title h1 {
+  font-size: 24px;
+  line-height: 1.2;
+  margin-bottom: 12px;
+}
+#usecase-state .module-subtitle {
+  font-size: 14px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+#usecase-state .point-option {
+  font-size: 14px;
+  padding: 6px 12px;
+}
+#usecase-state .points-view-img,
+#usecase-state .points-view-content {
+  flex: 1 1 45%;
+  max-width: 45%;
+}
+#usecase-state .image-wrapper img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+/*******************************************************
+ * SECTION L: THREE CARDS LAYOUT (Landing/Hero)
+ *******************************************************/
+.three-cards-section {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 1rem;
+  background-color: #f5f7fa; /* a subtle background like your ref */
+}
+.section-title {
+  text-align: center;
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  color: #333;
+}
+.section-intro {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 3rem;
+  color: #555;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+.card-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 2rem;
+}
+.offer-card {
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+.offer-card-image {
+  width: 60px;
+  height: 60px;
+  margin-bottom: 1rem;
+  object-fit: contain;
+}
+.offer-card-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #222;
+}
+.offer-card-text {
+  font-size: 1.1rem;
+  line-height: 1.5;
+  color: #444;
+}
+
+/*******************************************************
+ * SECTION M: MEDIA QUERIES
+ *******************************************************/
+@media (max-width: 992px) {
+  .page-wrap {
+    flex-direction: column;
+  }
+  .left-column {
+    display: none;
+  }
+  .right-column {
+    width: 100%;
+  }
+}
+@media (max-width: 768px) {
+  .top-program-box {
+    width: 100%;
+  }
+}
+@media (max-width: 576px) {
+  .hero-section h1 {
+    font-size: 1.5rem;
+  }
+  .hero-section h2 {
+    font-size: 1rem;
+  }
+}
+
+/*******************************************************
+ * SECTION N: ADDITIONAL OUTPUT-STATE ACCORDION & PILLS
+ *******************************************************/
+/* (A) Output Rows => Clickable Card Style */
+.output-row {
+  cursor: pointer; 
+  background-color: #fff;
+  border: 1px solid #e5e9ef;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  padding: 12px 16px;
+  transition: background-color 0.2s ease;
+}
+.output-row:hover {
+  background-color: #f8faff; /* slight hover highlight */
+}
+
+/* (B) Hidden Accordion Container */
+.usecase-accordion {
+  border: 1px solid #dce3eb;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  padding: 1rem;
+}
+
+/* (C) Pills => Rounded "ovals" with minimal spacing & hover states */
+.mini-pill {
+  display: inline-block;
+  background-color: #f0f0f0;  /* subtle gray or adapt to your brand palette */
+  color: #333;
+  border-radius: 9999px;      
+  margin-right: 8px;
+  margin-bottom: 8px;
+  padding: 6px 12px;
+  transition: background-color 0.2s ease, color 0.2s;
+}
+.mini-pill.active {
+  background-color: #007bff;  
+  color: #fff;
+}
+.mini-pill:hover {
+  background-color: #e9f2fe;  
+  color: #333;
+}
+
+/* (D) Image left, text right in the expanded panel */
+.usecases-panel {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.usecase-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+.usecase-details .image-wrap {
+  flex: 0 0 auto;     
+  max-width: 180px;   
+}
+.usecase-details .text-wrap {
+  flex: 1;           
+}
+.uc-title {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1a2732;
+}
+.uc-body {
+  font-size: 14px;
+  color: #555;
+  line-height: 1.4;
+}
+
+/*******************************************************
+ * SECTION O: SAVE RESULTS (EMAIL) UI
+ *******************************************************/
+.save-results-container {
+  margin-top: 20px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  box-shadow: none;
+}
+.save-results-right {
+  display: flex;
+  gap: 8px;
+}
+#email-input {
+  flex: 1;
+  font-size: 16px;
+  border: 1px solid #dce3eb;
+  border-radius: 4px;
+  padding: 10px;
+  transition: box-shadow 0.2s ease;
+}
+#email-input:focus {
+  box-shadow: 0 0 3px rgba(0,0,0,0.15);
+}
+#send-results-btn {
+  font-size: 16px;
+  color: #fff;
+  background-color: #007bff;
+  border-radius: 4px;
+  padding: 10px 16px;
+  transition: background-color 0.2s ease;
+}
+#send-results-btn:hover {
+  background-color: #005fa3;
+}
+.save-results-left p {
+  font-size: 14px;
+  color: #2b2d42;
+  margin: 0;
+}
+#email-error {
+  color: red; 
+  display: none;
+}
+
+/*******************************************************
+ * SECTION P: SUBMISSION TAKEOVER
+ *******************************************************/
+#submission-takeover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.95);
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+  max-width: 600px;
+}
+#submission-takeover h2 {
+  font-size: 24px;
+  color: #2b2d42;
+  margin-bottom: 16px;
+}
+#submission-takeover p {
+  font-size: 16px;
+  color: #2b2d42;
+  margin-bottom: 20px;
+}
+#submission-takeover img {
+  width: 200px;
+  margin-bottom: 20px;
+}
+#go-back-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: #fff;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+#go-back-btn:hover {
+  background-color: #0056b3;
+}
