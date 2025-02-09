@@ -1,4 +1,3 @@
-
 "use strict";
 
 /*******************************************************
@@ -59,13 +58,6 @@ function updateStageGraphic(stageKey) {
  * B) FETCH & DATA-RELATED UTILITIES
  *******************************************************/
 
-/**
- * fetchWithTimeout => basic fetch wrapper with timeouts and built-in retry logic.
- * @param {string} url           The endpoint or resource to fetch
- * @param {object} options       Fetch options (headers, method, etc.)
- * @param {number} timeout       Milliseconds before we abort this request
- * @param {number} maxRetries    Number of times to retry on timeout/HTTP error
- */
 async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries = 2) {
   let attempt = 0;
 
@@ -79,55 +71,44 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
       const response = await fetch(url, { ...options, signal });
       clearTimeout(timeoutId);
 
-      // If we get an OK response, return it
       if (response.ok) {
         return response;
       }
 
-      // Otherwise, try again or throw an error if out of retries
       if (attempt > maxRetries) {
         throw new Error(`Non-OK HTTP status: ${response.status}`);
       }
       console.log(`Retry #${attempt} after HTTP status: ${response.status} ...`);
-      await new Promise(res => setTimeout(res, 500)); // small delay before retry
+      await new Promise(res => setTimeout(res, 500));
 
     } catch (err) {
       clearTimeout(timeoutId);
 
-      // If we aborted due to timeout => err.name === "AbortError"
       if (err.name === "AbortError") {
         if (attempt > maxRetries) {
           throw new Error("Request timed out multiple times.");
         }
         console.log(`Timeout/AbortError. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500)); // small delay
+        await new Promise(res => setTimeout(res, 500));
       } else {
-        // Other network errors
         if (attempt > maxRetries) {
-          throw err; // throw if out of retries
+          throw err;
         }
         console.log(`Network error: ${err.message}. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500)); // small delay
+        await new Promise(res => setTimeout(res, 500));
       }
     }
   }
 
-  // If we exit the loop, we've exhausted retries
   throw new Error("Failed to fetch after maxRetries attempts.");
 }
 
-/**
- * fetchAirtableTable => fetch data from an Airtable proxy using our
- * fetchWithTimeout method. We rely on fetchWithTimeout’s retry logic,
- * so no extra loop is needed here.
- */
 async function fetchAirtableTable(tableName) {
-  // Adjust timeout or maxRetries if needed
   const response = await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
     {},
-    10000,   // e.g. 10s timeout
-    2        // e.g. up to 2 retries
+    10000,
+    2
   );
 
   if (!response.ok) {
@@ -169,7 +150,7 @@ async function initializeApp() {
 
   } catch (err) {
     console.error("Error fetching Points Calculator data:", err);
-    return; // Stop if this fails
+    return;
   }
 
   // 2) Fetch Real-World Use Cases
@@ -198,7 +179,6 @@ function buildTopProgramsSection() {
   const container = document.getElementById("top-programs-grid");
   if (!container) return;
 
-  // Filter top programs
   const topRecords = Object.keys(loyaltyPrograms).filter(recordId => {
     const prog = loyaltyPrograms[recordId];
     return !!prog["Top Programs"];
@@ -248,7 +228,6 @@ function filterPrograms() {
   const filtered = Object.keys(loyaltyPrograms).filter(recordId => {
     const program = loyaltyPrograms[recordId];
     if (!program || !program["Program Name"]) return false;
-    // If it’s already added:
     const alreadyAdded = $(
       `#program-container .program-row[data-record-id='${recordId}']`
     ).length > 0;
@@ -298,7 +277,6 @@ function addProgramRow(recordId) {
   const program = loyaltyPrograms[recordId];
   if (!program) return;
 
-  // Hide hero, show calc
   $("#default-hero").hide();
   $("#started-state").show();
   $("#started-empty-state").hide();
@@ -381,7 +359,6 @@ function toggleSearchItemSelection(itemEl) {
     chosenPrograms.push(recordId);
     itemEl.addClass("selected-state");
 
-    // Also sync top-program if present
     const matchingBox = $(`.top-program-box[data-record-id='${recordId}']`);
     if (matchingBox.length) {
       matchingBox.addClass("selected-state");
@@ -418,7 +395,6 @@ function toggleProgramSelection(boxEl) {
     boxEl.addClass("selected-state");
     boxEl.find(".add-btn").text("✓");
 
-    // Remove from search preview if present
     const matchingSearch = $(`.preview-item[data-record-id='${recordId}']`);
     if (matchingSearch.length) matchingSearch.remove();
   } else {
@@ -535,7 +511,6 @@ function calculateTotal() {
     totalTravel += rowTravel;
     totalCash   += rowCash;
   });
-  // If no rows => revert to started-state (optional)
 }
 
 /*******************************************************
@@ -614,10 +589,9 @@ async function sendReport() {
   const errorEl = document.getElementById("email-error");
   const sendBtn = document.getElementById("send-results-btn");
 
-  if (!emailEl || !sendBtn) return; // sanity check
+  if (!emailEl || !sendBtn) return;
   const email = emailEl.value.trim();
 
-  // 1) Validate
   if (!isValidEmail(email)) {
     errorEl.textContent = "Invalid email address.";
     errorEl.style.display = "block";
@@ -629,7 +603,6 @@ async function sendReport() {
     emailEl.classList.remove("input-error");
   }
 
-  // 2) Gather data
   const programs = gatherProgramData();
   let totalTravel = 0;
   let totalCash = 0;
@@ -638,16 +611,14 @@ async function sendReport() {
     totalCash += item.cashValue;
   });
 
-  // 3) Update button => "Sending..."
   sendBtn.disabled = true;
-  const originalBtnText = "Send Report"; // ensure we store the original text
+  const originalBtnText = "Send Report";
   sendBtn.textContent = "Sending...";
   const slowTimeout = setTimeout(() => {
     sendBtn.textContent = "Still working...";
   }, 7000);
 
   try {
-    // 4) Post to your endpoint
     const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -668,7 +639,6 @@ async function sendReport() {
       return;
     }
 
-    // 5) On success => show "Report Sent", not full takeover
     sendBtn.textContent = "Report Sent";
 
   } catch (err) {
@@ -680,20 +650,14 @@ async function sendReport() {
 }
 
 
-
 /*******************************************************
  * T) BUILD USE CASE ACCORDION => Per-Program
  *   Filter out use cases that require more points
  *   than the user currently has.
  *******************************************************/
 
-/**
- * getUserTotalPoints => sums up the user's total points
- * from chosen programs or .program-row input fields.
- */
 function getUserTotalPoints() {
   let totalPoints = 0;
-  // Example approach:
   $(".program-row").each(function() {
     const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
     const points = parseInt(pointsStr, 10) || 0;
@@ -702,42 +666,33 @@ function getUserTotalPoints() {
   return totalPoints;
 }
 
-/**
- * buildUseCaseAccordionContent => returns HTML
- * for a hidden accordion containing recommended use cases
- * that match the user's total points.
- */
 function buildUseCaseAccordionContent(recordId) {
   const program = loyaltyPrograms[recordId];
   if (!program) {
     return `<div style="padding:1rem;">No data found for this program.</div>`;
   }
 
-  // How many points does user have?
   const userPoints = getUserTotalPoints();
 
-  // Filter out use cases the user can't afford
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     const linked = uc["Program Name"] || [];
     if (!linked.includes(recordId)) return false;
 
     const pointsReq = uc["Points Required"] || 0;
-    return userPoints >= pointsReq; // user must have enough points
+    return userPoints >= pointsReq;
   });
 
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No applicable use cases for your points.</div>`;
   }
 
-  // Sort by ascending "Points Required"
   matchingUseCases.sort((a, b) => {
     const aReq = a["Points Required"] || 0;
     const bReq = b["Points Required"] || 0;
     return aReq - bReq;
   });
 
-  // Build pills
   let pillsHTML = "";
   matchingUseCases.forEach((uc, i) => {
     const pointsReq = uc["Points Required"] || 0;
@@ -749,7 +704,6 @@ function buildUseCaseAccordionContent(recordId) {
     `;
   });
 
-  // Default to the first use case's content
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"] || "";
   const title = first["Use Case Title"] || "Untitled";
@@ -757,12 +711,10 @@ function buildUseCaseAccordionContent(recordId) {
 
   return `
     <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
-      <!-- Pills row -->
       <div class="pills-container" style="display:flex; flex-wrap:wrap; gap:8px;">
         ${pillsHTML}
       </div>
 
-      <!-- Display area (image + text) -->
       <div class="usecase-details" style="display:flex; gap:1rem;">
         <div class="image-wrap" style="max-width:180px;">
           <img
@@ -782,10 +734,6 @@ function buildUseCaseAccordionContent(recordId) {
   `;
 }
 
-/**
- * Click Handler => .mini-pill
- * Swap image/title/body for the clicked use case
- */
 $(document).on("click", ".mini-pill", function(e) {
   e.stopPropagation();
   $(this).siblings().removeClass("active");
@@ -819,15 +767,10 @@ function buildOutputRows(viewType) {
     const logoUrl = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unknown";
 
-    // Decide which column to use
-    let rowValue = (viewType === "travel")
-      ? item.travelValue
-      : item.cashValue;
-
+    let rowValue = (viewType === "travel") ? item.travelValue : item.cashValue;
     totalValue += rowValue;
     const formattedRowVal = `$${rowValue.toFixed(2)}`;
 
-    // Basic row 
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -840,7 +783,6 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If Travel => build the hidden accordion; if Cash => skip
     if (viewType === "travel") {
       const accordionHtml = `
         <div class="usecase-accordion" style="display:none;">
@@ -888,39 +830,26 @@ function showCTAsForState(state) {
 
   switch (state) {
     case "default":
-      // Only "Get Started"
       $("#get-started-btn").show();
       break;
-
     case "input":
-      // Possibly show "Next" if programs are chosen
       if (chosenPrograms.length > 0) {
         $("#input-next-btn").show();
       }
       break;
-
     case "calculator":
-      // Show the “Next” to output
       $("#to-output-btn").show();
       break;
-
     case "output":
-      // Show “Unlock Full Report” if that’s your default CTA in output
       $("#unlock-report-btn").show();
       break;
-
     case "usecase":
-      // Show the "Next" that leads to send-report
       $("#usecase-next-btn").show();
       break;
-
     case "send-report":
-      // Show the “Submit” that leads to submission
       $("#send-report-next-btn").show();
       break;
-      
     default:
-      // If needed, do nothing or revert to no buttons
       break;
   }
 }
@@ -930,33 +859,18 @@ function showCTAsForState(state) {
   SECTION V: DOCUMENT READY
 ======================================================*/
 $(document).ready(async function() {
-  // 1) Initialize any static pills in #usecase-state (if used)
   initNavyShowcase();
-
-  // 2) Fetch data & build top programs
   await initializeApp().catch(err => console.error("initApp error =>", err));
 
-  /********************************************
-   * A) Hide all states initially => show default
-   ********************************************/
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
-  // If using a “showCTAsForState” helper, call it here:
-  // showCTAsForState("default");
-
-  /********************************************
-   * B) STATE TRANSITIONS
-   ********************************************/
 
   // GET STARTED => default hero to input
   $("#get-started-btn").on("click", function() {
     hideAllStates();
     $("#input-state").show();
     updateStageGraphic("input");
-
-    // Possibly show or hide CTAs for input state
-    // showCTAsForState("input");
   });
 
   // INPUT => BACK => default hero
@@ -964,7 +878,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#default-hero").show();
     updateStageGraphic("default");
-    // showCTAsForState("default");
   });
 
   // INPUT => NEXT => calculator
@@ -973,11 +886,8 @@ $(document).ready(async function() {
     $("#calculator-state").fadeIn();
     updateStageGraphic("calc");
 
-    // Build program rows from chosenPrograms
     $("#program-container").empty();
     chosenPrograms.forEach(recordId => addProgramRow(recordId));
-
-    // showCTAsForState("calculator");
   });
 
   // CALCULATOR => BACK => input
@@ -985,7 +895,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#input-state").fadeIn();
     updateStageGraphic("input");
-    // showCTAsForState("input");
   });
 
   // CALCULATOR => NEXT => output
@@ -994,12 +903,9 @@ $(document).ready(async function() {
     $("#output-state").fadeIn();
     updateStageGraphic("output");
 
-    // Default to Travel view
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
-
-    // showCTAsForState("output");
   });
 
   // OUTPUT => BACK => calculator
@@ -1007,10 +913,9 @@ $(document).ready(async function() {
     hideAllStates();
     $("#calculator-state").show();
     updateStageGraphic("calc");
-    // showCTAsForState("calculator");
   });
 
-  // UNLOCK => show email section in output
+  // UNLOCK => show email
   $("#unlock-report-btn").on("click", function() {
     $("#save-results-section").show();
   });
@@ -1020,7 +925,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#output-state").show();
     updateStageGraphic("output");
-    // showCTAsForState("output");
   });
 
   // USECASE => NEXT => send-report
@@ -1028,7 +932,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#send-report-state").fadeIn();
     updateStageGraphic("sendReport");
-    // showCTAsForState("send-report");
   });
 
   // SEND-REPORT => BACK => usecase
@@ -1036,7 +939,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#usecase-state").fadeIn();
     updateStageGraphic("usecase");
-    // showCTAsForState("usecase");
   });
 
   // SEND-REPORT => NEXT => submission
@@ -1050,19 +952,13 @@ $(document).ready(async function() {
     hideAllStates();
     $("#output-state").fadeIn();
     updateStageGraphic("output");
-    // showCTAsForState("output");
   });
 
-  // Explore concierge => external link
   $("#explore-concierge-btn").on("click", function() {
     window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
 
-
-  /********************************************
-   * C) OUTPUT ROW LOGIC + TOGGLE “TRAVEL” vs “CASH”
-   ********************************************/
-  // Travel vs Cash toggles
+  // Travel vs Cash
   $(document).on("click", ".toggle-btn", function() {
     $(".toggle-btn").removeClass("active");
     $(this).addClass("active");
@@ -1070,16 +966,12 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // Clicking an .output-row => expand/collapse usecase-accordion (travel only)
+  // Clicking an .output-row => expand/collapse usecase-accordion
   $(document).on("click", ".output-row", function() {
-    // If cash active => do nothing
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
       return;
     }
-    // Hide any open accordion
     $(".usecase-accordion:visible").slideUp();
-
-    // Toggle this row’s panel
     const panel = $(this).next(".usecase-accordion");
     if (panel.is(":visible")) {
       panel.slideUp();
@@ -1088,10 +980,6 @@ $(document).ready(async function() {
     }
   });
 
-
-  /********************************************
-   * D) PROGRAM SEARCH, CLEAR ALL, ETC.
-   ********************************************/
   $("#program-search").on("input", filterPrograms);
 
   $(document).on("click", ".preview-item", function() {
@@ -1110,16 +998,11 @@ $(document).ready(async function() {
     calculateTotal();
   });
 
-
-  /********************************************
-   * E) SENDING REPORT
-   ********************************************/
   const sendBtn = document.getElementById("send-results-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", sendReport);
   }
 
-  // If user re-types email after sending => revert
   document.getElementById("email-input").addEventListener("input", function() {
     if (sendBtn.textContent === "Report Sent") {
       sendBtn.textContent = "Send Report";
@@ -1127,12 +1010,3 @@ $(document).ready(async function() {
     }
   });
 });
-
-
-
-
-
-
-
-
-
