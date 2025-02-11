@@ -195,7 +195,8 @@ button {
   line-height: 1.4;
   margin: 0;
 }
-.started-search-area {
+.started-search-area,
+.dollar-input-container{
   margin: 20px auto 10px auto;
   max-width: 600px;
   position: relative;
@@ -554,10 +555,7 @@ button {
   background-color: #fff;
 }
 
-/* 1) The container has a border already, so replicate the same box-shadow on focus */
-.dollar-input-container:focus-within {
-  box-shadow: 0 0 4px rgba(0,0,0,0.15);
-}
+
 
 .program-left {
   display: flex;
