@@ -83,6 +83,7 @@ button {
   overflow-y: auto;     /* scroll the content if it’s too tall */
   padding: 0;
   margin: 0;
+  padding-top: 5%;
 }
 
 
