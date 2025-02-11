@@ -1,4 +1,3 @@
-
 "use strict";
 
 /*******************************************************
@@ -562,7 +561,7 @@ function gatherProgramData() {
     data.push({
       recordId,
       programName: program["Program Name"] || "Unknown",
-      points,       // <-- Now we explicitly carry the # of points
+      points,       // now we explicitly carry the # of points
       travelValue,
       cashValue
     });
@@ -683,283 +682,9 @@ async function sendReport() {
   }
 }
 
-
-
 /*******************************************************
- * T) BUILD USE CASE ACCORDION => Per-Program
- *   - Only recommended
- *   - Up to 4
- *   - Sort by ascending Points Required
- *   - First is default "active"
+ * T) BUILD USE CASE ACCORDION => FILTER BY USER POINTS
  *******************************************************/
-function buildUseCaseAccordionContent(recordId) {
-  const program = loyaltyPrograms[recordId];
-  if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
-  }
-
-  // Filter recommended = true
-  let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
-    if (!uc.Recommended) return false;
-    const linked = uc["Program Name"] || [];
-    return linked.includes(recordId);
-  });
-
-  // Sort ascending
-  matchingUseCases.sort((a, b) => {
-    const aPoints = a["Points Required"] || 0;
-    const bPoints = b["Points Required"] || 0;
-    return aPoints - bPoints;
-  });
-
-  // Limit to 4
-  matchingUseCases = matchingUseCases.slice(0, 4);
-
-  if (!matchingUseCases.length) {
-    return `<div style="padding:1rem;">No recommended use cases found.</div>`;
-  }
-
-  // Build pills
-  let pillsHTML = "";
-  matchingUseCases.forEach((uc, i) => {
-    const pointsReq = uc["Points Required"] || 0;
-    const activeClass = (i === 0) ? "active" : "";
-    pillsHTML += `
-      <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
-        ${pointsReq.toLocaleString()} pts
-      </div>
-    `;
-  });
-
-  const first = matchingUseCases[0];
-  const imageURL = first["Use Case URL"] || "";
-  const title    = first["Use Case Title"] || "Untitled";
-  const body     = first["Use Case Body"]  || "No description";
-
-  return `
-    <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
-      <!-- Pills row -->
-      <div class="pills-container" style="display:flex; flex-wrap:wrap;">
-        ${pillsHTML}
-      </div>
-      <!-- Image left, text right -->
-      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
-        <div class="image-wrap" style="max-width:180px;">
-          <img
-            src="${imageURL}"
-            alt="Use Case"
-            style="width:100%; height:auto; border-radius:4px;"
-          />
-        </div>
-        <div class="text-wrap" style="flex:1;">
-          <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;">${title}</h4>
-          <p class="uc-body" style="font-size:14px; line-height:1.4; color:#555; margin:0;">${body}</p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/*******************************************************
- * U) REPLACE buildOutputRows => Show "Total Value", row clickable
- *******************************************************/
-function buildOutputRows(viewType) {
-  const data = gatherProgramData();
-  $("#output-programs-list").empty();
-  let totalValue = 0;
-
-  data.forEach(item => {
-    const prog = loyaltyPrograms[item.recordId] || {};
-    const logoUrl = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"] || "Unknown";
-
-    // Choose travelValue vs. cashValue
-    let rowValue = (viewType === "travel")
-      ? item.travelValue
-      : item.cashValue;
-
-    totalValue += rowValue;
-    const formattedRowVal = `$${rowValue.toFixed(2)}`;
-
-    // Basic row markup
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="${programName} logo" class="output-logo" />
-          <span class="program-name">${programName}</span>
-        </div>
-        <div class="output-value" style="font-weight:600;">
-          ${formattedRowVal}
-        </div>
-      </div>
-    `;
-
-    // If in "travel" view => add the use-case accordion
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion" style="display:none;">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  // Add a total row at the bottom
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const formattedTotal = `$${totalValue.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-
-  const totalRowHtml = `
-    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${formattedTotal}
-    </div>
-  `;
-  $("#output-programs-list").append(totalRowHtml);
-}
-
-
-/*******************************************************
- * HIDE ALL STATES
- *******************************************************/
-function hideAllStates() {
-  $("#default-hero").hide();
-  $("#input-state").hide();
-  $("#calculator-state").hide();
-  $("#output-state").hide();
-  $("#usecase-state").hide();
-  $("#send-report-state").hide();
-  $("#submission-takeover").hide();
-}
-
-
-function showCTAsForState(state) {
-  // Hide every CTA in the sticky footer
-  $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
-
-  switch (state) {
-    case "default":
-      // Only "Get Started"
-      $("#get-started-btn").show();
-      break;
-
-    case "input":
-      // Possibly show "Next" if programs are chosen
-      if (chosenPrograms.length > 0) {
-        $("#input-next-btn").show();
-      }
-      break;
-
-    case "calculator":
-      // Show the “Next” to output
-      $("#to-output-btn").show();
-      break;
-
-    case "output":
-      // Show “Unlock Full Report” if that’s your default CTA in output
-      $("#unlock-report-btn").show();
-      break;
-
-    case "usecase":
-      // Show the "Next" that leads to send-report
-      $("#usecase-next-btn").show();
-      break;
-
-    case "send-report":
-      // Show the “Submit” that leads to submission
-      $("#send-report-next-btn").show();
-      break;
-      
-    default:
-      // If needed, do nothing or revert to no buttons
-      break;
-  }
-}
-
-
-/*======================================================
-  SECTION V: DOCUMENT READY
-======================================================*/
-$(document).ready(async function() {
-  /*******************************************************
-   * A) Initialize + Helper
-   *******************************************************/
-
-  // 1) Initialize static pills in #usecase-state (if used)
-  initNavyShowcase();
-
-  // 2) Fetch data & build top programs
-  await initializeApp().catch(err => console.error("initApp error =>", err));
-
-  /**
-   * showCTAsForState => hides all footer CTAs, then shows
-   * only the relevant button(s) for a given "state" key.
-   */
-  function showCTAsForState(state) {
-    // Hide every CTA
-    $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
-
-    // Show only what's relevant
-    switch (state) {
-      case "default":
-        $("#get-started-btn").show();
-        break;
-
-      case "input":
-        // Show input-next if chosenPrograms > 0
-        if (chosenPrograms.length > 0) {
-          $("#input-next-btn").show();
-        }
-        break;
-
-      case "calculator":
-        $("#to-output-btn").show();
-        break;
-
-      case "output":
-        // “Unlock Full Report” button for output
-        $("#unlock-report-btn").show();
-        break;
-
-      case "usecase":
-        $("#usecase-next-btn").show();
-        break;
-
-      case "send-report":
-        $("#send-report-next-btn").show();
-        break;
-
-      default:
-        // no buttons
-        break;
-    }
-  }
-
-  /**
-   * updateNextCTAVisibility => decides if #input-next-btn
-   * should show while in Input State
-   */
-  function updateNextCTAVisibility() {
-    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
-      $("#input-next-btn").show();
-    } else {
-      $("#input-next-btn").hide();
-    }
-  }
-
-  // Hide all states (and CTAs) at start => show default hero
-  hideAllStates();
-  $("#default-hero").show();
-  updateStageGraphic("default");
-  showCTAsForState("default");
-
-  /*********************************************
- * CC) BUILD USE CASE ACCORDION w/FILTER
- *     (Replace your existing "T)" function)
- *********************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
   if (!program) {
@@ -1035,6 +760,199 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   `;
 }
 
+/*******************************************************
+ * U) BUILD OUTPUT ROWS => TRAVEL or CASH
+ *******************************************************/
+function buildOutputRows(viewType) {
+  const data = gatherProgramData();
+  $("#output-programs-list").empty();
+  let totalValue = 0;
+
+  data.forEach(item => {
+    const prog = loyaltyPrograms[item.recordId] || {};
+    const logoUrl = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unknown";
+
+    // Choose travelValue vs. cashValue
+    let rowValue = (viewType === "travel")
+      ? item.travelValue
+      : item.cashValue;
+
+    totalValue += rowValue;
+    const formattedRowVal = `$${rowValue.toFixed(2)}`;
+
+    // Basic row markup
+    let rowHtml = `
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="${programName} logo" class="output-logo" />
+          <span class="program-name">${programName}</span>
+        </div>
+        <div class="output-value" style="font-weight:600;">
+          ${formattedRowVal}
+        </div>
+      </div>
+    `;
+
+    // If in "travel" view => add the use-case accordion
+    if (viewType === "travel") {
+      rowHtml += `
+        <div class="usecase-accordion" style="display:none;">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+    }
+
+    $("#output-programs-list").append(rowHtml);
+  });
+
+  // Add a total row at the bottom
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const formattedTotal = `$${totalValue.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+
+  const totalRowHtml = `
+    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${formattedTotal}
+    </div>
+  `;
+  $("#output-programs-list").append(totalRowHtml);
+}
+
+/*******************************************************
+ * HIDE ALL STATES
+ *******************************************************/
+function hideAllStates() {
+  $("#default-hero").hide();
+  $("#input-state").hide();
+  $("#calculator-state").hide();
+  $("#output-state").hide();
+  $("#usecase-state").hide();
+  $("#send-report-state").hide();
+  $("#submission-takeover").hide();
+}
+
+
+function showCTAsForState(state) {
+  // Hide every CTA in the sticky footer
+  $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
+
+  switch (state) {
+    case "default":
+      // Only "Get Started"
+      $("#get-started-btn").show();
+      break;
+
+    case "input":
+      // Possibly show "Next" if programs are chosen
+      if (chosenPrograms.length > 0) {
+        $("#input-next-btn").show();
+      }
+      break;
+
+    case "calculator":
+      // Show the “Next” to output
+      $("#to-output-btn").show();
+      break;
+
+    case "output":
+      // Show “Unlock Full Report” if that’s your default CTA in output
+      $("#unlock-report-btn").show();
+      break;
+
+    case "usecase":
+      // Show the "Next" that leads to send-report
+      $("#usecase-next-btn").show();
+      break;
+
+    case "send-report":
+      // Show the “Submit” that leads to submission
+      $("#send-report-next-btn").show();
+      break;
+      
+    default:
+      // If needed, do nothing or revert to no buttons
+      break;
+  }
+}
+
+/*======================================================
+  SECTION V: DOCUMENT READY
+======================================================*/
+$(document).ready(async function() {
+  /*******************************************************
+   * A) Initialize + Helper
+   *******************************************************/
+
+  // 1) Initialize static pills in #usecase-state (if used)
+  initNavyShowcase();
+
+  // 2) Fetch data & build top programs
+  await initializeApp().catch(err => console.error("initApp error =>", err));
+
+  /**
+   * showCTAsForState => hides all footer CTAs, then shows
+   * only the relevant button(s) for a given "state" key.
+   */
+  function showCTAsForState(state) {
+    // Hide every CTA
+    $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
+
+    // Show only what's relevant
+    switch (state) {
+      case "default":
+        $("#get-started-btn").show();
+        break;
+
+      case "input":
+        // Show input-next if chosenPrograms > 0
+        if (chosenPrograms.length > 0) {
+          $("#input-next-btn").show();
+        }
+        break;
+
+      case "calculator":
+        $("#to-output-btn").show();
+        break;
+
+      case "output":
+        $("#unlock-report-btn").show();
+        break;
+
+      case "usecase":
+        $("#usecase-next-btn").show();
+        break;
+
+      case "send-report":
+        $("#send-report-next-btn").show();
+        break;
+
+      default:
+        // no buttons
+        break;
+    }
+  }
+
+  /**
+   * updateNextCTAVisibility => decides if #input-next-btn
+   * should show while in Input State
+   */
+  function updateNextCTAVisibility() {
+    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
+      $("#input-next-btn").show();
+    } else {
+      $("#input-next-btn").hide();
+    }
+  }
+
+  // Hide all states (and CTAs) at start => show default hero
+  hideAllStates();
+  $("#default-hero").show();
+  updateStageGraphic("default");
+  showCTAsForState("default");
+
   /*******************************************************
    * B) Transitions
    *******************************************************/
@@ -1044,8 +962,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     hideAllStates();
     $("#input-state").show();
     updateStageGraphic("input");
-
-    showCTAsForState("input"); // let user add programs before Next is shown
+    showCTAsForState("input");
   });
 
   // “Clear All”
@@ -1202,32 +1119,34 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
       panel.slideDown();
     }
   });
+
   // “Input -> Back” => show default hero
-$("#input-back-btn").on("click", function() {
-  hideAllStates();
-  $("#default-hero").fadeIn();
-  updateStageGraphic("default");
-  showCTAsForState("default");
-});
-$(document).on("click", ".mini-pill", function() {
-  // 1) Toggle which pill is active
-  $(this).siblings(".mini-pill").removeClass("active");
-  $(this).addClass("active");
+  $("#input-back-btn").on("click", function() {
+    hideAllStates();
+    $("#default-hero").fadeIn();
+    updateStageGraphic("default");
+    showCTAsForState("default");
+  });
 
-  // 2) Grab its data-usecase-id
-  const useCaseId = $(this).data("usecaseId");
+  // Mini-pill click => switch active use case
+  $(document).on("click", ".mini-pill", function() {
+    // 1) Toggle which pill is active
+    $(this).siblings(".mini-pill").removeClass("active");
+    $(this).addClass("active");
 
-  // 3) Update the .usecase-details text + image
-  const uc = realWorldUseCases[useCaseId];
-  if (!uc) return;
+    // 2) Grab its data-usecase-id
+    const useCaseId = $(this).data("usecaseId");
 
-  // Example: find the local .usecase-details in the same accordion panel
-  const container = $(this).closest(".usecases-panel");
-  container.find(".uc-title").text(uc["Use Case Title"]  || "Untitled");
-  container.find(".uc-body").text(uc["Use Case Body"]    || "No description");
-  container.find("img").attr("src", uc["Use Case URL"]   || "");
-});
+    // 3) Update the .usecase-details text + image
+    const uc = realWorldUseCases[useCaseId];
+    if (!uc) return;
 
+    // Example: find the local .usecase-details in the same accordion panel
+    const container = $(this).closest(".usecases-panel");
+    container.find(".uc-title").text(uc["Use Case Title"]  || "Untitled");
+    container.find(".uc-body").text(uc["Use Case Body"]    || "No description");
+    container.find("img").attr("src", uc["Use Case URL"]   || "");
+  });
 
   /*******************************************************
    * D) Attach “Send Report” + Email Retype
