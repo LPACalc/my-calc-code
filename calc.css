@@ -213,7 +213,6 @@ button {
   font-size: 32px;
   font-weight: 800;
   color: #333;
-  text-align:center;
 }
 
 
@@ -556,18 +555,26 @@ padding: 60px 20px;
   opacity: 0.7;
 }
 
-/* A small container for the back button + title inline */
 .state-header {
+  position: relative;     /* allows absolute positioning of the back button */
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 1rem;
+  justify-content: center; 
+  margin-bottom: 1rem;    /* your existing spacing */
 }
+
+.state-header .back-btn {
+  position: absolute;
+  left: 0;                /* pins the back button to the left edge */
+  top: 50%;
+  transform: translateY(-50%); /* vertically center it if needed */
+}
+
 .state-title {
-  margin: 0;
-  padding: 0;
-  line-height: 1.2;
+  margin: 0; 
+  text-align: center;     /* ensures the text is centered within the flex container */
 }
+
 
 
 
