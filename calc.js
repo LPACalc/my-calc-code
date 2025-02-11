@@ -983,6 +983,11 @@ $(document).ready(async function() {
 
   // “Input -> Next” => Calculator
   $("#input-next-btn").on("click", function() {
+    // Prevent double-click by disabling for ~0.5s
+    const $btn = $(this);
+    $btn.prop("disabled", true);
+    setTimeout(() => $btn.prop("disabled", false), 500);
+
     hideAllStates();
     $("#calculator-state").fadeIn();
     updateStageGraphic("calc");
@@ -1158,6 +1163,8 @@ $(document).ready(async function() {
     container.find(".uc-body").text(uc["Use Case Body"]    || "No description");
     container.find("img").attr("src", uc["Use Case URL"]   || "");
   });
+});
+
 
   /*******************************************************
    * D) Attach “Send Report” + Email Retype
