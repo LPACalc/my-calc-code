@@ -536,14 +536,25 @@ button {
   font-weight: 600;
   color: #1a2732;
 }
+/* Make the entire row a nice card-like box */
 .program-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #DFE5EB;
-  padding: 1rem 0;
+  /* Instead of just border-bottom, use a 1px border all around: */
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
   background-color: #fff;
 }
+
+/* Remove the inner border on the input container */
+.dollar-input-container {
+  border: none;
+  background-color: transparent; /* optional */
+}
+
 .program-left {
   display: flex;
   align-items: center;
