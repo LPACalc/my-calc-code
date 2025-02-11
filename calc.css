@@ -163,12 +163,16 @@ button {
   max-width: 40rem;
   margin: auto;
 }
-#input-state h1 {
+#input-state h1,
+#calculator-state h1,
+#output-state h1 {
   font-size: 32px;
   font-weight: 800;
   margin-bottom: 12px;
   color: #333;
 }
+
+
 .points-info-box {
   max-width: 600px;
   margin: 0 auto 20px auto;
