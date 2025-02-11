@@ -778,15 +778,20 @@ function buildOutputRows(viewType) {
     const logoUrl = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unknown";
 
-    // Choose travelValue vs. cashValue
+    // Decide which column to use
     let rowValue = (viewType === "travel")
       ? item.travelValue
       : item.cashValue;
 
     totalValue += rowValue;
-    const formattedRowVal = `$${rowValue.toFixed(2)}`;
 
-    // Basic row markup
+    // Format with commas => $xx,xxx.xx
+    const formattedRowVal = `$${rowValue.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    // Basic row 
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -799,25 +804,26 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If in "travel" view => add the use-case accordion
+    // If Travel => build the hidden accordion; if Cash => skip
     if (viewType === "travel") {
-      rowHtml += `
+      const accordionHtml = `
         <div class="usecase-accordion" style="display:none;">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
+      rowHtml += accordionHtml;
     }
 
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Add a total row at the bottom
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  // Format the total similarly
   const formattedTotal = `$${totalValue.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
 
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalRowHtml = `
     <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
       ${label}: ${formattedTotal}
@@ -825,6 +831,7 @@ function buildOutputRows(viewType) {
   `;
   $("#output-programs-list").append(totalRowHtml);
 }
+
 
 /*******************************************************
  * HIDE ALL STATES
