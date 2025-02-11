@@ -1312,4 +1312,28 @@ padding: 80px 20px;
   border-top: 1px solid #EAEAEA; /* separate from content */
 }
 
+/* 1) Default pill style */
+.mini-pill {
+  display: inline-block;
+  background-color: #f0f0f0; /* light grey default */
+  color: #333;
+  border-radius: 9999px;
+  padding: 6px 12px;
+  margin-right: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 2) Hover => dark navy background, white text */
+.mini-pill:hover {
+  background-color: #1F2C40; /* your dark navy color */
+  color: #fff;
+}
+
+/* 3) Active/clicked => also dark navy + white text */
+.mini-pill.active {
+  background-color: #1F2C40;
+  color: #fff;
+}
 
