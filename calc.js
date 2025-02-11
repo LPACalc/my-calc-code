@@ -691,8 +691,8 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // Filter recommended = true AND linked to this program
-  // AND has “Points Required” <= userPoints
+  // 1) Filter: Must be 'Recommended' and linked to this program,
+  //    with Points Required <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     const linkedPrograms = uc["Program Name"] || [];
@@ -702,24 +702,27 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return requiredPts <= userPoints;
   });
 
-  // Sort ascending by points required
+  // 2) Sort them by DESCENDING "Points Required",
+  //    so the largest "Points Required" appear first
   matchingUseCases.sort((a, b) => {
     const aPts = a["Points Required"] || 0;
     const bPts = b["Points Required"] || 0;
-    return aPts - bPts;
+    return bPts - aPts; 
+    // bPts - aPts => if b is bigger, it comes first
   });
 
-  // (Optional) Limit to 4
+  // 3) Take only the top 4 results
   matchingUseCases = matchingUseCases.slice(0, 4);
 
+  // 4) If none remain
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No suitable use cases fit your point total.</div>`;
   }
 
-  // Build mini-pill elements
+  // 5) Build the pills row
   let pillsHTML = "";
-  matchingUseCases.forEach((uc, i) => {
-    const isActive = (i === 0) ? "active" : "";
+  matchingUseCases.forEach((uc, index) => {
+    const isActive = (index === 0) ? "active" : "";
     const ptsReq = uc["Points Required"] || 0;
     pillsHTML += `
       <div class="mini-pill ${isActive}" data-usecase-id="${uc.id}">
@@ -728,7 +731,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
-  // Show the first recommended use case by default
+  // 6) By default, display the first item in that sorted list
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"] || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -759,6 +762,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     </div>
   `;
 }
+
 
 /*******************************************************
  * U) BUILD OUTPUT ROWS => TRAVEL or CASH
