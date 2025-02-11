@@ -213,7 +213,6 @@ button {
   outline: none;
 }
 
-
 .points-input {
   background: #fff;
   background-size: 10px 20px;
@@ -226,8 +225,11 @@ button {
 #program-search:focus {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
-.points-input:focus{
+
+.points-input:focus {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
+    outline: none !important;
+  box-shadow: none !important;
 }
 
 #program-preview {
