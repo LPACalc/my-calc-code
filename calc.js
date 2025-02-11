@@ -691,8 +691,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // 1) Filter: Must be 'Recommended' and linked to this program,
-  //    with Points Required <= userPoints
+  // 1) Filter recommended & linked to this program, and require <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     const linkedPrograms = uc["Program Name"] || [];
@@ -702,27 +701,32 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return requiredPts <= userPoints;
   });
 
-  // 2) Sort them by DESCENDING "Points Required",
-  //    so the largest "Points Required" appear first
+  // 2) Sort descending => largest "Points Required" first
   matchingUseCases.sort((a, b) => {
     const aPts = a["Points Required"] || 0;
     const bPts = b["Points Required"] || 0;
-    return bPts - aPts; 
-    // bPts - aPts => if b is bigger, it comes first
+    return bPts - aPts; // b first if b > a
   });
 
-  // 3) Take only the top 4 results
+  // 3) Keep the top 4 from that descending list => 4 largest
   matchingUseCases = matchingUseCases.slice(0, 4);
 
-  // 4) If none remain
+  // 4) Re-sort ascending => so the left-most is the smallest of those largest
+  matchingUseCases.sort((a, b) => {
+    const aPts = a["Points Required"] || 0;
+    const bPts = b["Points Required"] || 0;
+    return aPts - bPts; // a first if a < b
+  });
+
+  // 5) If no matches remain
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No suitable use cases fit your point total.</div>`;
   }
 
-  // 5) Build the pills row
+  // 6) Build the pill elements from left to right, smallest -> largest
   let pillsHTML = "";
-  matchingUseCases.forEach((uc, index) => {
-    const isActive = (index === 0) ? "active" : "";
+  matchingUseCases.forEach((uc, i) => {
+    const isActive = (i === 0) ? "active" : "";
     const ptsReq = uc["Points Required"] || 0;
     pillsHTML += `
       <div class="mini-pill ${isActive}" data-usecase-id="${uc.id}">
@@ -731,7 +735,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
-  // 6) By default, display the first item in that sorted list
+  // 7) Default to the first (smallest) item in ascending order
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"] || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -739,9 +743,12 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 
   return `
     <div class="usecases-panel">
+      <!-- The pill row (left = smallest of the top 4 largest) -->
       <div class="pills-container" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
         ${pillsHTML}
       </div>
+
+      <!-- Default visible detail for the left-most item -->
       <div class="usecase-details" style="display:flex; gap:1rem; margin-top:1rem;">
         <div class="image-wrap" style="max-width:180px;">
           <img
