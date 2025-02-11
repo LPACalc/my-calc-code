@@ -83,10 +83,18 @@ button {
   overflow-y: auto;     /* scroll the content if it’s too tall */
   padding: 0;
   margin: 0;
+    position: relative; 
 
 }
 
-
+#input-state,
+#calculator-state,
+#output-state,
+#usecase-state,
+#send-report-state {
+  min-height: 100%; /* Fill the container's current height */
+  box-sizing: border-box; /* to respect any padding you add */
+}
 .card-container {
   /* Example using CSS Grid */
   display: grid;
