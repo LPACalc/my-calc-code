@@ -153,6 +153,7 @@ button {
 */
 .content-limiter {
   max-width: 40rem;
+  padding-bottom:40px;
   margin: 0 auto;  /* center within the scroll-area's space */
   /* optional: add left/right padding if you want more breathing room at small screens */
 }
