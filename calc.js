@@ -1119,6 +1119,14 @@ $(document).ready(async function() {
       panel.slideDown();
     }
   });
+  // “Input -> Back” => show default hero
+$("#input-back-btn").on("click", function() {
+  hideAllStates();
+  $("#default-hero").fadeIn();
+  updateStageGraphic("default");
+  showCTAsForState("default");
+});
+
 
   /*******************************************************
    * D) Attach “Send Report” + Email Retype
