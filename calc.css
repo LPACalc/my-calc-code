@@ -238,9 +238,15 @@ button {
   line-height: 1.4;
   margin: 0;
 }
-.started-search-area,
-.dollar-input-container{
+.started-search-area{
   margin: 30px auto 10px auto;
+  max-width: 600px;
+  position: relative;
+  text-align: center;
+}
+
+.dollar-input-container{
+  margin: 10px auto 10px auto;
   max-width: 600px;
   position: relative;
   text-align: center;
