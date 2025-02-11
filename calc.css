@@ -83,7 +83,7 @@ button {
   overflow-y: auto;     /* scroll the content if it’s too tall */
   padding: 0;
   margin: 0;
-  padding-top: 5%;
+
 }
 
 
@@ -160,9 +160,9 @@ button {
 #input-state {
   display: none;
   text-align: center;
-  padding: 20px;
   max-width: 40rem;
   margin: auto;
+  padding: 60px 20px;
 }
 #input-state h1,
 #calculator-state h1,
@@ -357,7 +357,7 @@ button {
  *******************************************************/
 .calculator-state {
   display: none;
-  padding: 20px;
+padding: 60px 20px;
   max-height: 70vh;
   overflow-y: auto;
   max-width: 40rem;
@@ -402,7 +402,7 @@ button {
  *******************************************************/
 .output-state {
   display: none;
-  padding: 20px;
+padding: 60px 20px;
   max-width: 40rem;
   margin: 0 auto;
   text-align: left;
