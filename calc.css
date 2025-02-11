@@ -213,7 +213,8 @@ button {
   outline: none;
 }
 
-.points-input {
+.points-input,
+.email-input{
   background: #fff;
   background-size: 10px 20px;
   padding: 1rem;
@@ -226,7 +227,8 @@ button {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
 
-.points-input:focus {
+.points-input:focus,
+.email-input:focus{
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
     outline: none !important;
   box-shadow: none !important;
