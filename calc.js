@@ -484,12 +484,20 @@ function clearAllPrograms() {
  * K) INPUT => CALCULATOR
  *******************************************************/
 $("#input-next-btn").on("click", function() {
-  $("#input-state").hide();
-  $("#cards-container").fadeIn();
-  $("#calculator-state").fadeIn();
+  // Prevent double-click by disabling for ~0.5s
+  const $btn = $(this);
+  $btn.prop("disabled", true);
+  setTimeout(() => $btn.prop("disabled", false), 500);
 
+  hideAllStates();
+  $("#calculator-state").fadeIn();
+  updateStageGraphic("calc");
+
+  // Build rows from chosenPrograms
   $("#program-container").empty();
   chosenPrograms.forEach(recordId => addProgramRow(recordId));
+
+  showCTAsForState("calculator");
 });
 
 /*******************************************************
@@ -561,7 +569,7 @@ function gatherProgramData() {
     data.push({
       recordId,
       programName: program["Program Name"] || "Unknown",
-      points,       // now we explicitly carry the # of points
+      points,
       travelValue,
       cashValue
     });
@@ -643,7 +651,7 @@ async function sendReport() {
 
   // 3) Update button => "Sending..."
   sendBtn.disabled = true;
-  const originalBtnText = "Send Report"; // ensure we store the original text
+  const originalBtnText = "Send Report";
   sendBtn.textContent = "Sending...";
   const slowTimeout = setTimeout(() => {
     sendBtn.textContent = "Still working...";
@@ -671,7 +679,7 @@ async function sendReport() {
       return;
     }
 
-    // 5) On success => show "Report Sent", not full takeover
+    // 5) On success => show "Report Sent"
     sendBtn.textContent = "Report Sent";
 
   } catch (err) {
@@ -683,7 +691,11 @@ async function sendReport() {
 }
 
 /*******************************************************
- * T) BUILD USE CASE ACCORDION => FILTER BY USER POINTS
+ * T) BUILD USE CASE ACCORDION => Per-Program
+ *   - Only recommended
+ *   - Up to 4
+ *   - Sort by ascending Points Required
+ *   - First is default "active"
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -691,65 +703,52 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // 1) Filter recommended & linked to this program, and require <= userPoints
+  // Filter recommended = true
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
-    const linkedPrograms = uc["Program Name"] || [];
-    if (!linkedPrograms.includes(recordId)) return false;
-
-    const requiredPts = uc["Points Required"] || 0;
-    return requiredPts <= userPoints;
+    const linked = uc["Program Name"] || [];
+    return linked.includes(recordId);
   });
 
-  // 2) Sort descending => largest "Points Required" first
+  // Sort ascending
   matchingUseCases.sort((a, b) => {
-    const aPts = a["Points Required"] || 0;
-    const bPts = b["Points Required"] || 0;
-    return bPts - aPts; // b first if b > a
+    const aPoints = a["Points Required"] || 0;
+    const bPoints = b["Points Required"] || 0;
+    return aPoints - bPoints;
   });
 
-  // 3) Keep the top 4 from that descending list => 4 largest
+  // Limit to 4
   matchingUseCases = matchingUseCases.slice(0, 4);
 
-  // 4) Re-sort ascending => so the left-most is the smallest of those largest
-  matchingUseCases.sort((a, b) => {
-    const aPts = a["Points Required"] || 0;
-    const bPts = b["Points Required"] || 0;
-    return aPts - bPts; // a first if a < b
-  });
-
-  // 5) If no matches remain
   if (!matchingUseCases.length) {
-    return `<div style="padding:1rem;">No suitable use cases fit your point total.</div>`;
+    return `<div style="padding:1rem;">No recommended use cases found.</div>`;
   }
 
-  // 6) Build the pill elements from left to right, smallest -> largest
+  // Build pills
   let pillsHTML = "";
   matchingUseCases.forEach((uc, i) => {
-    const isActive = (i === 0) ? "active" : "";
-    const ptsReq = uc["Points Required"] || 0;
+    const pointsReq = uc["Points Required"] || 0;
+    const activeClass = (i === 0) ? "active" : "";
     pillsHTML += `
-      <div class="mini-pill ${isActive}" data-usecase-id="${uc.id}">
-        ${ptsReq.toLocaleString()} pts
+      <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
+        ${pointsReq.toLocaleString()} pts
       </div>
     `;
   });
 
-  // 7) Default to the first (smallest) item in ascending order
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"] || "";
   const title    = first["Use Case Title"] || "Untitled";
   const body     = first["Use Case Body"]  || "No description";
 
   return `
-    <div class="usecases-panel">
-      <!-- The pill row (left = smallest of the top 4 largest) -->
-      <div class="pills-container" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+    <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
+      <!-- Pills row -->
+      <div class="pills-container" style="display:flex; flex-wrap:wrap;">
         ${pillsHTML}
       </div>
-
-      <!-- Default visible detail for the left-most item -->
-      <div class="usecase-details" style="display:flex; gap:1rem; margin-top:1rem;">
+      <!-- Image left, text right -->
+      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
         <div class="image-wrap" style="max-width:180px;">
           <img
             src="${imageURL}"
@@ -758,21 +757,16 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
           />
         </div>
         <div class="text-wrap" style="flex:1;">
-          <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem;">
-            ${title}
-          </h4>
-          <p class="uc-body" style="font-size:14px; margin:0;">
-            ${body}
-          </p>
+          <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;">${title}</h4>
+          <p class="uc-body" style="font-size:14px; line-height:1.4; color:#555; margin:0;">${body}</p>
         </div>
       </div>
     </div>
   `;
 }
 
-
 /*******************************************************
- * U) BUILD OUTPUT ROWS => TRAVEL or CASH
+ * U) REPLACE buildOutputRows => Show "Total Value", row clickable
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
@@ -918,7 +912,6 @@ $(document).ready(async function() {
         break;
 
       case "input":
-        // Show input-next if chosenPrograms > 0
         if (chosenPrograms.length > 0) {
           $("#input-next-btn").show();
         }
@@ -1004,7 +997,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#input-state").fadeIn();
     updateStageGraphic("input");
-
     showCTAsForState("input");
   });
 
@@ -1027,7 +1019,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#calculator-state").show();
     updateStageGraphic("calc");
-
     showCTAsForState("calculator");
   });
 
@@ -1041,7 +1032,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#output-state").show();
     updateStageGraphic("output");
-
     showCTAsForState("output");
   });
 
@@ -1050,7 +1040,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#send-report-state").fadeIn();
     updateStageGraphic("sendReport");
-
     showCTAsForState("send-report");
   });
 
@@ -1059,7 +1048,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#usecase-state").fadeIn();
     updateStageGraphic("usecase");
-
     showCTAsForState("usecase");
   });
 
@@ -1074,7 +1062,6 @@ $(document).ready(async function() {
     hideAllStates();
     $("#output-state").fadeIn();
     updateStageGraphic("output");
-
     showCTAsForState("output");
   });
 
@@ -1152,31 +1139,14 @@ $(document).ready(async function() {
 
     // 2) Grab its data-usecase-id
     const useCaseId = $(this).data("usecaseId");
-
     // 3) Update the .usecase-details text + image
     const uc = realWorldUseCases[useCaseId];
     if (!uc) return;
 
     // Example: find the local .usecase-details in the same accordion panel
     const container = $(this).closest(".usecases-panel");
-    container.find(".uc-title").text(uc["Use Case Title"]  || "Untitled");
-    container.find(".uc-body").text(uc["Use Case Body"]    || "No description");
-    container.find("img").attr("src", uc["Use Case URL"]   || "");
-  });
-});
-
-
-  /*******************************************************
-   * D) Attach “Send Report” + Email Retype
-   *******************************************************/
-  const sendBtn = document.getElementById("send-results-btn");
-  if (sendBtn) {
-    sendBtn.addEventListener("click", sendReport);
-  }
-  document.getElementById("email-input").addEventListener("input", function() {
-    if (sendBtn.textContent === "Report Sent") {
-      sendBtn.textContent = "Send Report";
-      sendBtn.disabled = false;
-    }
+    container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
+    container.find(".uc-body").text(uc["Use Case Body"] || "No description");
+    container.find("img").attr("src", uc["Use Case URL"] || "");
   });
 });
