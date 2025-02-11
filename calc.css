@@ -1076,3 +1076,97 @@ padding: 80px 20px;
 #go-back-btn:hover {
   background-color: #0056b3;
 }
+
+.toggle-container {
+  display: inline-flex;
+  background-color: #f0f0f0;
+  border-radius: 9999px;
+  padding: 4px;
+  margin-bottom: 1.5rem; /* add extra spacing below */
+}
+
+.toggle-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: #666;
+  padding: 0.5rem 1.25rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.toggle-btn:not(.active):hover {
+  background-color: #e7e7e7;
+}
+
+.toggle-btn.active {
+  background-color: #ffffff;
+  color: #333;
+  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
+  font-weight: 600;
+}
+.output-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #fff;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  padding: 12px 16px;
+  border: 1px solid #e6e6e6;       /* Light border */
+  transition: background-color 0.2s ease;
+}
+
+.output-row:hover {
+  background-color: #f9f9f9;      /* Subtle hover highlight */
+}
+
+.output-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.output-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;             /* If you want slightly rounded logos */
+  object-fit: contain;
+}
+
+.program-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.output-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+#output-state p.tip-text {
+  font-size: 14px;
+  color: #777;
+  margin-bottom: 1rem;
+  font-style: italic; 
+}
+.total-value-row {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e0e0e0;
+  font-size: 18px;
+  text-align: center;
+  color: #333;
+  font-weight: 600;
+}
+.state-title {
+  font-size: 2rem;     /* bigger heading */
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
