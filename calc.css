@@ -553,10 +553,9 @@ button {
   background-color: #fff;
 }
 
-/* Remove the inner border on the input container */
-.dollar-input-container {
-  border: none;
-  background-color: transparent; /* optional */
+/* 1) The container has a border already, so replicate the same box-shadow on focus */
+.dollar-input-container:focus-within {
+  box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
 
 .program-left {
@@ -592,6 +591,8 @@ button {
   background-color: #fff;
   height: 2.75rem;
   padding: 0 1rem;
+   border: none;
+  background-color: transparent; /* optional */
 }
 .program-values {
   margin-top: 0.5rem;
