@@ -1126,6 +1126,24 @@ $("#input-back-btn").on("click", function() {
   updateStageGraphic("default");
   showCTAsForState("default");
 });
+$(document).on("click", ".mini-pill", function() {
+  // 1) Toggle which pill is active
+  $(this).siblings(".mini-pill").removeClass("active");
+  $(this).addClass("active");
+
+  // 2) Grab its data-usecase-id
+  const useCaseId = $(this).data("usecaseId");
+
+  // 3) Update the .usecase-details text + image
+  const uc = realWorldUseCases[useCaseId];
+  if (!uc) return;
+
+  // Example: find the local .usecase-details in the same accordion panel
+  const container = $(this).closest(".usecases-panel");
+  container.find(".uc-title").text(uc["Use Case Title"]  || "Untitled");
+  container.find(".uc-body").text(uc["Use Case Body"]    || "No description");
+  container.find("img").attr("src", uc["Use Case URL"]   || "");
+});
 
 
   /*******************************************************
