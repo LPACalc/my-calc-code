@@ -121,6 +121,41 @@ button {
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
   z-index: 9999;          /* on top of content */
 }
+/* 
+   1) OUTER WRAPPER => 
+      Spills out to the right so the scrollbar shows at the edge. 
+*/
+.outer-scroll-wrapper {
+  position: relative;
+  overflow: hidden;  /* hide horizontal scrolly bits */
+  width: 100%;
+  flex: 1 1 auto;    /* if using flex layout in the parent */
+  height: 100%;      /* if you want it to fill vertical space */
+}
+
+/* 
+   2) SCROLL AREA => 
+      This is the “real” scrolling container. 
+      We make it slightly wider than the screen, then shift it back. 
+*/
+.scroll-area {
+  width: calc(100% + 16px);   /* Enough extra so the scrollbar sits at the page edge */
+  margin-right: -16px;        /* Negative margin to pull the scrollbar into view */
+  overflow-y: auto;           /* This is the scroller! */
+  height: 100%;               /* Fill the outer wrapper’s height (if desired) */
+  box-sizing: content-box;
+  padding-right: 16px;        /* So content isn't hidden behind the scrollbar */
+}
+
+/*
+   3) CONTENT LIMITER => 
+      Keeps your actual content centered + capped at 40rem.
+*/
+.content-limiter {
+  max-width: 40rem;
+  margin: 0 auto;  /* center within the scroll-area's space */
+  /* optional: add left/right padding if you want more breathing room at small screens */
+}
 
 
 /*******************************************************
