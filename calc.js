@@ -548,8 +548,12 @@ function gatherProgramData() {
     const program = loyaltyPrograms[recordId];
     if (!program) return;
 
-    const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
+    const pointsStr = $(this)
+      .find(".points-input")
+      .val()
+      .replace(/,/g, "") || "0";
     const points = parseFloat(pointsStr) || 0;
+
     const travelRate = program["Travel Value"] || 0;
     const cashRate   = program["Cash Value"]   || 0;
     const travelValue = points * travelRate;
@@ -558,7 +562,7 @@ function gatherProgramData() {
     data.push({
       recordId,
       programName: program["Program Name"] || "Unknown",
-      points,
+      points,       // <-- Now we explicitly carry the # of points
       travelValue,
       cashValue
     });
@@ -769,7 +773,7 @@ function buildOutputRows(viewType) {
     const logoUrl = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unknown";
 
-    // Decide which column to use
+    // Choose travelValue vs. cashValue
     let rowValue = (viewType === "travel")
       ? item.travelValue
       : item.cashValue;
@@ -777,7 +781,7 @@ function buildOutputRows(viewType) {
     totalValue += rowValue;
     const formattedRowVal = `$${rowValue.toFixed(2)}`;
 
-    // Basic row 
+    // Basic row markup
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -790,19 +794,19 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If Travel => build the hidden accordion; if Cash => skip
+    // If in "travel" view => add the use-case accordion
     if (viewType === "travel") {
-      const accordionHtml = `
+      rowHtml += `
         <div class="usecase-accordion" style="display:none;">
-          ${buildUseCaseAccordionContent(item.recordId)}
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
-      rowHtml += accordionHtml;
     }
 
     $("#output-programs-list").append(rowHtml);
   });
 
+  // Add a total row at the bottom
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const formattedTotal = `$${totalValue.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -951,6 +955,85 @@ $(document).ready(async function() {
   $("#default-hero").show();
   updateStageGraphic("default");
   showCTAsForState("default");
+
+  /*********************************************
+ * CC) BUILD USE CASE ACCORDION w/FILTER
+ *     (Replace your existing "T)" function)
+ *********************************************/
+function buildUseCaseAccordionContent(recordId, userPoints) {
+  const program = loyaltyPrograms[recordId];
+  if (!program) {
+    return `<div style="padding:1rem;">No data found.</div>`;
+  }
+
+  // Filter recommended = true AND linked to this program
+  // AND has “Points Required” <= userPoints
+  let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
+    if (!uc.Recommended) return false;
+    const linkedPrograms = uc["Program Name"] || [];
+    if (!linkedPrograms.includes(recordId)) return false;
+
+    const requiredPts = uc["Points Required"] || 0;
+    return requiredPts <= userPoints;
+  });
+
+  // Sort ascending by points required
+  matchingUseCases.sort((a, b) => {
+    const aPts = a["Points Required"] || 0;
+    const bPts = b["Points Required"] || 0;
+    return aPts - bPts;
+  });
+
+  // (Optional) Limit to 4
+  matchingUseCases = matchingUseCases.slice(0, 4);
+
+  if (!matchingUseCases.length) {
+    return `<div style="padding:1rem;">No suitable use cases fit your point total.</div>`;
+  }
+
+  // Build mini-pill elements
+  let pillsHTML = "";
+  matchingUseCases.forEach((uc, i) => {
+    const isActive = (i === 0) ? "active" : "";
+    const ptsReq = uc["Points Required"] || 0;
+    pillsHTML += `
+      <div class="mini-pill ${isActive}" data-usecase-id="${uc.id}">
+        ${ptsReq.toLocaleString()} pts
+      </div>
+    `;
+  });
+
+  // Show the first recommended use case by default
+  const first = matchingUseCases[0];
+  const imageURL = first["Use Case URL"] || "";
+  const title    = first["Use Case Title"] || "Untitled";
+  const body     = first["Use Case Body"]  || "No description";
+
+  return `
+    <div class="usecases-panel">
+      <div class="pills-container" style="display:flex; flex-wrap:wrap; gap:0.5rem;">
+        ${pillsHTML}
+      </div>
+      <div class="usecase-details" style="display:flex; gap:1rem; margin-top:1rem;">
+        <div class="image-wrap" style="max-width:180px;">
+          <img
+            src="${imageURL}"
+            alt="Use Case"
+            style="width:100%; height:auto; border-radius:4px;"
+          />
+        </div>
+        <div class="text-wrap" style="flex:1;">
+          <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem;">
+            ${title}
+          </h4>
+          <p class="uc-body" style="font-size:14px; margin:0;">
+            ${body}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
 
   /*******************************************************
    * B) Transitions
