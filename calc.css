@@ -1167,6 +1167,149 @@ padding: 80px 20px;
   font-weight: 700;
   color: #333;
   text-align: center;
+}
+
+
+
+
+
+
+
+
+.calculator-state .state-title {
+  font-size: 2rem;       /* bigger font */
+  font-weight: 700;      /* bolder */
+  color: #1F2C40;        /* darker navy-ish color */
+  margin-bottom: 1rem;   /* space below heading */
+}
+
+.calculator-state .points-info-box {
+  background-color: #F5F7FA; /* softer background */
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.calculator-state .points-info-box p {
+  color: #444;
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.calculator-state .info-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+}
+.spend-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0;
+  border-bottom: 1px solid #EAEAEA; /* subtle divider */
+}
+
+.spend-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.spend-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.spend-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2C40;
+}
+
+.spend-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.spend-input {
+  width: 80px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1F2C40;
+  text-align: right;
+  padding: 0.5rem;
+  border: 1px solid #CED4DA;
+  border-radius: 4px;
+  background-color: #fff;
+  outline: none;
+}
+.spend-input:focus {
+  border-color: #8da2b9;
+}
+
+/* Toggle "Monthly | Yearly" as pill buttons */
+.toggle-group {
+  display: inline-flex;
+  border-radius: 9999px;
+  background-color: #F0F0F0;
+  padding: 4px;
+}
+.toggle-button {
+  background: transparent;
+  border: none;
+  outline: none;
+  border-radius: 9999px;
+  font-size: 14px;
+  color: #666;
+  padding: 0.4rem 0.75rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.toggle-button.active {
+  background-color: #FFFFFF;
+  color: #333;
+  font-weight: 600;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.toggle-button:not(.active):hover {
+  background-color: #E2E2E2;
+}
+
+.zip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #F5F7FA;
+  padding: 1rem;
+  border-radius: 6px;
   margin-bottom: 1rem;
 }
+.zip-row label {
+  font-size: 14px;
+  color: #333;
+}
+.zip-input {
+  width: 80px;
+  border: 1px solid #CED4DA;
+  border-radius: 4px;
+  padding: 0.5rem;
+  outline: none;
+}
+.total-spending-bar {
+  position: sticky;
+  bottom: 0;
+  background-color: #FFFFFF;
+  padding: 1rem;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  color: #28A745; /* or your brand color */
+  border-top: 1px solid #EAEAEA; /* separate from content */
+}
+
 
