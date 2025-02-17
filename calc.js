@@ -602,8 +602,13 @@ async function sendReportFromModal() {
     setTimeout(() => {
       hideReportModal();    // This will fadeOut
       sentMsgEl.hide();
-      transformUnlockButtonToResend();
-    }, 1000);
+  // 1) Remove default-colors from both
+  $("#unlock-report-btn").removeClass("default-colors");
+  $("#explore-concierge-lower").removeClass("default-colors");
+
+  // 2) Add swapped-colors to each
+  $("#unlock-report-btn").addClass("swapped-colors");
+  $("#explore-concierge-lower").addClass("swapped-colors");    }, 700);
 
   } catch (err) {
     console.error("Failed to send report =>", err);
