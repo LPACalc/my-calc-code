@@ -1009,6 +1009,10 @@ $(document).ready(async function() {
   });
 });
 
+  $(document).on("click", "#clear-all-btn", function() {
+  clearAllPrograms();
+});
+
 /*******************************************************
  * U) buildOutputRows => Show "Total Value"
  *******************************************************/
