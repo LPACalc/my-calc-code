@@ -868,12 +868,9 @@ $(document).ready(async function() {
     updateStageGraphic("calc");
   });
 
- // (G) Unlock => open modal
+ // (G) “Unlock” => open modal
   $("#unlock-report-btn").on("click", function() {
-    // if (isTransitioning) return; // optionally block mid-transition
-    showReportModal(); // call the function
-  });
-
+    showReportModal();
   });
 
   // (H) “Usecase -> Back” => Output
