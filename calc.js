@@ -752,6 +752,15 @@ function showCTAsForState(state) {
   }
 }
 
+// 1) Define the function at the top-level (outside the click event)
+function showReportModal() {
+  // Example: fade in the #report-modal
+  $("#report-modal").fadeIn(200);
+  // reset any previous error messages
+  $("#modal-email-error").hide().text("");
+  $("#email-sent-message").hide();
+}
+
 $(document).ready(async function() {
   /*******************************************************
    * 1) INITIALIZE
@@ -859,21 +868,11 @@ $(document).ready(async function() {
     updateStageGraphic("calc");
   });
 
-  // (G) Unlock => open modal
+ // (G) Unlock => open modal
   $("#unlock-report-btn").on("click", function() {
-    // If you want to block it with transitions, you can, or skip:
-    // if (isTransitioning) return;
-    // isTransitioning = true;
-
-   // Usually somewhere in document.ready:
-function showReportModal() {
-  // Example: fade in the #report-modal
-  $("#report-modal").fadeIn(200);
-  // reset any previous error messages:
-  $("#modal-email-error").hide().text("");
-  $("#email-sent-message").hide();
-}
-});
+    // if (isTransitioning) return; // optionally block mid-transition
+    showReportModal(); // call the function
+  });
 
   });
 
