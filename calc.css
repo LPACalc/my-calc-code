@@ -59,7 +59,9 @@ button {
   object-fit: cover;
   display: block;
 }
-
+.sqs-block:empty {
+  display: none !important;
+}
 /* 
    RIGHT COLUMN as a vertical layout:
    - Takes up 75% width
