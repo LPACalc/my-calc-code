@@ -37,7 +37,7 @@ const pointsData = {
   }
 };
 
-// Stage graphic images (added "sendReport" key for that state)
+// Stage graphic images
 const stageImages = {
   default:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/af0bbfc5-9892-4487-a87d-5fd185a47819/unnamed+%284%29.png",
   input:     "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/5474cde0-06cb-4afb-9c99-2cdf9d136a17/unnamed+%281%29.png",
@@ -59,7 +59,6 @@ function hideAllStates() {
 }
 
 function isValidEmail(str) {
-  // Basic email pattern
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
@@ -480,8 +479,7 @@ function formatNumberInput(el) {
  * M) CALCULATE TOTAL
  *******************************************************/
 function calculateTotal() {
-  // purely optional if you want a sum or partial display
-  // We'll just loop for internal usage
+  // purely optional
   let totalPoints = 0;
   $(".program-row").each(function() {
     const pStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
@@ -507,9 +505,7 @@ function gatherProgramData() {
       points
     });
   });
-
-  // For debugging, see what’s being captured:
-  console.log("gatherProgramData =>", data); // <== added line to debug
+  console.log("gatherProgramData =>", data);
   return data;
 }
 
@@ -525,9 +521,9 @@ function initNavyShowcase() {
   function updateStaticView(k) {
     const pd = pointsData[k];
     if (!pd) return;
-    img.src            = pd.image;
-    ttl.textContent    = pd.title;
-    body.textContent   = pd.description;
+    img.src         = pd.image;
+    ttl.textContent = pd.title;
+    body.textContent= pd.description;
   }
 
   pills.forEach(p => {
@@ -538,7 +534,7 @@ function initNavyShowcase() {
     });
   });
 
-  // default: 10000
+  // default
   updateStaticView("10000");
   if (pills[0]) pills[0].classList.add("active");
 }
@@ -552,16 +548,15 @@ async function sendReport(email) {
     throw new Error("Invalid email format");
   }
 
-  // gather minimal data: programName, points
+  // gather minimal data: {programName, points}
   const fullData = gatherProgramData();
   const programsToSend = fullData.map(item => ({
     programName: item.programName,
     points: item.points
   }));
 
-  console.log("Sending to server =>", { email, programs: programsToSend }); // <== debug line
+  console.log("Sending to server =>", { email, programs: programsToSend });
 
-  // Post minimal data
   const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -598,17 +593,15 @@ async function sendReportFromModal() {
     sentMsgEl.show();
     hasSentReport = true;
 
-    // fade out after 1 second, not instant
+    // fade out after 0.7s
     setTimeout(() => {
-      hideReportModal();    // This will fadeOut
+      hideReportModal();
       sentMsgEl.hide();
-  // 1) Remove default-colors from both
-  $("#unlock-report-btn").removeClass("default-colors");
-  $("#explore-concierge-lower").removeClass("default-colors");
 
-  // 2) Add swapped-colors to each
-  $("#unlock-report-btn").addClass("swapped-colors");
-  $("#explore-concierge-lower").addClass("swapped-colors");    }, 700);
+      // Swap button colors
+      $("#unlock-report-btn").removeClass("default-colors").addClass("swapped-colors");
+      $("#explore-concierge-lower").removeClass("default-colors").addClass("swapped-colors");
+    }, 700);
 
   } catch (err) {
     console.error("Failed to send report =>", err);
@@ -626,21 +619,12 @@ function transformUnlockButtonToResend() {
   const unlockBtn    = $("#unlock-report-btn");
   const conciergeBtn = $("#explore-concierge-lower");
 
-  // 1) Remove default styling classes from both
-  unlockBtn.removeClass("default-colors");
-  conciergeBtn.removeClass("default-colors");
+  unlockBtn.removeClass("default-colors").addClass("swapped-colors");
+  conciergeBtn.removeClass("default-colors").addClass("swapped-colors");
 
-  // 2) Add swapped-colors to each
-  unlockBtn.addClass("swapped-colors");
-  conciergeBtn.addClass("swapped-colors");
-
-  // 3) Also rename button text if you want
   unlockBtn.text("Resend Report");
-
-  // 4) Show the Explore Services button if it was hidden
   conciergeBtn.show();
 }
-
 
 /*******************************************************
  * T) BUILD USE CASE ACCORDION => Per-Program
@@ -692,12 +676,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
       <div
         class="pills-container"
-        style="
-          display:flex;
-          flex-wrap:wrap;
-          justify-content:center;
-          gap:1rem;
-        "
+        style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;"
       >
         ${pillsHTML}
       </div>
@@ -747,7 +726,6 @@ function showCTAsForState(state) {
       $("#to-output-btn").show();
       break;
     case "output":
-      // Always show "Unlock (or Resend)" plus "Explore Concierge"
       $("#unlock-report-btn").show();
       $("#explore-concierge-lower").show();
       break;
@@ -760,17 +738,14 @@ function showCTAsForState(state) {
   }
 }
 
-/** 
- * Added fadeOut to hideReportModal so the modal is hidden with an animation
- */
+/*******************************************************
+ * hideReportModal / showReportModal
+ *******************************************************/
 function hideReportModal() {
-  $("#report-modal").fadeOut(300); // fade out over 0.3s
+  $("#report-modal").fadeOut(300);
 }
-
 function showReportModal() {
-  // Example: fade in the #report-modal
   $("#report-modal").fadeIn(200);
-  // reset any previous error messages
   $("#modal-email-error").hide().text("");
   $("#email-sent-message").hide();
 }
@@ -791,12 +766,10 @@ $(document).ready(async function() {
   updateStageGraphic("default");
   showCTAsForState("default");
 
-
   /*******************************************************
    * 2) TRANSITIONS: BACK & NEXT
    *******************************************************/
-
-  // (A) “Get Started” => goes to Input State
+  // (A) “Get Started” => Input
   $("#get-started-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -966,11 +939,9 @@ $(document).ready(async function() {
     await sendReportFromModal();
   });
 
-
   /*******************************************************
    * 3) OTHER LISTENERS (Search, Program Toggling, Pills)
    *******************************************************/
-
   // Program search => filter
   $("#program-search").on("input", filterPrograms);
 
@@ -1009,7 +980,7 @@ $(document).ready(async function() {
   // Clicking output-row => expand/collapse usecase (travel only)
   $(document).on("click", ".output-row", function() {
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return; // no accordion if cash view
+      return;
     }
     $(".usecase-accordion:visible").slideUp();
     const panel = $(this).next(".usecase-accordion");
@@ -1020,28 +991,23 @@ $(document).ready(async function() {
     }
   });
 
-  // (NEW) Clicking a mini-pill => load that use case
+  // (NEW) mini-pill => load that use case
   $(document).on("click", ".mini-pill", function() {
-    // 1) Mark this pill active
     $(this).siblings(".mini-pill").removeClass("active");
     $(this).addClass("active");
 
-    // 2) Grab its data-usecase-id
     const useCaseId = $(this).data("usecaseId");
     if (!useCaseId) return;
 
-    // 3) Find the record in realWorldUseCases
     const uc = realWorldUseCases[useCaseId];
     if (!uc) return;
 
-    // 4) Update the local .usecase-details
     const container = $(this).closest(".usecases-panel");
     container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
     container.find(".uc-body").text(uc["Use Case Body"] || "");
     container.find("img").attr("src", uc["Use Case URL"] || "");
   });
 });
-
 
 /*******************************************************
  * U) buildOutputRows => Show "Total Value"
