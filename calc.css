@@ -970,6 +970,7 @@ h2 {
     border-radius: 9999px;
   }
 
+
   /* (11) Use case => we forced .usecase-details to flex-dir:col & center 
      => done above in #usecase-state .usecase-details override. */
 
@@ -1013,13 +1014,17 @@ h2 {
   padding: 6px 12px;
   transition: background-color 0.2s ease, color 0.2s;
 }
-.mini-pill.active {
-  background-color: #007bff;
-  color: #fff;
+/* Example: Using #1a2732 as the dark blue */
+.point-option:hover,
+.point-option.active {
+  background-color: #1a2732 !important;
+  color: #fff !important;
 }
-.mini-pill:hover {
-  background-color: #e9f2fe;  
-  color: #333;
+
+.mini-pill:hover,
+.mini-pill.active {
+  background-color: #1a2732 !important;
+  color: #fff !important;
 }
 .usecases-panel {
   display: flex;
