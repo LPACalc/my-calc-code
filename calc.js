@@ -866,8 +866,13 @@ $(document).ready(async function() {
     // isTransitioning = true;
 
    // Usually somewhere in document.ready:
-$("#unlock-report-btn").on("click", function () {
-  showReportModal(); // or your function that opens the modal
+function showReportModal() {
+  // Example: fade in the #report-modal
+  $("#report-modal").fadeIn(200);
+  // reset any previous error messages:
+  $("#modal-email-error").hide().text("");
+  $("#email-sent-message").hide();
+}
 });
 
   });
