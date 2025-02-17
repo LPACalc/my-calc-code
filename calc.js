@@ -623,20 +623,24 @@ async function sendReportFromModal() {
  * transformUnlockButtonToResend
  *******************************************************/
 function transformUnlockButtonToResend() {
-  const unlockBtn   = $("#unlock-report-btn");
-  const conciergeBtn= $("#explore-concierge-lower");
+  const unlockBtn    = $("#unlock-report-btn");
+  const conciergeBtn = $("#explore-concierge-lower");
 
-  unlockBtn.html("Resend Report");
-  unlockBtn.css({
-    background: "none",
-    "background-color": "transparent",
-    border: "none",
-    color: "#1a2732",
-    "font-weight": "600"
-  });
-  // Always show the Explore Concierge Services button
+  // 1) Remove default styling classes from both
+  unlockBtn.removeClass("default-colors");
+  conciergeBtn.removeClass("default-colors");
+
+  // 2) Add swapped-colors to each
+  unlockBtn.addClass("swapped-colors");
+  conciergeBtn.addClass("swapped-colors");
+
+  // 3) Also rename button text if you want
+  unlockBtn.text("Resend Report");
+
+  // 4) Show the Explore Services button if it was hidden
   conciergeBtn.show();
 }
+
 
 /*******************************************************
  * T) BUILD USE CASE ACCORDION => Per-Program
