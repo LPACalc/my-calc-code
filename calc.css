@@ -97,6 +97,7 @@ button {
   min-height: 100%;
   box-sizing: border-box;
 }
+
 /* 1) Make program names bigger on desktop in the calculator (input) rows */
 @media (min-width: 992px) {
   #calculator-state .program-row .program-name {
@@ -921,9 +922,9 @@ h2 {
   }
 }
 
-
-  /* (2) & (4) => h1 => 1.25rem, subheaders => 1rem 
-     So hero h1, state h1, etc. */
+/* (2) & (4) => h1 => 1.25rem, subheaders => 1rem 
+   So hero h1, state h1, etc. */
+@media (max-width: 576px) {
   .hero-section h1,
   #input-state h1,
   #calculator-state h1,
@@ -970,15 +971,16 @@ h2 {
     border-radius: 9999px;
   }
 
-
   /* (11) Use case => we forced .usecase-details to flex-dir:col & center 
      => done above in #usecase-state .usecase-details override. */
 
-.container,
-.outer-scroll-wrapper,
-.content-limiter {
-  padding: 0 1rem !important;
-  margin: 0 auto !important;
+  /* Ensure minimal side padding, but still center the container => margin: auto */
+  .container,
+  .outer-scroll-wrapper,
+  .content-limiter {
+    padding: 0 1rem !important;
+    margin: 0 auto !important;
+  }
 }
 
 /*******************************************************
@@ -1018,7 +1020,6 @@ h2 {
   background-color: #1a2732 !important;
   color: #fff !important;
 }
-
 .mini-pill:hover,
 .mini-pill.active {
   background-color: #1a2732 !important;
@@ -1076,7 +1077,7 @@ h2 {
   border: 1px solid #dce3eb;
   border-radius: 4px;
   padding: 10px;
-  transition: box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
 }
 #email-input:focus {
   box-shadow: 0 0 3px rgba(0,0,0,0.15);
@@ -1145,26 +1146,23 @@ h2 {
 /*******************************************************
  * REPORT MODAL => position: fixed => center on screen
  *******************************************************/
-/* Overlay that fills only the right-column’s area */
 #report-modal {
   display: none;
-  position: absolute; /* changed from fixed */
-  top: 0;
-  left: 0;
-  width: 100%; 
-  height: 100%; 
-  background: rgba(0,0,0,0.5);
+  position: fixed; /* if you want to center across entire browser window */
   z-index: 9999;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
 }
-
-/* Center the modal content box inside the right column */
 #report-modal-content {
   position: absolute;
-  top: 50%;
+  top: 50%; 
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 35rem;           /* set a max or fixed width that suits your design */
-  max-width: 90%;         /* make it responsive */
+  width: 40rem;
+  max-width: 90%;
   background: #fff;
   border-radius: 8px;
   padding: 20px;
