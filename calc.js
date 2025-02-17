@@ -739,7 +739,8 @@ function showCTAsForState(state) {
       break;
     case "output":
       // Always show "Unlock (or Resend)" plus "Explore Concierge"
-      $("#unlock-report-btn").show();
+    $("#unlock-report-btn").show();
+      // Add this line so it appears on output
       $("#explore-concierge-lower").show();
       break;
     case "usecase":
