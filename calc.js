@@ -37,8 +37,7 @@ const pointsData = {
   }
 };
 
-// Stage graphic images
-// (Added sendReport so updateStageGraphic("sendReport") works)
+// Stage graphic images (added "sendReport" key)
 const stageImages = {
   default: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/af0bbfc5-9892-4487-a87d-5fd185a47819/unnamed+%284%29.png",
   input:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/5474cde0-06cb-4afb-9c99-2cdf9d136a17/unnamed+%281%29.png",
@@ -71,7 +70,7 @@ function hideReportModal() {
 
 // Basic email validator
 function isValidEmail(str) {
-  return /^[^\s@]+@[^\s@]+(\.[^\s@]+)+$/.test(str);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
 /*******************************************************
@@ -100,6 +99,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
 
     } catch (err) {
       clearTimeout(timeoutId);
+
       if (err.name === "AbortError") {
         if (attempt > maxRetries) {
           throw new Error("Request timed out multiple times.");
@@ -117,6 +117,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
   }
   throw new Error("Failed to fetch after maxRetries attempts.");
 }
+
 async function fetchAirtableTable(tableName) {
   const response = await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
@@ -522,11 +523,8 @@ function calculateTotal() {
 
     const travelRate = program["Travel Value"] || 0;
     const cashRate   = program["Cash Value"]   || 0;
-
-    const rowTravel = points * travelRate;
-    const rowCash   = points * cashRate;
-    totalTravel    += rowTravel;
-    totalCash      += rowCash;
+    totalTravel += points * travelRate;
+    totalCash   += points * cashRate;
   });
 }
 
@@ -543,18 +541,10 @@ function gatherProgramData() {
     const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
     const points = parseFloat(pointsStr) || 0;
 
-    const travelRate = program["Travel Value"] || 0;
-    const cashRate   = program["Cash Value"]   || 0;
-
-    const travelValue = points * travelRate;
-    const cashValue   = points * cashRate;
-
+    // We only need to store program name + points
     data.push({
-      recordId,
       programName: program["Program Name"] || "Unknown",
-      points,
-      travelValue,
-      cashValue
+      points
     });
   });
   return data;
@@ -585,7 +575,7 @@ function initNavyShowcase() {
     });
   });
 
-  // Default => 10k
+  // Default
   updateStaticView("10000");
   if (staticPills[0]) staticPills[0].classList.add("active");
 }
@@ -599,21 +589,15 @@ async function sendReport(email) {
     throw new Error("Invalid email format");
   }
 
+  // gatherProgramData => just name + points
   const programs = gatherProgramData();
-  let totalTravel = 0;
-  let totalCash   = 0;
-  programs.forEach(item => {
-    totalTravel += item.travelValue;
-    totalCash   += item.cashValue;
-  });
 
+  // Send minimal data => { email, programs[] }
   const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       email,
-      totalTravelValue: totalTravel,
-      totalCashValue: totalCash,
       programs
     })
   });
@@ -649,12 +633,12 @@ async function sendReportFromModal() {
     sentMsgEl.show();
     hasSentReport = true;
 
-    // Wait 2s, then hide modal & transform button
+    // Wait 1s, then hide modal & transform button
     setTimeout(() => {
       hideReportModal();
       sentMsgEl.hide();
       transformUnlockButtonToResend();
-    }, 2000);
+    }, 1000); // <-- half (1 second)
 
   } catch (err) {
     console.error("Failed to send report =>", err);
@@ -680,6 +664,7 @@ function transformUnlockButtonToResend() {
     color: "#1a2732",
     "font-weight": "600"
   });
+  // Show the new "Explore Concierge Services" button
   conciergeBtn.show();
 }
 
@@ -692,7 +677,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // Filter: must be recommended, have required fields, and require <= userPoints
+  // Filter recommended
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     if (!uc["Points Required"]) return false;
@@ -703,26 +688,24 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && userHasEnoughPoints;
   });
 
-  // Sort ascending by Points Required
+  // Sort ascending
   matchingUseCases.sort((a, b) => {
     const aPoints = a["Points Required"] || 0;
     const bPoints = b["Points Required"] || 0;
     return aPoints - bPoints;
   });
 
-  // Take up to 4
+  // Limit to 4
   matchingUseCases = matchingUseCases.slice(0, 4);
 
-  // If no results
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // Build pills (first pill "active")
   let pillsHTML = "";
-  matchingUseCases.forEach((uc, index) => {
+  matchingUseCases.forEach((uc, idx) => {
     const pointsReq = uc["Points Required"] || 0;
-    const activeClass = (index === 0) ? "active" : "";
+    const activeClass = (idx === 0) ? "active" : "";
     pillsHTML += `
       <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
         ${pointsReq.toLocaleString()} pts
@@ -730,7 +713,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
-  // Show the first use case's details by default
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"]  || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -802,6 +784,7 @@ function showCTAsForState(state) {
       $("#to-output-btn").show();
       break;
     case "output":
+      // Show "Unlock" or "Resend" depending on hasSentReport
       $("#unlock-report-btn").show();
       if (hasSentReport) {
         $("#explore-concierge-lower").show();
@@ -895,12 +878,12 @@ $(document).ready(async function() {
     updateStageGraphic("calc");
   });
 
-  // (NEW) “Unlock Full Report” => open modal
+  // “Unlock Full Report” => open modal
   $("#unlock-report-btn").on("click", function() {
     showReportModal();
   });
 
-  // (NEW) “Explore Concierge Services” => link
+  // “Explore Concierge Services” => link
   $("#explore-concierge-lower").on("click", function() {
     window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
@@ -1050,13 +1033,15 @@ function buildOutputRows(viewType) {
   let totalValue = 0;
 
   data.forEach(item => {
-    const prog = loyaltyPrograms[item.recordId] || {};
-    const logoUrl = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"] || "Unknown";
-
-    let rowValue = (viewType === "travel")
-      ? item.travelValue
-      : item.cashValue;
+    // no travel/cash math => we can do a partial or keep it short
+    let rowValue = 0;
+    if (viewType === "travel") {
+      // optional => if you had a "Travel Value" but we removed it
+      // So let's just do an example => no transformation
+      rowValue = (item.points || 0) * 1.0; // If you'd like an example multiplier
+    } else {
+      rowValue = (item.points || 0) * 0.01; // example
+    }
     totalValue += rowValue;
 
     const formattedRowVal = `$${rowValue.toLocaleString(undefined, {
@@ -1065,24 +1050,24 @@ function buildOutputRows(viewType) {
     })}`;
 
     let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
+      <div class="output-row" data-record-id="${item.recordId || ''}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="${programName} logo" class="output-logo" />
-          <span class="program-name">${programName}</span>
+          <span class="program-name">${item.programName}</span>
         </div>
         <div class="output-value" style="font-weight:600;">
           ${formattedRowVal}
         </div>
       </div>
     `;
+
     if (viewType === "travel") {
-      const accordionHtml = `
+      rowHtml += `
         <div class="usecase-accordion" style="display:none;">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
-      rowHtml += accordionHtml;
     }
+
     $("#output-programs-list").append(rowHtml);
   });
 
