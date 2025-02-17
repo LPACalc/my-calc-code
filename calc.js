@@ -53,9 +53,11 @@ const stageImages = {
 function updateStageGraphic(stageKey) {
   $(".stage-graphic").attr("src", stageImages[stageKey]);
 }
+
 function hideAllStates() {
   $("#default-hero, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
+
 function isValidEmail(str) {
   // Basic email pattern
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
@@ -266,7 +268,7 @@ function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
 
-  // Show calculator state if we add something
+  // Hide hero, show calc state
   $("#default-hero").hide();
   $("#calculator-state").fadeIn();
 
@@ -490,10 +492,6 @@ function calculateTotal() {
 /*******************************************************
  * N) GATHER PROGRAM DATA
  *******************************************************/
-/**
- * We store recordId so we can show logos
- * but only send {programName, points} to the server
- */
 function gatherProgramData() {
   const data = [];
   $(".program-row").each(function() {
@@ -509,6 +507,9 @@ function gatherProgramData() {
       points
     });
   });
+
+  // For debugging, see what’s being captured:
+  console.log("gatherProgramData =>", data); // <== added line to debug
   return data;
 }
 
@@ -558,6 +559,8 @@ async function sendReport(email) {
     points: item.points
   }));
 
+  console.log("Sending to server =>", { email, programs: programsToSend }); // <== debug line
+
   // Post minimal data
   const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
     method: "POST",
@@ -595,12 +598,12 @@ async function sendReportFromModal() {
     sentMsgEl.show();
     hasSentReport = true;
 
-    // Close modal after 1 second
+    // fade out after 1 second, not instant
     setTimeout(() => {
-      hideReportModal();
+      hideReportModal();    // This will fadeOut
       sentMsgEl.hide();
       transformUnlockButtonToResend();
-    }, 1000); // half the original 2s
+    }, 1000);
 
   } catch (err) {
     console.error("Failed to send report =>", err);
@@ -639,7 +642,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // Filter recommended use cases requiring <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     if (!uc["Points Required"]) return false;
@@ -661,7 +663,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // Build mini-pills (first is active)
   let pillsHTML = "";
   matchingUseCases.forEach((uc, i) => {
     const ptsReq = uc["Points Required"] || 0;
@@ -673,7 +674,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
-  // Show first use case by default
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"]  || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -739,8 +739,7 @@ function showCTAsForState(state) {
       break;
     case "output":
       // Always show "Unlock (or Resend)" plus "Explore Concierge"
-    $("#unlock-report-btn").show();
-      // Add this line so it appears on output
+      $("#unlock-report-btn").show();
       $("#explore-concierge-lower").show();
       break;
     case "usecase":
@@ -752,7 +751,13 @@ function showCTAsForState(state) {
   }
 }
 
-// 1) Define the function at the top-level (outside the click event)
+/** 
+ * Added fadeOut to hideReportModal so the modal is hidden with an animation
+ */
+function hideReportModal() {
+  $("#report-modal").fadeOut(300); // fade out over 0.3s
+}
+
 function showReportModal() {
   // Example: fade in the #report-modal
   $("#report-modal").fadeIn(200);
@@ -761,21 +766,22 @@ function showReportModal() {
   $("#email-sent-message").hide();
 }
 
+/*******************************************************
+ * DOCUMENT READY
+ *******************************************************/
 $(document).ready(async function() {
+
   /*******************************************************
    * 1) INITIALIZE
    *******************************************************/
-  // A) Initialize static pills in #usecase-state (if used)
   initNavyShowcase();
-
-  // B) Fetch data & build top programs
   await initializeApp().catch(err => console.error("initializeApp error =>", err));
 
-  // C) Hide all states initially, show default hero
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
   showCTAsForState("default");
+
 
   /*******************************************************
    * 2) TRANSITIONS: BACK & NEXT
@@ -868,7 +874,7 @@ $(document).ready(async function() {
     updateStageGraphic("calc");
   });
 
- // (G) “Unlock” => open modal
+  // (G) “Unlock” => open modal
   $("#unlock-report-btn").on("click", function() {
     showReportModal();
   });
@@ -893,7 +899,7 @@ $(document).ready(async function() {
 
     hideAllStates();
     $("#send-report-state").fadeIn(() => {
-      showCTAsForState("send-report");
+      showCTAsForState("sendReport");
       isTransitioning = false;
     });
     updateStageGraphic("sendReport");
@@ -951,6 +957,7 @@ $(document).ready(async function() {
     await sendReportFromModal();
   });
 
+
   /*******************************************************
    * 3) OTHER LISTENERS (Search, Program Toggling, Pills)
    *******************************************************/
@@ -993,7 +1000,7 @@ $(document).ready(async function() {
   // Clicking output-row => expand/collapse usecase (travel only)
   $(document).on("click", ".output-row", function() {
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return; // no accordion in cash view
+      return; // no accordion if cash view
     }
     $(".usecase-accordion:visible").slideUp();
     const panel = $(this).next(".usecase-accordion");
@@ -1036,16 +1043,12 @@ function buildOutputRows(viewType) {
   let totalValue = 0;
 
   data.forEach(item => {
-    // We have recordId => can get the logo from loyaltyPrograms
     const prog = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
     const programName = item.programName;
 
-    // For your UI => if "travel", do some approximate travel value. If "cash", do another
-    // (This won't be sent to the server, just a local display)
     let rowValue = 0;
     if (viewType === "travel") {
-      // e.g. 1.2c per point, or any logic
       rowValue = item.points * (prog?.["Travel Value"] || 0);
     } else {
       rowValue = item.points * (prog?.["Cash Value"] || 0);
@@ -1069,7 +1072,6 @@ function buildOutputRows(viewType) {
       </div>
     `;
     if (viewType === "travel") {
-      // Insert hidden accordion for use-case
       rowHtml += `
         <div class="usecase-accordion" style="display:none;">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
