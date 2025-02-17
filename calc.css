@@ -206,7 +206,7 @@ button {
   text-align: center;
   max-width: 50rem;
   margin: auto;
-  padding: 80px 20px;
+  padding: 80px 20px 0px 20px;
 }
 #input-state h1,
 #calculator-state h1,
