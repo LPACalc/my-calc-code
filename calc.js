@@ -865,8 +865,11 @@ $(document).ready(async function() {
     // if (isTransitioning) return;
     // isTransitioning = true;
 
-    // Show the report modal
-    showReportModal();
+   // Usually somewhere in document.ready:
+$("#unlock-report-btn").on("click", function () {
+  showReportModal(); // or your function that opens the modal
+});
+
   });
 
   // (H) “Usecase -> Back” => Output
