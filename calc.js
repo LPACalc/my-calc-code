@@ -5,10 +5,9 @@
  *******************************************************/
 let loyaltyPrograms = {};
 let realWorldUseCases = [];
-let chosenPrograms = []; // array of recordIds that user has selected
-
-// Transition lock to prevent double-click issues
-let isTransitioning = false;
+let chosenPrograms = []; 
+let isTransitioning = false;  // for double-click guard
+let hasSentReport = false;    // track if user has already sent
 
 // Static pill data for your #points-showcase (Use Case State)
 const pointsData = {
@@ -56,12 +55,17 @@ function updateStageGraphic(stageKey) {
   $(".stage-graphic").attr("src", stageImages[stageKey]);
 }
 
-// NEW: Show and Hide the Report Modal
+// Modal open/close
 function showReportModal() {
   $("#report-modal").fadeIn(200);
 }
 function hideReportModal() {
   $("#report-modal").fadeOut(200);
+}
+
+// Basic email validator
+function isValidEmail(str) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
 /*******************************************************
@@ -70,10 +74,6 @@ function hideReportModal() {
 
 /**
  * fetchWithTimeout => basic fetch wrapper with timeouts and built-in retry logic.
- * @param {string} url           The endpoint or resource to fetch
- * @param {object} options       Fetch options (headers, method, etc.)
- * @param {number} timeout       Milliseconds before we abort this request
- * @param {number} maxRetries    Number of times to retry on timeout/HTTP error
  */
 async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries = 2) {
   let attempt = 0;
@@ -88,65 +88,54 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
       const response = await fetch(url, { ...options, signal });
       clearTimeout(timeoutId);
 
-      // If we get an OK response, return it
       if (response.ok) {
-        return response;
+        return response; // success
       }
 
-      // Otherwise, try again or throw an error if out of retries
       if (attempt > maxRetries) {
         throw new Error(`Non-OK HTTP status: ${response.status}`);
       }
       console.log(`Retry #${attempt} after HTTP status: ${response.status} ...`);
-      await new Promise(res => setTimeout(res, 500)); // small delay before retry
+      await new Promise(res => setTimeout(res, 500));
 
     } catch (err) {
       clearTimeout(timeoutId);
 
-      // If we aborted due to timeout => err.name === "AbortError"
       if (err.name === "AbortError") {
         if (attempt > maxRetries) {
           throw new Error("Request timed out multiple times.");
         }
         console.log(`Timeout/AbortError. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500)); // small delay
+        await new Promise(res => setTimeout(res, 500));
       } else {
-        // Other network errors
         if (attempt > maxRetries) {
-          throw err; // throw if out of retries
+          throw err;
         }
         console.log(`Network error: ${err.message}. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500)); // small delay
+        await new Promise(res => setTimeout(res, 500));
       }
     }
   }
 
-  // If we exit the loop, we've exhausted retries
   throw new Error("Failed to fetch after maxRetries attempts.");
 }
 
 /**
- * fetchAirtableTable => fetch data from an Airtable proxy using our
- * fetchWithTimeout method. We rely on fetchWithTimeout’s retry logic,
- * so no extra loop is needed here.
+ * fetchAirtableTable => fetch data from an Airtable proxy
  */
 async function fetchAirtableTable(tableName) {
-  // Adjust timeout or maxRetries if needed
   const response = await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
     {},
-    10000,   // e.g. 10s timeout
-    2        // e.g. up to 2 retries
+    10000,
+    2
   );
 
   if (!response.ok) {
     throw new Error(`Non-OK status from Airtable proxy: ${response.status}`);
   }
-
-  const data = await response.json();
-  return data;
+  return await response.json();
 }
-
 
 /*******************************************************
  * C) INITIALIZE APP => loads all data
@@ -207,7 +196,6 @@ function buildTopProgramsSection() {
   const container = document.getElementById("top-programs-grid");
   if (!container) return;
 
-  // Filter top programs
   const topRecords = Object.keys(loyaltyPrograms).filter(recordId => {
     const prog = loyaltyPrograms[recordId];
     return !!prog["Top Programs"];
@@ -257,10 +245,8 @@ function filterPrograms() {
   const filtered = Object.keys(loyaltyPrograms).filter(recordId => {
     const program = loyaltyPrograms[recordId];
     if (!program || !program["Program Name"]) return false;
-    // If it’s already added:
-    const alreadyAdded = $(
-      `#program-container .program-row[data-record-id='${recordId}']`
-    ).length > 0;
+    // If it’s already added
+    const alreadyAdded = $(`#program-container .program-row[data-record-id='${recordId}']`).length > 0;
 
     return (
       program["Program Name"].toLowerCase().includes(searchValue) &&
@@ -553,7 +539,6 @@ function calculateTotal() {
     totalTravel += rowTravel;
     totalCash   += rowCash;
   });
-  // If no rows => revert to started-state (optional)
 }
 
 /*******************************************************
@@ -610,9 +595,9 @@ function initNavyShowcase() {
   function updateStaticView(pointsKey) {
     const data = pointsData[pointsKey];
     if (!data) return;
-    pointsImage.src        = data.image;
-    pointsTitle.textContent= data.title;
-    pointsDesc.textContent = data.description;
+    pointsImage.src = data.image;
+    pointsTitle.textContent = data.title;
+    pointsDesc.textContent  = data.description;
   }
 
   staticPills.forEach(pill => {
@@ -623,7 +608,6 @@ function initNavyShowcase() {
     });
   });
 
-  // Default => 10k
   updateStaticView("10000");
   if (staticPills[0]) staticPills[0].classList.add("active");
 }
@@ -631,23 +615,13 @@ function initNavyShowcase() {
 /*******************************************************
  * R) SEND REPORT (existing logic)
  *******************************************************/
-/**
- * This is the old function you had. We can keep it if you want
- * for certain flows. But the new modal will use a custom function
- * that re-uses the same submission logic but pulls email from the
- * modal input. You could unify them if you like.
- */
 async function sendReport(email) {
-  // If no email was passed, bail
   if (!email) return;
 
-  // Validate
   if (!isValidEmail(email)) {
-    // We'll handle showing errors in the new function
     throw new Error("Invalid email format");
   }
 
-  // Gather data
   const programs = gatherProgramData();
   let totalTravel = 0;
   let totalCash = 0;
@@ -656,7 +630,6 @@ async function sendReport(email) {
     totalCash += item.cashValue;
   });
 
-  // Post data
   const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -672,19 +645,11 @@ async function sendReport(email) {
     const result = await response.json();
     throw new Error(result.error || `HTTP ${response.status}`);
   }
-  // If OK => done
   return true;
-}
-
-// Helper: quick email validator
-function isValidEmail(str) {
-  // A basic approach
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
 /*******************************************************
  * R2) SEND REPORT FROM MODAL
- *   - Reuses your "sendReport" logic, but toggles UI
  *******************************************************/
 async function sendReportFromModal() {
   const emailInput = $("#modal-email-input").val().trim();
@@ -692,33 +657,24 @@ async function sendReportFromModal() {
   const sentMsgEl  = $("#email-sent-message");
   const sendBtn    = $("#modal-send-btn");
 
-  // Clear any old errors
   errorEl.hide().text("");
   sentMsgEl.hide();
-  
-  // Basic validation
+
   if (!isValidEmail(emailInput)) {
     errorEl.text("Invalid email address.").show();
     return;
   }
 
-  // Lock the button
   sendBtn.prop("disabled", true).text("Sending...");
 
   try {
     await sendReport(emailInput);
-
-    // If success, show "Email Sent" message
     sentMsgEl.show();
-
-    // Mark that the user has sent at least one report
     hasSentReport = true;
 
-    // After 1.5-2 seconds, close the modal
     setTimeout(() => {
       hideReportModal();
       sentMsgEl.hide();
-      // Update the UI in the sticky footer
       transformUnlockButtonToResend();
     }, 2000);
 
@@ -727,44 +683,33 @@ async function sendReportFromModal() {
     errorEl.text(err.message || "Error sending report.").show();
 
   } finally {
-    // Re-enable button
     sendBtn.prop("disabled", false).text("Send Report");
   }
 }
 
 /**
  * transformUnlockButtonToResend => once we've sent the email,
- * we rename the Unlock button to "Resend Report" with no background
+ * rename the Unlock button to "Resend Report" with no background,
  * and display the "Explore Concierge Services" button.
  */
 function transformUnlockButtonToResend() {
   const unlockBtn = $("#unlock-report-btn");
   const conciergeBtn = $("#explore-concierge-lower");
 
-  // If it's the first time, hide the icon and remove background
   unlockBtn.html("Resend Report");
-  // Make it appear more like a text link (no background)
   unlockBtn.css({
     background: "none",
     "background-color": "transparent",
-    "border": "none",
+    border: "none",
     color: "#1a2732",
     "font-weight": "600"
   });
 
-  // Show the new "Explore Concierge Services" button
   conciergeBtn.show();
 }
 
 /*******************************************************
  * T) BUILD USE CASE ACCORDION => Per-Program
- *   - Only recommended
- *   - Up to 4
- *   - Sort by ascending Points Required
- *   - First is default "active"
- *   - Show only if userPoints >= Points Required
- *   - Center pills
- *   - Skip any incomplete/no-content use case
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -772,34 +717,28 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // 1) Filter: must be recommended, linked to this recordId,
-  //    have required fields, and require <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
-    if (!uc["Points Required"]) return false;           // skip if missing points
-    if (!uc["Use Case Title"]) return false;            // skip if missing title
-    if (!uc["Use Case Body"])  return false;            // skip if missing body
+    if (!uc["Points Required"]) return false;
+    if (!uc["Use Case Title"]) return false;
+    if (!uc["Use Case Body"])  return false;
     const linked = uc["Program Name"] || [];
     const userHasEnoughPoints = (uc["Points Required"] <= userPoints);
     return linked.includes(recordId) && userHasEnoughPoints;
   });
 
-  // 2) Sort ascending by Points Required
   matchingUseCases.sort((a, b) => {
     const aPoints = a["Points Required"] || 0;
     const bPoints = b["Points Required"] || 0;
     return aPoints - bPoints;
   });
 
-  // 3) Show up to 4
   matchingUseCases = matchingUseCases.slice(0, 4);
 
-  // If none left, display fallback message
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // Build pills (first pill is active by default)
   let pillsHTML = "";
   matchingUseCases.forEach((uc, index) => {
     const pointsReq   = uc["Points Required"] || 0;
@@ -811,7 +750,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
-  // Show the first use case's details by default
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"]  || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -819,20 +757,18 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 
   return `
     <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
-      <!-- Pills row => centered with even spacing -->
       <div
         class="pills-container"
         style="
           display:flex;
           flex-wrap:wrap;
-          justify-content:center;  /* center horizontally */
-          gap:1rem;               /* space between pills */
+          justify-content:center;
+          gap:1rem;
         "
       >
         ${pillsHTML}
       </div>
 
-      <!-- Image left, text right -->
       <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
         <div class="image-wrap" style="max-width:180px;">
           <img
@@ -873,55 +809,10 @@ function hideAllStates() {
   $("#submission-takeover").hide();
 }
 
-
-function showCTAsForState(state) {
-  // Hide every CTA in the sticky footer
-  $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
-
-  switch (state) {
-    case "default":
-      // Only "Get Started"
-      $("#get-started-btn").show();
-      break;
-
-    case "input":
-      // Possibly show "Next" if programs are chosen
-      if (chosenPrograms.length > 0) {
-        $("#input-next-btn").show();
-      }
-      break;
-
-    case "calculator":
-      // Show the “Next” to output
-      $("#to-output-btn").show();
-      break;
-
-    case "output":
-      // Show “Unlock Full Report” if that’s your default CTA in output
-      $("#unlock-report-btn").show();
-      break;
-
-    case "usecase":
-      // Show the "Next" that leads to send-report
-      $("#usecase-next-btn").show();
-      break;
-
-    case "send-report":
-      // Show the “Submit” that leads to submission
-      $("#send-report-next-btn").show();
-      break;
-      
-    default:
-      // If needed, do nothing or revert to no buttons
-      break;
-  }
-}
-
 /*******************************************************
  * Show CTAs For State
  *******************************************************/
 function showCTAsForState(state) {
-  // Hide every CTA
   $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn, #explore-concierge-lower").hide();
 
   switch (state) {
@@ -937,9 +828,8 @@ function showCTAsForState(state) {
       $("#to-output-btn").show();
       break;
     case "output":
-      // We always show #unlock-report-btn, but text might be "Resend Report"
+      // Show "Unlock" or "Resend" depending on hasSentReport
       $("#unlock-report-btn").show();
-      // If user already sent a report, also show Concierge
       if (hasSentReport) {
         $("#explore-concierge-lower").show();
       }
@@ -1013,7 +903,7 @@ $(document).ready(async function() {
     });
     updateStageGraphic("output");
 
-    // default to Travel
+    // Default => Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
@@ -1034,12 +924,10 @@ $(document).ready(async function() {
 
   // (NEW) “Unlock Full Report” => open modal
   $("#unlock-report-btn").on("click", function() {
-    // If user has sent a report before => text is "Resend Report"
-    // Either way, open the modal
     showReportModal();
   });
 
-  // (NEW) “Explore Concierge Services” => go to link
+  // (NEW) “Explore Concierge Services” => link
   $("#explore-concierge-lower").on("click", function() {
     window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
@@ -1110,7 +998,7 @@ $(document).ready(async function() {
   // Program search => filter
   $("#program-search").on("input", filterPrograms);
 
-  // If user presses Enter & only one => auto-add
+  // Enter => auto-add if only one
   $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       $(".preview-item").click();
@@ -1207,7 +1095,7 @@ function buildOutputRows(viewType) {
       maximumFractionDigits: 2
     })}`;
 
-    // Basic row 
+    // Basic row
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -1233,7 +1121,7 @@ function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Format the total similarly
+  // Format the total
   const formattedTotal = `$${totalValue.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
