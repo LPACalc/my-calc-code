@@ -698,6 +698,9 @@ async function sendReport() {
  *   - Up to 4
  *   - Sort by ascending Points Required
  *   - First is default "active"
+ *   - Show only if userPoints >= Points Required
+ *   - Center pills
+ *   - Skip any incomplete/no-content use case
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -705,32 +708,38 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // Filter recommended = true
+  // 1) Filter: must be recommended, linked to this recordId, 
+  //    have required fields, and require <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
+    if (!uc["Points Required"]) return false;           // skip if missing points
+    if (!uc["Use Case Title"]) return false;            // skip if missing title
+    if (!uc["Use Case Body"])  return false;            // skip if missing body
     const linked = uc["Program Name"] || [];
-    return linked.includes(recordId);
+    const userHasEnoughPoints = (uc["Points Required"] <= userPoints);
+    return linked.includes(recordId) && userHasEnoughPoints;
   });
 
-  // Sort ascending
+  // 2) Sort ascending by Points Required
   matchingUseCases.sort((a, b) => {
     const aPoints = a["Points Required"] || 0;
     const bPoints = b["Points Required"] || 0;
     return aPoints - bPoints;
   });
 
-  // Limit to 4
+  // 3) Show up to 4
   matchingUseCases = matchingUseCases.slice(0, 4);
 
+  // If none left, display fallback message
   if (!matchingUseCases.length) {
-    return `<div style="padding:1rem;">No recommended use cases found.</div>`;
+    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // Build pills
+  // Build pills (first pill is active by default)
   let pillsHTML = "";
-  matchingUseCases.forEach((uc, i) => {
-    const pointsReq = uc["Points Required"] || 0;
-    const activeClass = (i === 0) ? "active" : "";
+  matchingUseCases.forEach((uc, index) => {
+    const pointsReq   = uc["Points Required"] || 0;
+    const activeClass = (index === 0) ? "active" : "";
     pillsHTML += `
       <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
         ${pointsReq.toLocaleString()} pts
@@ -738,17 +747,27 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
+  // Show the first use case's details by default
   const first = matchingUseCases[0];
-  const imageURL = first["Use Case URL"] || "";
+  const imageURL = first["Use Case URL"]  || "";
   const title    = first["Use Case Title"] || "Untitled";
   const body     = first["Use Case Body"]  || "No description";
 
   return `
     <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
-      <!-- Pills row -->
-      <div class="pills-container" style="display:flex; flex-wrap:wrap;">
+      <!-- Pills row => centered with even spacing -->
+      <div
+        class="pills-container"
+        style="
+          display:flex;
+          flex-wrap:wrap;
+          justify-content:center;  /* center horizontally */
+          gap:1rem;               /* space between pills */
+        "
+      >
         ${pillsHTML}
       </div>
+
       <!-- Image left, text right -->
       <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
         <div class="image-wrap" style="max-width:180px;">
@@ -759,13 +778,24 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
           />
         </div>
         <div class="text-wrap" style="flex:1;">
-          <h4 class="uc-title" style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;">${title}</h4>
-          <p class="uc-body" style="font-size:14px; line-height:1.4; color:#555; margin:0;">${body}</p>
+          <h4 
+            class="uc-title"
+            style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;"
+          >
+            ${title}
+          </h4>
+          <p
+            class="uc-body"
+            style="font-size:14px; line-height:1.4; color:#555; margin:0;"
+          >
+            ${body}
+          </p>
         </div>
       </div>
     </div>
   `;
 }
+
 
 /*******************************************************
  * U) REPLACE buildOutputRows => Show "Total Value", row clickable
