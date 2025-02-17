@@ -1205,25 +1205,33 @@ button {
   text-align: center;
 }
 
+
+/* 2) The modal overlay, covering the entire right column */
 #report-modal {
-  display: none;
-  position: absolute;
-  z-index: 99999;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  display: none;            /* hidden by default */
+  position: absolute;       /* absolutely within right-column */
+  z-index: 9999;            /* on top of other elements in .right-column */
+  top: 0; 
+  left: 0;
+  width: 100%;              /* fill the right column horizontally */
+  height: 100%;             /* fill the right column vertically */
+  background: rgba(0,0,0,0.5); /* semi-transparent overlay */
 }
+
+/* 3) Center the modal’s content inside #report-modal */
 #report-modal-content {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 50%; 
+  left: 50%;
   transform: translate(-50%, -50%);
+
+  width: 40rem;             /* or your chosen fixed width */
+  max-width: 90%;           /* optional, so it shrinks on small screens */
   background: #fff;
-  padding: 20px;
   border-radius: 8px;
-  min-width: 450px;
-  max-width: 600px;
+  padding: 20px;
 }
+
 
   /* Modal close button (X) top-right corner */
   #modal-close-btn {
