@@ -62,27 +62,21 @@ button {
 .sqs-block:empty {
   display: none !important;
 }
-/* 
-   RIGHT COLUMN as a vertical layout:
-   - Takes up 75% width
-   - 100vh tall to match left column
-   - Flexible scrolling content above the CTA 
+
+/*
+   RIGHT COLUMN => 75% 
+   vertical layout => content above sticky footer 
 */
 .right-column {
   width: 75%;
   display: flex;
   flex-direction: column; 
-  height: 100vh;         /* match left column's height */
+  height: 100vh;
   position: relative; 
 }
-
 .container {
-  /* 
-    This container will hold your main content and scroll if it’s taller than the viewport.
-    The sticky footer (calc-footer) is a sibling within .right-column.
-  */
-  flex: 1 1 auto;       /* take remaining vertical space */
-  overflow-y: auto;     /* scroll the content if it’s too tall */
+  flex: 1 1 auto;
+  overflow-y: auto;
   padding: 0;
   margin: 0;
   position: relative; 
@@ -93,63 +87,55 @@ button {
 #output-state,
 #usecase-state,
 #send-report-state {
-  min-height: 100%; /* Fill the container's current height */
-  box-sizing: border-box; /* to respect any padding you add */
+  min-height: 100%;
+  box-sizing: border-box;
 }
+
 .card-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem; 
 }
 
-.three-cards-section .card-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem; 
-}
-
 .calc-footer {
-  position: sticky;  
-  bottom: 0;         
+  position: sticky;
+  bottom: 0;
   display: flex;
   justify-content: center; 
   align-items: center; 
   background-color: #fff; 
   text-align: center;
-  padding: 2rem 1rem; 
+  padding: 2rem 1rem;
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-  z-index: 9999;  
-}
-.outer-scroll-wrapper {
-  position: relative;
-  overflow: hidden;  
-  width: 100%;
-  flex: 1 1 auto;    
-  height: 100%;      
+  z-index: 9999;
 }
 
+/* Outer & limiter for scroll areas */
+.outer-scroll-wrapper {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  flex: 1 1 auto;
+  height: 100%;
+}
 .content-limiter {
   padding-bottom:40px;
-  margin: 0 auto; 
+  margin: 0 auto;
 }
 
 /*******************************************************
- * CTA STYLES FOR OUTPUT
+ * CTA STYLES => OUTPUT
  *******************************************************/
-/* Example “output-cta” for smaller look + color swaps. */
 .output-cta {
   font-size: 16px;
   font-weight: 600;
-  padding: 0.5rem 1rem; 
+  padding: 0.5rem 1rem;
   border-radius: 4px;
-  margin: 0 0.5rem; 
+  margin: 0 0.5rem;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Default color scheme => 
-   #unlock-report-btn is brand color,
-   #explore-concierge-lower is white with brand border
-*/
+/* Default => left is brand, right is white w/ border */
 #unlock-report-btn.default-colors {
   background-color: #1a2732; 
   color: #fff;
@@ -161,7 +147,7 @@ button {
   border: 2px solid #1a2732;
 }
 
-/* After email is sent => we swap => #unlock-report-btn => white, #explore-concierge-lower => brand color */
+/* After email => swap them */
 #unlock-report-btn.swapped-colors {
   background-color: #fff;
   color: #1a2732;
@@ -263,7 +249,7 @@ h2 {
   text-align: center;
 }
 .dollar-input-container{
-  margin: 5px auto 5px auto;
+  margin: 5px auto;
   max-width: 40rem;
   position: relative;
   text-align: center;
@@ -323,7 +309,7 @@ h2 {
   background-color: #f8fafd;
 }
 .preview-item.chosen-state {
-  background-color: #daf0ff; 
+  background-color: #daf0ff;
 }
 .top-programs-section {
   max-width: 800px;
@@ -336,13 +322,6 @@ h2 {
 .popular-program-title {
   margin: 10px 0;
   text-align: left;
-}
-.top-programs-section h3 {
-  font-size: 16px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 16px;
-  text-transform: uppercase;
 }
 .top-programs-grid {
   display: flex;
@@ -401,7 +380,6 @@ h2 {
 .top-program-box.selected-state .add-btn {
   background-color: #007bff;
   color: #fff;
-  content: "✓";
   border: none;
 }
 .seleted-program-title {
@@ -513,18 +491,17 @@ h2 {
  * SECTION G: NEXT & BACK BUTTONS (Shared Footer)
  *******************************************************/
 .calc-footer {
-  position: sticky; 
-  bottom: 0;       
+  position: sticky;
+  bottom: 0;
   background-color: #fff;
-  text-align: center;   
+  text-align: center;
   padding: 1rem, 1rem, 2rem, 1rem;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-  z-index: 9999;   
+  z-index: 9999;
 }
-
 .next-btn {
   border: none;
-  border-radius: 9999px;  
+  border-radius: 9999px;
   background-color: #1a2732;
   color: #fff;
   font-size: 20px;
@@ -532,7 +509,7 @@ h2 {
   padding: 1.25rem 7rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin: 0 0.5rem; 
+  margin: 0 0.5rem;
 }
 .next-btn:hover {
   background-color: #141d28;
@@ -567,18 +544,18 @@ h2 {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center; 
-  margin-bottom: 1rem; 
+  justify-content: center;
+  margin-bottom: 1rem;
 }
 .state-header .back-btn {
   position: absolute;
-  left: 0;  
+  left: 0;
   top: 50%;
   transform: translateY(-50%);
 }
 .state-title {
-  margin: 0; 
-  text-align: center; 
+  margin: 0;
+  text-align: center;
 }
 
 /*******************************************************
@@ -598,7 +575,7 @@ h2 {
   transition: background-color 0.2s ease;
 }
 .output-row:hover {
-  background-color: #f8faff; 
+  background-color: #f8faff;
 }
 .output-left {
   display: flex;
@@ -790,12 +767,12 @@ h2 {
  * SECTION K: USECASE STATE
  *******************************************************/
 #usecase-state {
-  background-color: #1a2732; 
-  color: #fff;              
-  min-height: 100vh; 
+  background-color: #1a2732;
+  color: #fff;
+  min-height: 100vh;
   padding: 40px 20px;
-  height: 100%; 
-  object-fit: cover; 
+  height: 100%;
+  object-fit: cover;
 }
 #usecase-state .module-title h1 {
   font-size: 24px;
@@ -878,7 +855,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION M: MEDIA QUERIES
+ * SECTION M: MEDIA QUERIES FOR TABLET/DESKTOP
  *******************************************************/
 @media (max-width: 992px) {
   .page-wrap {
@@ -908,7 +885,6 @@ h2 {
 /*******************************************************
  * SECTION N: ADDITIONAL OUTPUT-STATE ACCORDION & PILLS
  *******************************************************/
-/* (A) Output Rows => Clickable Card Style */
 .output-row {
   cursor: pointer; 
   background-color: #fff;
@@ -919,35 +895,32 @@ h2 {
   transition: background-color 0.2s ease;
 }
 .output-row:hover {
-  background-color: #f8faff; 
+  background-color: #f8faff;
 }
-/* (B) Hidden Accordion Container */
 .usecase-accordion {
   border: 1px solid #dce3eb;
   border-radius: 6px;
   margin-bottom: 12px;
   padding: 1rem;
 }
-/* (C) Pills => Rounded "ovals" with minimal spacing & hover states */
 .mini-pill {
   display: inline-block;
-  background-color: #f0f0f0; 
+  background-color: #f0f0f0;
   color: #333;
-  border-radius: 9999px;      
+  border-radius: 9999px;
   margin-right: 8px;
   margin-bottom: 8px;
   padding: 6px 12px;
   transition: background-color 0.2s ease, color 0.2s;
 }
 .mini-pill.active {
-  background-color: #007bff;  
+  background-color: #007bff;
   color: #fff;
 }
 .mini-pill:hover {
   background-color: #e9f2fe;  
   color: #333;
 }
-/* (D) Image left, text right in the expanded panel */
 .usecases-panel {
   display: flex;
   gap: 1rem;
@@ -1066,141 +1039,92 @@ h2 {
   background-color: #0056b3;
 }
 
-/* Additional toggle container styling */
-.toggle-container {
-  display: inline-flex;
-  background-color: #f0f0f0;
-  border-radius: 9999px;
-  padding: 4px;
-  margin-bottom: 1.5rem; 
-}
-.toggle-btn {
-  background: transparent;
-  border: none;
-  outline: none;
-  font-size: 16px;
-  color: #666;
-  padding: 0.5rem 1.25rem;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-.toggle-btn:not(.active):hover {
-  background-color: #e7e7e7;
-}
-.toggle-btn.active {
-  background-color: #ffffff;
-  color: #333;
-  box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
-  font-weight: 600;
-}
-.output-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #fff;
-  border-radius: 8px;
-  margin-bottom: 10px;
-  padding: 12px 16px;
-  border: 1px solid #e6e6e6;       
-  transition: background-color 0.2s ease;
-}
-.output-row:hover {
-  background-color: #f9f9f9;      
-}
-.output-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.output-logo {
-  width: 40px;
-  height: 40px;
-  border-radius: 4px;   
-  object-fit: contain;
-}
-.program-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: #333;
-}
-.output-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #333;
-}
-#output-state p.tip-text {
-  font-size: 14px;
-  color: #777;
-  margin-bottom: 1rem;
-  font-style: italic; 
-}
-.total-value-row {
-  margin-top: 1.5rem;
-  padding-top: 1rem;
-  border-top: 1px solid #e0e0e0;
-  font-size: 18px;
-  text-align: center;
-  color: #333;
-  font-weight: 600;
-}
-.state-title {
-  font-size: 2rem; 
-  font-weight: 700;
-  color: #333;
-  text-align: center;
-}
-
-/* Modal overlay + content (centered in right column) */
-#report-modal {
-  display: none;
-  position: absolute; 
-  z-index: 9999;      
-  top: 0; 
-  left: 0;
-  width: 100%;       
-  height: 100%;      
-  background: rgba(0,0,0,0.5); 
-}
-#report-modal-content {
-  position: absolute;
-  top: 50%; 
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40rem;         
-  max-width: 90%;       
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-}
-
 /*******************************************************
- * Additional Calculator/Spend Row
+ * RESPONSIVE MOBILE TWEAKS => MAX-WIDTH: 576PX
  *******************************************************/
-.calculator-state .state-title {
-  font-size: 2rem;   
-  font-weight: 700;  
-  color: #1F2C40;     
-  margin-bottom: 1rem; 
+@media (max-width: 576px) {
+
+  /* 1) Three blocks on default stage => stacked */
+  .three-cards-section .card-container {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* 2) h1 titles => smaller */
+  .hero-section h1,
+  #input-state h1,
+  #calculator-state h1,
+  #output-state h1,
+  .state-title {
+    font-size: 1.25rem !important;
+  }
+
+  /* 3) Footer fixed to bottom => ensures not beyond screen */
+  .calc-footer {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+  }
+
+  /* 4) Input row => text .75rem */
+  .program-row, 
+  .preview-item,
+  .points-info-box p,
+  .output-row .program-name,
+  .output-row .output-value {
+    font-size: 0.75rem !important;
+  }
+
+  /* 5) No side padding on mobile => remove or reduce */
+  .container,
+  .outer-scroll-wrapper,
+  .content-limiter {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* 6) Regular text => .75rem, titles/subheaders smaller */
+  body {
+    font-size: 0.75rem;
+  }
+  h1,
+  h2,
+  .hero-section h1,
+  .hero-section h2,
+  .module-title h1,
+  .module-subtitle,
+  .section-title {
+    font-size: 1rem !important;
+  }
+
+  /* 7) CTAs on output => fit side by side on mobile */
+  .calc-footer .next-btn {
+    padding: 0.75rem 1rem;  /* narrower for side-by-side */
+    font-size: 0.75rem;
+    flex: 1 0 auto;         /* let them share space */
+    margin: 4px;
+  }
+
+  /* 8) Back button => top-left (no vertical centering) */
+  .state-header .back-btn {
+    top: 0 !important;
+    transform: none !important;
+    margin-top: 8px;
+  }
+
+  /* 9) Use-case pills => smaller + wrap if needed */
+  .mini-pill {
+    font-size: 0.65rem;
+    padding: 4px 8px;
+  }
+  /* also ensure multiple pills can go 2+ lines easily */
+  .pills-container {
+    flex-wrap: wrap;
+  }
+
+  /* 10) Use-case row => stack content in column layout */
+  .usecase-details {
+    flex-direction: column !important;
+  }
 }
-.calculator-state .points-info-box {
-  background-color: #F5F7FA; 
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-.calculator-state .points-info-box p {
-  color: #444;
-  font-size: 14px;
-  line-height: 1.4;
-  margin: 0;
-}
-.calculator-state .info-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-}
-/* Example for spend rows if needed... */
