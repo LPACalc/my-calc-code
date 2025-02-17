@@ -820,10 +820,20 @@ h2 {
 /*******************************************************
  * SECTION L: THREE CARDS LAYOUT (Landing/Hero)
  *******************************************************/
-.three-cards-section {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 3rem 1rem;
+.three-cards-section .card-container {
+  display: grid;
+  /* Constrain the overall card width by using minmax() */
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  max-width: 900px; /* This keeps them from getting too wide */
+  margin: 0 auto;   /* Center the grid horizontally */
+}
+
+@media (max-width: 576px) {
+  .three-cards-section .card-container {
+    /* Force a single column on smaller screens */
+    grid-template-columns: 1fr !important;
+  }
 }
 .section-title {
   text-align: center;
@@ -891,11 +901,7 @@ h2 {
     width: 100%;
   }
 }
-@media (max-width: 576px) {
-  /* (1) 3 blocks stacked => one column */
-  .three-cards-section .card-container {
-    grid-template-columns: 1fr !important;
-  }
+
 
   /* (2) & (4) => h1 => 1.25rem, subheaders => 1rem 
      So hero h1, state h1, etc. */
