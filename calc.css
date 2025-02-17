@@ -97,6 +97,25 @@ button {
   min-height: 100%;
   box-sizing: border-box;
 }
+/* 1) Make program names bigger on desktop in the calculator (input) rows */
+@media (min-width: 992px) {
+  #calculator-state .program-row .program-name {
+    font-size: 1rem !important; /* or whatever size you prefer */
+  }
+}
+
+/* 2) Remove the background from the "X" button, color it red */
+#calculator-state .remove-btn {
+  background: none !important;
+  color: #dc3545 !important;  /* classic "danger red" */
+  border: none !important;
+  font-size: 1.25rem;         /* slightly bigger X */
+  cursor: pointer;
+  line-height: 1;
+}
+#calculator-state .remove-btn:hover {
+  opacity: 0.7;
+}
 
 /* Example card container usage */
 .card-container {
