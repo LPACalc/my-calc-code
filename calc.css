@@ -7,9 +7,6 @@
   box-sizing: border-box;
 }
 html, body {
-
-
-  
   height: 100%;
   background-color: #F8FAFD;
   color: #1D3A5F;
@@ -62,21 +59,24 @@ button {
   object-fit: cover;
   display: block;
 }
+/* Hide empty squarespace blocks if any remain */
 .sqs-block:empty {
   display: none !important;
 }
 
 /*
-   RIGHT COLUMN => 75% 
-   vertical layout => content above sticky footer 
+   RIGHT COLUMN 
+   - 75% width on desktop
+   - flex-col => content + (non-sticky) footer
 */
 .right-column {
   width: 75%;
   display: flex;
-  flex-direction: column; 
+  flex-direction: column;
   height: 100vh;
   position: relative; 
 }
+
 .container {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -85,6 +85,10 @@ button {
   position: relative; 
 }
 
+/*
+   Main states => fill available space, 
+   now each has top padding we can adjust for mobile
+*/
 #input-state,
 #calculator-state,
 #output-state,
@@ -94,51 +98,30 @@ button {
   box-sizing: border-box;
 }
 
+/* Example card container usage */
 .card-container {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem; 
 }
 
-/* #report-modal: position: fixed, to fill the entire viewport */
-#report-modal {
-  display: none;
-  position: fixed;         /* changed from absolute -> fixed */
-  z-index: 9999;
-  top: 0; 
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0,0,0,0.5);
-}
-
-/* #report-modal-content: also fixed-based centering if you want */
-#report-modal-content {
-  position: absolute;
-  top: 50%; 
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40rem;
-  max-width: 90%;
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-}
-
+/*
+  Footer is now NOT sticky => we remove position:sticky,
+  so user can scroll all content + CTA, then see the page footer below.
+*/
 .calc-footer {
-  position: sticky;
-  bottom: 0;
+  /* Removed position: sticky => now normal static flow */
   display: flex;
-  justify-content: center; 
-  align-items: center; 
-  background-color: #fff; 
+  justify-content: center;
+  align-items: center;
+  background-color: #fff;
   text-align: center;
-  padding: 2rem 1rem;
+  padding: 2rem 1rem; 
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
   z-index: 9999;
 }
 
-/* Outer & limiter for scroll areas */
+/* Outer + content-limiter from earlier usage */
 .outer-scroll-wrapper {
   position: relative;
   overflow: hidden;
@@ -147,7 +130,7 @@ button {
   height: 100%;
 }
 .content-limiter {
-  padding-bottom:40px;
+  padding-bottom: 40px;
   margin: 0 auto;
 }
 
@@ -163,9 +146,8 @@ button {
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Default => left is brand, right is white w/ border */
 #unlock-report-btn.default-colors {
-  background-color: #1a2732; 
+  background-color: #1a2732;
   color: #fff;
   border: none;
 }
@@ -174,8 +156,6 @@ button {
   color: #1a2732;
   border: 2px solid #1a2732;
 }
-
-/* After email => swap them */
 #unlock-report-btn.swapped-colors {
   background-color: #fff;
   color: #1a2732;
@@ -194,6 +174,7 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* For smaller top padding at mobile, we’ll override in media query */
   padding: 60px 20px;
   text-align: center;
   background: linear-gradient(160deg, #FFFFFF 0%, #F8FAFD 100%);
@@ -234,6 +215,7 @@ button {
   text-align: center;
   max-width: 50rem;
   margin: auto;
+  /* changed top padding => for desktop, still 80px, we’ll reduce for mobile */
   padding: 80px 20px 0px 20px;
 }
 #input-state h1,
@@ -270,14 +252,14 @@ h2 {
   line-height: 1.4;
   margin: 0;
 }
-.started-search-area{
+.started-search-area {
   margin: 30px auto 10px auto;
   max-width: 40rem;
   position: relative;
   text-align: center;
 }
-.dollar-input-container{
-  margin: 5px auto;
+.dollar-input-container {
+  margin: 5px auto 5px auto;
   max-width: 40rem;
   position: relative;
   text-align: center;
@@ -293,7 +275,7 @@ h2 {
   outline: none;
 }
 .points-input,
-.email-input{
+.email-input {
   background: #fff;
   background-size: 10px 20px;
   padding: .75rem;
@@ -306,7 +288,7 @@ h2 {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
 .points-input:focus,
-.email-input:focus{
+.email-input:focus {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
   outline: none !important;
   box-shadow: none !important;
@@ -416,7 +398,7 @@ h2 {
   color: #333;
   margin-bottom: 16px;
   text-transform: uppercase;
-  display: none; 
+  display: none;
   text-align: left;
 }
 
@@ -425,7 +407,7 @@ h2 {
  *******************************************************/
 .calculator-state {
   display: none;
-  padding: 80px 20px 0px 20px;
+  padding: 80px 20px 0px 20px;  /* Will override for mobile => 20px */
   max-height: 70vh;
   overflow-y: auto;
   max-width: 50rem;
@@ -470,7 +452,7 @@ h2 {
  *******************************************************/
 .output-state {
   display: none;
-  padding: 80px 20px 0px 20px;
+  padding: 80px 20px 0px 20px; /* again, will be 20px top on mobile */
   max-width: 50rem;
   margin: 0 auto;
   text-align: left;
@@ -492,7 +474,9 @@ h2 {
   background-color: rgb(245 245 247);
   border: 1px solid #dce3eb;
   border-radius: 0.5rem;
-  padding: 4px;
+  /* make it thinner + center => margin auto if needed */
+  margin: 0 auto;
+  padding: 2px 8px; /* "center thinner and wider" => so we have more horizontal space inside */
 }
 .toggle-btn {
   border: none;
@@ -500,7 +484,7 @@ h2 {
   background: transparent;
   font-size: 18px;
   color: #666;
-  padding: 1rem 0.5rem;
+  padding: 0.75rem 1rem; /* narrower => see if that helps? */
   border-radius: 6px;
   cursor: pointer;
   transition: background-color 0.2s, color 0.2s;
@@ -519,11 +503,13 @@ h2 {
  * SECTION G: NEXT & BACK BUTTONS (Shared Footer)
  *******************************************************/
 .calc-footer {
-  position: sticky;
-  bottom: 0;
+  /* Removed sticky, normal static flow => see above */
+  display: flex;
+  justify-content: center;
+  align-items: center;
   background-color: #fff;
   text-align: center;
-  padding: 1rem, 1rem, 2rem, 1rem;
+  padding: 2rem 1rem;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
   z-index: 9999;
 }
@@ -615,8 +601,9 @@ h2 {
   height: auto;
   object-fit: contain;
 }
+/* (7) Program name font => .75rem as requested */
 .program-name {
-  font-size: 16px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: #1D3A5F;
 }
@@ -680,21 +667,12 @@ h2 {
   color: #007bff;
   font-weight: 700;
 }
-.remove-btn {
-  font-size: 20px;
-  color: #dc3545;
-  cursor: pointer;
-  background: none;
-}
-
-/*******************************************************
- * SECTION I: CLEAR ALL
- *******************************************************/
+/* (9) the “Clear All” button => shorter => reduce padding */
 .clear-all-btn {
   background-color: #dc3545;
   color: #fff;
   border: none;
-  padding: 8px 12px;
+  padding: 4px 10px; /* shorter now */
   border-radius: 4px;
   transition: background-color 0.2s ease;
   cursor: pointer;
@@ -816,10 +794,22 @@ h2 {
   font-size: 14px;
   padding: 6px 12px;
 }
-#usecase-state .points-view-img,
-#usecase-state .points-view-content {
-  flex: 1 1 45%;
-  max-width: 45%;
+/* (11) Title at top, copy, then image => center everything 
+   => we reorder or just center them? 
+   We can do: 
+   #usecase-state .usecase-details => flex-direction: column; 
+   align-items: center; text-align: center 
+*/
+.usecase-details {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+}
+#usecase-state .usecase-details {
+  flex-direction: column !important;
+  align-items: center !important;
+  text-align: center;
 }
 #usecase-state .image-wrapper img {
   max-width: 100%;
@@ -902,11 +892,68 @@ h2 {
   }
 }
 @media (max-width: 576px) {
-  .hero-section h1 {
-    font-size: 1.5rem;
+  /* (1) 3 blocks stacked => one column */
+  .three-cards-section .card-container {
+    grid-template-columns: 1fr !important;
   }
-  .hero-section h2 {
-    font-size: 1rem;
+
+  /* (2) & (4) => h1 => 1.25rem, subheaders => 1rem 
+     So hero h1, state h1, etc. */
+  .hero-section h1,
+  #input-state h1,
+  #calculator-state h1,
+  #output-state h1,
+  .state-title {
+    font-size: 1.25rem !important;
+  }
+  h2,
+  .hero-section h2,
+  .module-title h1,
+  .module-subtitle,
+  .section-title,
+  .popular-program-title h2 {
+    font-size: 1rem !important;
+  }
+
+  /* (3) top padding => 20px for these states */
+  #input-state,
+  #calculator-state,
+  #output-state,
+  #usecase-state {
+    padding: 20px !important;
+  }
+
+  /* (5) For "Popular Programs" h2 => 1.25rem => done above in .popular-program-title h2 */
+  
+  /* (6) CTA bar => normal flow => already done by removing sticky 
+     => no extra changes needed here. 
+     The user can scroll content, then CTA, then footer. */
+
+  /* (7) Program name => .75rem => we set that above permanently in .program-name. */
+
+  /* (8) The total cash toggle => center, thinner, wider => 
+     we made .toggle-container margin:0 auto & bigger horizontal padding. 
+     So it’s already done above. (We can tweak further if needed.) */
+
+  /* (9) Clear All => shorter => done above with padding:4px 10px. */
+
+  /* (10) Pill ratio => smaller => let’s reduce the .mini-pill:
+     We keep them small enough to fit 4 across. */
+  .mini-pill {
+    font-size: 0.7rem;
+    padding: 4px 8px;
+    border-radius: 9999px;
+  }
+
+  /* (11) Use case => we forced .usecase-details to flex-dir:col & center 
+     => done above in #usecase-state .usecase-details override. */
+
+  /* Also ensure no side padding => container => 0 */
+  .container,
+  .outer-scroll-wrapper,
+  .content-limiter {
+    padding: 0 !important;
+    margin: 0 !important;
   }
 }
 
@@ -961,11 +1008,11 @@ h2 {
   align-items: flex-start;
 }
 .usecase-details .image-wrap {
-  flex: 0 0 auto;     
-  max-width: 180px;   
+  flex: 0 0 auto;
+  max-width: 180px;
 }
 .usecase-details .text-wrap {
-  flex: 1;           
+  flex: 1;
 }
 .uc-title {
   margin-top: 0;
@@ -1068,91 +1115,75 @@ h2 {
 }
 
 /*******************************************************
- * RESPONSIVE MOBILE TWEAKS => MAX-WIDTH: 576PX
+ * REPORT MODAL => position: fixed => center on screen
  *******************************************************/
-@media (max-width: 576px) {
+#report-modal {
+  display: none;
+  position: fixed; /* Updated: now fixed so it centers in viewport */
+  z-index: 9999;
+  top: 0; 
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+}
+#report-modal-content {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40rem;
+  max-width: 90%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+}
 
-  /* 1) Three blocks on default stage => stacked */
-  .three-cards-section .card-container {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* 2) h1 titles => smaller */
-  .hero-section h1,
-  #input-state h1,
-  #calculator-state h1,
-  #output-state h1,
-  .state-title {
-    font-size: 1.25rem !important;
-  }
-
-  /* 3) Footer fixed to bottom => ensures not beyond screen */
-  .calc-footer {
-    position: fixed !important;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    margin: 0;
-  }
-
-  /* 4) Input row => text .75rem */
-  .program-row, 
-  .preview-item,
-  .points-info-box p,
-  .output-row .program-name,
-  .output-row .output-value {
-    font-size: 0.75rem !important;
-  }
-
-  /* 5) No side padding on mobile => remove or reduce */
-  .container,
-  .outer-scroll-wrapper,
-  .content-limiter {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
-
-  /* 6) Regular text => .75rem, titles/subheaders smaller */
-  body {
-    font-size: 0.75rem;
-  }
-  h1,
-  h2,
-  .hero-section h1,
-  .hero-section h2,
-  .module-title h1,
-  .module-subtitle,
-  .section-title {
-    font-size: 1rem !important;
-  }
-
-  /* 7) CTAs on output => fit side by side on mobile */
-  .calc-footer .next-btn {
-    padding: 0.75rem 1rem;  /* narrower for side-by-side */
-    font-size: 0.75rem;
-    flex: 1 0 auto;         /* let them share space */
-    margin: 4px;
-  }
-
-  /* 8) Back button => top-left (no vertical centering) */
-  .state-header .back-btn {
-    top: 0 !important;
-    transform: none !important;
-    margin-top: 8px;
-  }
-
-  /* 9) Use-case pills => smaller + wrap if needed */
-  .mini-pill {
-    font-size: 0.65rem;
-    padding: 4px 8px;
-  }
-  /* also ensure multiple pills can go 2+ lines easily */
-  .pills-container {
-    flex-wrap: wrap;
-  }
-
-  /* 10) Use-case row => stack content in column layout */
-  .usecase-details {
-    flex-direction: column !important;
-  }
+/* X close button in top-right corner of modal */
+#modal-close-btn {
+  float: right;
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+/* Smaller CTA in modal */
+#modal-send-btn {
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0.5rem 1.25rem;
+  border-radius: 6px;
+  margin: 0 auto;
+  display: block; /* center horizontally */
+}
+/* “Email Sent” message in modal */
+#email-sent-message {
+  display: none;
+  color: green;
+  margin-top: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+/* Subheader in modal */
+.modal-subheader {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+}
+#modal-email-input {
+  width: 85%;
+  margin: 0 auto 8px auto;
+  display: block;
+  font-size: 14px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+#modal-email-error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-align: center;
+  display: none;
 }
