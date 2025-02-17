@@ -8,10 +8,10 @@ let realWorldUseCases = [];
 let chosenPrograms = []; 
 
 // Prevent double-click transitions
-let isTransitioning = false;  
+let isTransitioning = false;
 
 // Track if user has already sent a report
-let hasSentReport = false;    
+let hasSentReport = false;
 
 // Static pill data for your #points-showcase
 const pointsData = {
@@ -37,39 +37,27 @@ const pointsData = {
   }
 };
 
-// Stage graphic images (added "sendReport" key)
+// Stage graphic images (added "sendReport" key for that state)
 const stageImages = {
-  default: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/af0bbfc5-9892-4487-a87d-5fd185a47819/unnamed+%284%29.png",
-  input:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/5474cde0-06cb-4afb-9c99-2cdf9d136a17/unnamed+%281%29.png",
-  calc:    "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif",
-  output:  "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/ab18a97d-fe5e-4d0c-9c27-67d36e13a11e/unnamed+%281%29+copy.png",
-  usecase: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/0f4cf2b3-b35f-41b4-a0a7-6f240604617f/unnamed+%281%29.gif",
-  sendReport: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif" 
+  default:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/af0bbfc5-9892-4487-a87d-5fd185a47819/unnamed+%284%29.png",
+  input:     "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/5474cde0-06cb-4afb-9c99-2cdf9d136a17/unnamed+%281%29.png",
+  calc:      "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif",
+  output:    "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/ab18a97d-fe5e-4d0c-9c27-67d36e13a11e/unnamed+%281%29+copy.png",
+  usecase:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/0f4cf2b3-b35f-41b4-a0a7-6f240604617f/unnamed+%281%29.gif",
+  sendReport:"https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif"
 };
 
 /*******************************************************
  * Basic Helper Functions
  *******************************************************/
-function showSubmissionTakeover() {
-  document.getElementById("submission-takeover").style.display = "flex";
-}
-function closeSubmissionTakeover() {
-  document.getElementById("submission-takeover").style.display = "none";
-}
 function updateStageGraphic(stageKey) {
   $(".stage-graphic").attr("src", stageImages[stageKey]);
 }
-
-// Modal open/close
-function showReportModal() {
-  $("#report-modal").fadeIn(200);
+function hideAllStates() {
+  $("#default-hero, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
-function hideReportModal() {
-  $("#report-modal").fadeOut(200);
-}
-
-// Basic email validator
 function isValidEmail(str) {
+  // Basic email pattern
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
@@ -95,7 +83,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
         throw new Error(`Non-OK HTTP status: ${response.status}`);
       }
       console.log(`Retry #${attempt} after HTTP status: ${response.status} ...`);
-      await new Promise(res => setTimeout(res, 500));
+      await new Promise(r => setTimeout(r, 500));
 
     } catch (err) {
       clearTimeout(timeoutId);
@@ -105,13 +93,13 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
           throw new Error("Request timed out multiple times.");
         }
         console.log(`Timeout/AbortError. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500));
+        await new Promise(r => setTimeout(r, 500));
       } else {
         if (attempt > maxRetries) {
           throw err;
         }
         console.log(`Network error: ${err.message}. Retrying #${attempt}...`);
-        await new Promise(res => setTimeout(res, 500));
+        await new Promise(r => setTimeout(r, 500));
       }
     }
   }
@@ -139,16 +127,15 @@ async function initializeApp() {
 
   // 1) Fetch Points Calculator Data
   try {
-    const response = await fetchWithTimeout(
+    const resp = await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
       10000
     );
-    if (!response.ok) {
-      throw new Error("Network response not OK => " + response.statusText);
+    if (!resp.ok) {
+      throw new Error("Network response not OK => " + resp.statusText);
     }
-
-    const programsData = await response.json();
+    const programsData = await resp.json();
     loyaltyPrograms = programsData.reduce((acc, record) => {
       const fields = { ...record.fields };
       if (record.logoAttachmentUrl) {
@@ -160,8 +147,8 @@ async function initializeApp() {
     console.log("Loyalty Programs =>", loyaltyPrograms);
 
   } catch (err) {
-    console.error("Error fetching Points Calculator data:", err);
-    return; // Stop if fails
+    console.error("Error fetching Points Calc data:", err);
+    return; // stop if fails
   }
 
   // 2) Fetch Real-World Use Cases
@@ -177,7 +164,7 @@ async function initializeApp() {
     console.error("Error fetching Real-World Use Cases:", err);
   }
 
-  // 3) Build 'Popular Programs' grid
+  // 3) Build the 'Popular Programs' grid
   buildTopProgramsSection();
   console.log("=== All Data loaded, app is ready. ===");
 }
@@ -189,32 +176,30 @@ function buildTopProgramsSection() {
   const container = document.getElementById("top-programs-grid");
   if (!container) return;
 
-  const topRecords = Object.keys(loyaltyPrograms).filter(recordId => {
-    const prog = loyaltyPrograms[recordId];
-    return !!prog["Top Programs"];
+  const topRecords = Object.keys(loyaltyPrograms).filter(id => {
+    return !!loyaltyPrograms[id]["Top Programs"];
   });
 
   let html = "";
-  topRecords.forEach(recordId => {
-    const program = loyaltyPrograms[recordId];
-    const programName = program["Program Name"] || "Unnamed Program";
-    const logoUrl = program["Brand Logo URL"] || "";
+  topRecords.forEach(rid => {
+    const prog = loyaltyPrograms[rid];
+    const name = prog["Program Name"] || "Unnamed Program";
+    const logo = prog["Brand Logo URL"] || "";
 
     html += `
-      <div class="top-program-box" data-record-id="${recordId}">
+      <div class="top-program-box" data-record-id="${rid}">
         <div style="display: flex; align-items: center;">
           <img
-            src="${logoUrl}"
-            alt="${programName} Logo"
+            src="${logo}"
+            alt="${name} Logo"
             class="top-program-logo"
           />
-          <span class="top-program-label">${programName}</span>
+          <span class="top-program-label">${name}</span>
         </div>
         <button class="add-btn">+</button>
       </div>
     `;
   });
-
   container.innerHTML = html;
 }
 
@@ -229,50 +214,48 @@ function filterPrograms() {
     return;
   }
 
-  const searchValue = $("#program-search").val().toLowerCase().trim();
-  if (!searchValue) {
+  const val = $("#program-search").val().toLowerCase().trim();
+  if (!val) {
     $("#program-preview").hide().empty();
     return;
   }
 
-  const filtered = Object.keys(loyaltyPrograms).filter(recordId => {
-    const program = loyaltyPrograms[recordId];
-    if (!program || !program["Program Name"]) return false;
-    const alreadyAdded = $(`#program-container .program-row[data-record-id='${recordId}']`).length > 0;
-    return (
-      program["Program Name"].toLowerCase().includes(searchValue) &&
-      !alreadyAdded
-    );
+  const results = Object.keys(loyaltyPrograms).filter(id => {
+    const prog = loyaltyPrograms[id];
+    if (!prog["Program Name"]) return false;
+    const alreadyInCalc = $(
+      `#program-container .program-row[data-record-id='${id}']`
+    ).length > 0;
+
+    return prog["Program Name"].toLowerCase().includes(val) && !alreadyInCalc;
   });
 
-  const limited = filtered.slice(0, 5);
+  const limited = results.slice(0, 5);
   if (!limited.length) {
     $("#program-preview").hide().empty();
     return;
   }
 
   let previewHTML = "";
-  limited.forEach(recordId => {
-    const program = loyaltyPrograms[recordId];
-    const logoURL = program["Brand Logo URL"] || "";
-    const isChosen = chosenPrograms.includes(recordId);
-
+  limited.forEach(rid => {
+    const prog = loyaltyPrograms[rid];
+    const logo = prog["Brand Logo URL"] || "";
+    const isChosen = chosenPrograms.includes(rid);
     const chosenClass = isChosen ? "chosen-state" : "";
-    const logoHTML = logoURL
-      ? `<img src="${logoURL}" alt="${program["Program Name"]} logo" style="height:35px; object-fit:contain;">`
+    const logoHTML = logo
+      ? `<img src="${logo}" alt="${prog["Program Name"]} logo" style="height:35px; object-fit:contain;">`
       : "";
 
     previewHTML += `
-      <div class="preview-item ${chosenClass}" data-record-id="${recordId}">
+      <div class="preview-item ${chosenClass}" data-record-id="${rid}">
         <div>
-          <span class="program-name">${program["Program Name"]}</span>
-          <span class="program-type">(${program.Type || "Unknown"})</span>
+          <span class="program-name">${prog["Program Name"]}</span>
+          <span class="program-type">(${prog.Type || "Unknown"})</span>
         </div>
         ${logoHTML}
       </div>
     `;
   });
-
   $("#program-preview").html(previewHTML).show();
 }
 
@@ -280,36 +263,29 @@ function filterPrograms() {
  * F) ADD PROGRAM ROW
  *******************************************************/
 function addProgramRow(recordId) {
-  console.log(`addProgramRow => recordId=${recordId}`);
-  const program = loyaltyPrograms[recordId];
-  if (!program) return;
+  const prog = loyaltyPrograms[recordId];
+  if (!prog) return;
 
-  // Hide hero, show calc
+  // Show calculator state if we add something
   $("#default-hero").hide();
-  $("#started-state").show();
-  $("#started-empty-state").hide();
-  $("#started-how-to").hide();
   $("#calculator-state").fadeIn();
 
-  $("#program-search").val("");
-
-  const logoHTML = program["Brand Logo URL"]
-    ? `<img src="${program["Brand Logo URL"]}" alt="${program["Program Name"]} logo" class="program-logo">`
-    : "";
+  const logo = prog["Brand Logo URL"] || "";
+  const name = prog["Program Name"] || "Unnamed Program";
 
   const rowHTML = `
     <div class="program-row" data-record-id="${recordId}">
       <div class="program-left">
-        ${logoHTML}
-        <span class="program-name">${program["Program Name"] || 'Unnamed Program'}</span>
+        ${logo ? `<img src="${logo}" alt="${name} logo" class="program-logo">` : ""}
+        <span class="program-name">${name}</span>
       </div>
       <div class="program-right">
         <div class="dollar-input-container">
           <input
             type="text"
+            class="points-input"
             inputmode="numeric"
             pattern="[0-9]*"
-            class="points-input"
             placeholder="Enter Total"
             oninput="formatNumberInput(this); calculateTotal()"
           />
@@ -318,6 +294,7 @@ function addProgramRow(recordId) {
       </div>
     </div>
   `;
+
   $("#program-container").append(rowHTML);
   updateClearAllVisibility();
   calculateTotal();
@@ -336,13 +313,12 @@ function updateChosenProgramsDisplay() {
   }
   $("#selected-programs-label").show();
 
-  chosenPrograms.forEach(recordId => {
-    const program = loyaltyPrograms[recordId];
-    if (!program) return;
+  chosenPrograms.forEach(rid => {
+    const prog = loyaltyPrograms[rid];
+    if (!prog) return;
 
-    const logoUrl = program["Brand Logo URL"] || "";
-    const programName = program["Program Name"] || "Unnamed Program";
-
+    const logoUrl = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unnamed Program";
     const logoHTML = `
       <div style="width:48px; height:48px; overflow:hidden; display:flex; align-items:center; justify-content:center;">
         <img
@@ -360,29 +336,26 @@ function updateChosenProgramsDisplay() {
  * H) TOGGLE SEARCH & POPULAR
  *******************************************************/
 function toggleSearchItemSelection(itemEl) {
-  const recordId = itemEl.data("record-id");
-  if (!recordId) return;
+  const rid = itemEl.data("record-id");
+  if (!rid) return;
 
-  const index = chosenPrograms.indexOf(recordId);
-  if (index === -1) {
-    chosenPrograms.push(recordId);
+  const idx = chosenPrograms.indexOf(rid);
+  if (idx === -1) {
+    chosenPrograms.push(rid);
     itemEl.addClass("selected-state");
-
-    // Also sync top-program if present
-    const matchingBox = $(`.top-program-box[data-record-id='${recordId}']`);
-    if (matchingBox.length) {
-      matchingBox.addClass("selected-state");
-      matchingBox.find(".add-btn").text("✓");
+    const box = $(`.top-program-box[data-record-id='${rid}']`);
+    if (box.length) {
+      box.addClass("selected-state");
+      box.find(".add-btn").text("✓");
     }
     itemEl.remove();
   } else {
-    chosenPrograms.splice(index, 1);
+    chosenPrograms.splice(idx, 1);
     itemEl.removeClass("selected-state");
-
-    const matchingBox = $(`.top-program-box[data-record-id='${recordId}']`);
-    if (matchingBox.length) {
-      matchingBox.removeClass("selected-state");
-      matchingBox.find(".add-btn").text("+");
+    const box = $(`.top-program-box[data-record-id='${rid}']`);
+    if (box.length) {
+      box.removeClass("selected-state");
+      box.find(".add-btn").text("+");
     }
     itemEl.remove();
   }
@@ -396,25 +369,23 @@ function toggleSearchItemSelection(itemEl) {
 }
 
 function toggleProgramSelection(boxEl) {
-  const recordId = boxEl.data("record-id");
-  if (!recordId) return;
+  const rid = boxEl.data("record-id");
+  if (!rid) return;
 
-  const index = chosenPrograms.indexOf(recordId);
-  if (index === -1) {
-    chosenPrograms.push(recordId);
+  const idx = chosenPrograms.indexOf(rid);
+  if (idx === -1) {
+    chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
     boxEl.find(".add-btn").text("✓");
 
-    // Remove from search preview if present
-    const matchingSearch = $(`.preview-item[data-record-id='${recordId}']`);
-    if (matchingSearch.length) matchingSearch.remove();
+    const searchItem = $(`.preview-item[data-record-id='${rid}']`);
+    if (searchItem.length) searchItem.remove();
   } else {
-    chosenPrograms.splice(index, 1);
+    chosenPrograms.splice(idx, 1);
     boxEl.removeClass("selected-state");
     boxEl.find(".add-btn").text("+");
-
-    const matchingSearch = $(`.preview-item[data-record-id='${recordId}']`);
-    if (matchingSearch.length) matchingSearch.removeClass("selected-state");
+    const searchItem = $(`.preview-item[data-record-id='${rid}']`);
+    if (searchItem.length) searchItem.removeClass("selected-state");
   }
 
   $("#program-search").val("");
@@ -484,66 +455,57 @@ $("#input-next-btn").on("click", function() {
 
   // Build rows from chosenPrograms
   $("#program-container").empty();
-  chosenPrograms.forEach(recordId => addProgramRow(recordId));
+  chosenPrograms.forEach(rid => addProgramRow(rid));
 });
 
 /*******************************************************
  * L) FORMAT NUMBER
  *******************************************************/
 function formatNumberInput(el) {
-  let rawValue = el.value.replace(/,/g, "").replace(/[^0-9]/g, "");
-  if (!rawValue) {
+  let raw = el.value.replace(/,/g, "").replace(/[^0-9]/g, "");
+  if (!raw) {
     el.value = "";
     return;
   }
-  let numericValue = parseInt(rawValue, 10);
-  if (numericValue > 10000000) {
-    numericValue = 10000000;
+  let num = parseInt(raw, 10);
+  if (num > 10000000) {
+    num = 10000000;
   }
-  el.value = numericValue.toLocaleString();
+  el.value = num.toLocaleString();
 }
 
 /*******************************************************
  * M) CALCULATE TOTAL
  *******************************************************/
 function calculateTotal() {
-  let totalTravel = 0;
-  let totalCash   = 0;
+  // purely optional if you want a sum or partial display
+  // We'll just loop for internal usage
   let totalPoints = 0;
-
-  const rows = $(".program-row");
-  rows.each(function() {
-    const recordId = $(this).data("record-id");
-    const program = loyaltyPrograms[recordId];
-    if (!program) return;
-
-    const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
-    const points = parseFloat(pointsStr) || 0;
-    totalPoints += points;
-
-    const travelRate = program["Travel Value"] || 0;
-    const cashRate   = program["Cash Value"]   || 0;
-    totalTravel += points * travelRate;
-    totalCash   += points * cashRate;
+  $(".program-row").each(function() {
+    const pStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
+    totalPoints += parseInt(pStr, 10) || 0;
   });
 }
 
 /*******************************************************
  * N) GATHER PROGRAM DATA
  *******************************************************/
+/**
+ * We store recordId so we can show logos
+ * but only send {programName, points} to the server
+ */
 function gatherProgramData() {
   const data = [];
   $(".program-row").each(function() {
-    const recordId = $(this).data("record-id");
-    const program = loyaltyPrograms[recordId];
-    if (!program) return;
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    if (!prog) return;
 
-    const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
-    const points = parseFloat(pointsStr) || 0;
-
-    // We only need to store program name + points
+    const pStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
+    const points = parseFloat(pStr) || 0;
     data.push({
-      programName: program["Program Name"] || "Unknown",
+      recordId: rid,
+      programName: prog["Program Name"] || "Unknown",
       points
     });
   });
@@ -554,30 +516,30 @@ function gatherProgramData() {
  * Q) NAVY SHOWCASE => INIT STATIC PILLS
  *******************************************************/
 function initNavyShowcase() {
-  const staticPills = document.querySelectorAll("#static-pills .point-option");
-  const pointsImage = document.getElementById("useCaseImage");
-  const pointsTitle = document.getElementById("useCaseTitle");
-  const pointsDesc  = document.getElementById("useCaseBody");
+  const pills = document.querySelectorAll("#static-pills .point-option");
+  const img   = document.getElementById("useCaseImage");
+  const ttl   = document.getElementById("useCaseTitle");
+  const body  = document.getElementById("useCaseBody");
 
-  function updateStaticView(pointsKey) {
-    const data = pointsData[pointsKey];
-    if (!data) return;
-    pointsImage.src = data.image;
-    pointsTitle.textContent = data.title;
-    pointsDesc.textContent  = data.description;
+  function updateStaticView(k) {
+    const pd = pointsData[k];
+    if (!pd) return;
+    img.src            = pd.image;
+    ttl.textContent    = pd.title;
+    body.textContent   = pd.description;
   }
 
-  staticPills.forEach(pill => {
-    pill.addEventListener("click", function() {
-      staticPills.forEach(p => p.classList.remove("active"));
+  pills.forEach(p => {
+    p.addEventListener("click", function() {
+      pills.forEach(pp => pp.classList.remove("active"));
       this.classList.add("active");
       updateStaticView(this.getAttribute("data-points"));
     });
   });
 
-  // Default
+  // default: 10000
   updateStaticView("10000");
-  if (staticPills[0]) staticPills[0].classList.add("active");
+  if (pills[0]) pills[0].classList.add("active");
 }
 
 /*******************************************************
@@ -589,19 +551,19 @@ async function sendReport(email) {
     throw new Error("Invalid email format");
   }
 
-  // gatherProgramData => just name + points
-  const programs = gatherProgramData();
+  // gather minimal data: programName, points
+  const fullData = gatherProgramData();
+  const programsToSend = fullData.map(item => ({
+    programName: item.programName,
+    points: item.points
+  }));
 
-  // Send minimal data => { email, programs[] }
+  // Post minimal data
   const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email,
-      programs
-    })
+    body: JSON.stringify({ email, programs: programsToSend })
   });
-
   if (!response.ok) {
     const result = await response.json();
     throw new Error(result.error || `HTTP ${response.status}`);
@@ -633,12 +595,12 @@ async function sendReportFromModal() {
     sentMsgEl.show();
     hasSentReport = true;
 
-    // Wait 1s, then hide modal & transform button
+    // Close modal after 1 second
     setTimeout(() => {
       hideReportModal();
       sentMsgEl.hide();
       transformUnlockButtonToResend();
-    }, 1000); // <-- half (1 second)
+    }, 1000); // half the original 2s
 
   } catch (err) {
     console.error("Failed to send report =>", err);
@@ -664,7 +626,7 @@ function transformUnlockButtonToResend() {
     color: "#1a2732",
     "font-weight": "600"
   });
-  // Show the new "Explore Concierge Services" button
+  // Always show the Explore Concierge Services button
   conciergeBtn.show();
 }
 
@@ -677,7 +639,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // Filter recommended
+  // Filter recommended use cases requiring <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     if (!uc["Points Required"]) return false;
@@ -688,31 +650,30 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && userHasEnoughPoints;
   });
 
-  // Sort ascending
   matchingUseCases.sort((a, b) => {
-    const aPoints = a["Points Required"] || 0;
-    const bPoints = b["Points Required"] || 0;
-    return aPoints - bPoints;
+    const aP = a["Points Required"] || 0;
+    const bP = b["Points Required"] || 0;
+    return aP - bP;
   });
-
-  // Limit to 4
   matchingUseCases = matchingUseCases.slice(0, 4);
 
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
+  // Build mini-pills (first is active)
   let pillsHTML = "";
-  matchingUseCases.forEach((uc, idx) => {
-    const pointsReq = uc["Points Required"] || 0;
-    const activeClass = (idx === 0) ? "active" : "";
+  matchingUseCases.forEach((uc, i) => {
+    const ptsReq = uc["Points Required"] || 0;
+    const activeClass = (i === 0) ? "active" : "";
     pillsHTML += `
       <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
-        ${pointsReq.toLocaleString()} pts
+        ${ptsReq.toLocaleString()} pts
       </div>
     `;
   });
 
+  // Show first use case by default
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"]  || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -759,13 +720,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 }
 
 /*******************************************************
- * HIDE ALL STATES
- *******************************************************/
-function hideAllStates() {
-  $("#default-hero, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
-}
-
-/*******************************************************
  * Show CTAs For State
  *******************************************************/
 function showCTAsForState(state) {
@@ -784,11 +738,9 @@ function showCTAsForState(state) {
       $("#to-output-btn").show();
       break;
     case "output":
-      // Show "Unlock" or "Resend" depending on hasSentReport
+      // Always show "Unlock (or Resend)" plus "Explore Concierge"
       $("#unlock-report-btn").show();
-      if (hasSentReport) {
-        $("#explore-concierge-lower").show();
-      }
+      $("#explore-concierge-lower").show();
       break;
     case "usecase":
       $("#usecase-next-btn").show();
@@ -800,7 +752,7 @@ function showCTAsForState(state) {
 }
 
 /*******************************************************
- * Document Ready
+ * DOCUMENT READY
  *******************************************************/
 $(document).ready(async function() {
   // 1) Initialize
@@ -814,9 +766,9 @@ $(document).ready(async function() {
   showCTAsForState("default");
 
   /*******************************************************
-   * TRANSITIONS
+   * STATE TRANSITIONS
    *******************************************************/
-  // “Get Started” => Input
+  // "Get Started" => Input
   $("#get-started-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -829,12 +781,29 @@ $(document).ready(async function() {
     updateStageGraphic("input");
   });
 
-  // “Clear All”
+  // "Clear All"
   $("#clear-all-btn").on("click", function() {
     clearAllPrograms();
   });
 
-  // “Calculator -> Back” => Input
+  // Input -> Next => Calculator
+  $("#input-next-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#calculator-state").fadeIn(() => {
+      showCTAsForState("calculator");
+      isTransitioning = false;
+    });
+    updateStageGraphic("calc");
+
+    // Build rows from chosenPrograms
+    $("#program-container").empty();
+    chosenPrograms.forEach(rid => addProgramRow(rid));
+  });
+
+  // "Calculator -> Back" => Input
   $("#calc-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -847,7 +816,7 @@ $(document).ready(async function() {
     updateStageGraphic("input");
   });
 
-  // “Calculator -> Next” => Output
+  // "Calculator -> Next" => Output
   $("#to-output-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -859,13 +828,13 @@ $(document).ready(async function() {
     });
     updateStageGraphic("output");
 
-    // default => Travel
+    // Default to Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
   });
 
-  // “Output -> Back” => Calculator
+  // "Output -> Back" => Calculator
   $("#output-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -951,7 +920,7 @@ $(document).ready(async function() {
     updateStageGraphic("output");
   });
 
-  // Program search => filter
+  // Searching => filter
   $("#program-search").on("input", filterPrograms);
 
   // If user presses Enter & only one => auto-add
@@ -967,7 +936,7 @@ $(document).ready(async function() {
     $("#program-preview").hide().empty();
   });
 
-  // “Top Program Box” => toggle
+  // Top Program Box => toggle
   $(document).on("click", ".top-program-box", function() {
     toggleProgramSelection($(this));
   });
@@ -978,7 +947,7 @@ $(document).ready(async function() {
     calculateTotal();
   });
 
-  // Toggle Travel vs Cash
+  // Toggle Travel vs Cash in output
   $(document).on("click", ".toggle-btn", function() {
     $(".toggle-btn").removeClass("active");
     $(this).addClass("active");
@@ -986,11 +955,10 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // Clicking output-row => expand/collapse usecase
+  // Output row => expand/collapse usecase if travel
   $(document).on("click", ".output-row", function() {
-    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return;
-    }
+    if ($(".toggle-btn[data-view='cash']").hasClass("active")) return;
+
     $(".usecase-accordion:visible").slideUp();
     const panel = $(this).next(".usecase-accordion");
     if (panel.is(":visible")) {
@@ -1033,14 +1001,19 @@ function buildOutputRows(viewType) {
   let totalValue = 0;
 
   data.forEach(item => {
-    // no travel/cash math => we can do a partial or keep it short
+    // We have recordId => can get the logo from loyaltyPrograms
+    const prog = loyaltyPrograms[item.recordId];
+    const logoUrl = prog?.["Brand Logo URL"] || "";
+    const programName = item.programName;
+
+    // For your UI => if "travel", do some approximate travel value. If "cash", do another
+    // (This won't be sent to the server, just a local display)
     let rowValue = 0;
     if (viewType === "travel") {
-      // optional => if you had a "Travel Value" but we removed it
-      // So let's just do an example => no transformation
-      rowValue = (item.points || 0) * 1.0; // If you'd like an example multiplier
+      // e.g. 1.2c per point, or any logic
+      rowValue = item.points * (prog?.["Travel Value"] || 0);
     } else {
-      rowValue = (item.points || 0) * 0.01; // example
+      rowValue = item.points * (prog?.["Cash Value"] || 0);
     }
     totalValue += rowValue;
 
@@ -1050,17 +1023,18 @@ function buildOutputRows(viewType) {
     })}`;
 
     let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId || ''}">
+      <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
-          <span class="program-name">${item.programName}</span>
+          <img src="${logoUrl}" alt="${programName} logo" class="output-logo" />
+          <span class="program-name">${programName}</span>
         </div>
         <div class="output-value" style="font-weight:600;">
           ${formattedRowVal}
         </div>
       </div>
     `;
-
     if (viewType === "travel") {
+      // Insert hidden accordion for use-case
       rowHtml += `
         <div class="usecase-accordion" style="display:none;">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
@@ -1076,10 +1050,10 @@ function buildOutputRows(viewType) {
     maximumFractionDigits: 2
   })}`;
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalRowHtml = `
+
+  $("#output-programs-list").append(`
     <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
       ${label}: ${formattedTotal}
     </div>
-  `;
-  $("#output-programs-list").append(totalRowHtml);
+  `);
 }
