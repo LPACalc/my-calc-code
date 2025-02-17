@@ -172,6 +172,51 @@ button {
   background-color: #141d28;  /* slightly darker on hover */
 }
 
+/* Common style for both Output CTAs */
+.output-cta {
+  font-size: 16px;           /* or 14px if you want it even smaller */
+  font-weight: 600;
+  padding: 0.5rem 1rem;      /* original might have been 0.7rem 1.4rem => 30% less  */
+  border-radius: 4px;
+  margin: 0 0.5rem;          /* small horizontal spacing */
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Default color scheme => 
+   #unlock-report-btn is brand color,
+   #explore-concierge-lower is white with brand border
+*/
+#unlock-report-btn.default-colors {
+  background-color: #1a2732; 
+  color: #fff;
+  border: none;
+}
+
+#explore-concierge-lower.default-colors {
+  background-color: #fff;
+  color: #1a2732;
+  border: 2px solid #1a2732;
+}
+
+/* 
+   After email is sent => switch => 
+   #unlock-report-btn => white 
+   #explore-concierge-lower => brand color 
+*/
+
+#unlock-report-btn.swapped-colors {
+  background-color: #fff;
+  color: #1a2732;
+  border: 2px solid #1a2732;
+}
+
+#explore-concierge-lower.swapped-colors {
+  background-color: #1a2732;
+  color: #fff;
+  border: none;
+}
+
+
 /* 3) Inverse style for "Explore Concierge" */
 #explore-concierge-lower.output-cta-btn {
   background-color: #fff;     /* white */
