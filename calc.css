@@ -85,8 +85,7 @@ button {
   overflow-y: auto;     /* scroll the content if it’s too tall */
   padding: 0;
   margin: 0;
-    position: relative; 
-
+  position: relative; 
 }
 
 #input-state,
@@ -98,7 +97,6 @@ button {
   box-sizing: border-box; /* to respect any padding you add */
 }
 .card-container {
-  /* Example using CSS Grid */
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 2rem; 
@@ -106,81 +104,45 @@ button {
 
 .three-cards-section .card-container {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 equal columns */
-  gap: 1.5rem; /* spacing between cards (adjust as needed) */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem; 
 }
 
-
 .calc-footer {
-  position: sticky;       /* sticks within the .right-column container */
-  bottom: 0;              /* pinned to bottom of .right-column */
+  position: sticky;  
+  bottom: 0;         
   display: flex;
   justify-content: center; 
   align-items: center; 
   background-color: #fff; 
   text-align: center;
-  padding: 2rem 1rem;   /* extra vertical padding => more whitespace */
+  padding: 2rem 1rem; 
   box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-  z-index: 9999;          /* on top of content */
+  z-index: 9999;  
 }
-/* 
-   1) OUTER WRAPPER => 
-      Spills out to the right so the scrollbar shows at the edge. 
-*/
 .outer-scroll-wrapper {
   position: relative;
-  overflow: hidden;  /* hide horizontal scrolly bits */
+  overflow: hidden;  
   width: 100%;
-  flex: 1 1 auto;    /* if using flex layout in the parent */
-  height: 100%;      /* if you want it to fill vertical space */
+  flex: 1 1 auto;    
+  height: 100%;      
 }
 
-/* 
-
-
-/*
-   3) CONTENT LIMITER => 
-      Keeps your actual content centered + capped at 40rem.
-*/
 .content-limiter {
   padding-bottom:40px;
-  margin: 0 auto;  /* center within the scroll-area's space */
-  /* optional: add left/right padding if you want more breathing room at small screens */
+  margin: 0 auto; 
 }
 
-
-/* 1) A common smaller CTA style you can apply to both 
-   "Unlock Full Report" and "Explore Concierge" 
-   when they appear in the output state. */
-
-.output-cta-btn {
-  font-size: 14px;          /* smaller font than your default next-btn */
-  font-weight: 600;
-  padding: 0.5rem 1rem;     /* smaller padding => smaller overall look */
-  border-radius: 4px;       /* slightly less rounding */
-  margin: 0 6px;            /* small space horizontally */
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-/* 2) Primary style for "Unlock Full Report" 
-      (could be darker or brand color) */
-#unlock-report-btn.output-cta-btn {
-  background-color: #1a2732;  /* dark navy (example) */
-  color: #fff;
-  border: none;
-}
-#unlock-report-btn.output-cta-btn:hover {
-  background-color: #141d28;  /* slightly darker on hover */
-}
-
-/* Common style for both Output CTAs */
+/*******************************************************
+ * CTA STYLES FOR OUTPUT
+ *******************************************************/
+/* Example “output-cta” for smaller look + color swaps. */
 .output-cta {
-  font-size: 16px;           /* or 14px if you want it even smaller */
+  font-size: 16px;
   font-weight: 600;
-  padding: 0.5rem 1rem;      /* original might have been 0.7rem 1.4rem => 30% less  */
+  padding: 0.5rem 1rem; 
   border-radius: 4px;
-  margin: 0 0.5rem;          /* small horizontal spacing */
+  margin: 0 0.5rem; 
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
@@ -193,53 +155,23 @@ button {
   color: #fff;
   border: none;
 }
-
 #explore-concierge-lower.default-colors {
   background-color: #fff;
   color: #1a2732;
   border: 2px solid #1a2732;
 }
 
-/* 
-   After email is sent => switch => 
-   #unlock-report-btn => white 
-   #explore-concierge-lower => brand color 
-*/
-
+/* After email is sent => we swap => #unlock-report-btn => white, #explore-concierge-lower => brand color */
 #unlock-report-btn.swapped-colors {
   background-color: #fff;
   color: #1a2732;
   border: 2px solid #1a2732;
 }
-
 #explore-concierge-lower.swapped-colors {
   background-color: #1a2732;
   color: #fff;
   border: none;
 }
-
-
-/* 3) Inverse style for "Explore Concierge" */
-#explore-concierge-lower.output-cta-btn {
-  background-color: #fff;     /* white */
-  color: #1a2732;             /* navy text for contrast */
-  border: 1px solid #1a2732;  /* define a border for clarity */
-}
-#explore-concierge-lower.output-cta-btn:hover {
-  background-color: #f0f0f0;  /* subtle hover */
-  color: #1a2732;
-}
-/* Make the CTAs narrower and smaller on the Output state. 
-   You can tweak padding/font-size as you like. */
-#unlock-report-btn.output-cta-compact,
-#explore-concierge-lower.output-cta-compact {
-  padding: 0.4rem 1rem;     /* narrower horizontal padding => less wide overall */
-  font-size: 14px;          /* slightly smaller font */
-  border-radius: 4px;       /* optional smaller rounding */
-  max-width: 200px;         /* optional: cap their maximum width if you want */
-}
-
-
 
 /*******************************************************
  * SECTION C: HERO (Default)
@@ -297,8 +229,7 @@ button {
   font-weight: 800;
   color: #333;
 }
-
-  h2 {
+h2 {
   font-size: 32px;
   font-weight: 800;
   color: #333;
@@ -331,7 +262,6 @@ button {
   position: relative;
   text-align: center;
 }
-
 .dollar-input-container{
   margin: 5px auto 5px auto;
   max-width: 40rem;
@@ -348,7 +278,6 @@ button {
   border: 1px solid rgb(223, 229, 235);
   outline: none;
 }
-
 .points-input,
 .email-input{
   background: #fff;
@@ -362,14 +291,12 @@ button {
 #program-search:focus {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
-
 .points-input:focus,
 .email-input:focus{
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
-    outline: none !important;
+  outline: none !important;
   box-shadow: none !important;
 }
-
 #program-preview {
   position: absolute;
   width: 100%;
@@ -396,7 +323,7 @@ button {
   background-color: #f8fafd;
 }
 .preview-item.chosen-state {
-  background-color: #daf0ff; /* a light blue color */
+  background-color: #daf0ff; 
 }
 .top-programs-section {
   max-width: 800px;
@@ -585,22 +512,19 @@ button {
 /*******************************************************
  * SECTION G: NEXT & BACK BUTTONS (Shared Footer)
  *******************************************************/
-/* Sticky to the bottom of the right column only. */
 .calc-footer {
-  /* Place it below the scrolling .container in .right-column */
-  position: sticky;     /* “sticks” relative to the .right-column container */
-  bottom: 0;            /* pinned to bottom of right column */
+  position: sticky; 
+  bottom: 0;       
   background-color: #fff;
   text-align: center;   
   padding: 1rem, 1rem, 2rem, 1rem;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-  z-index: 9999;        /* on top of content */
+  z-index: 9999;   
 }
 
-/* Reuse .next-btn as the style for all CTAs */
 .next-btn {
   border: none;
-  border-radius: 9999px;   /* pill shape */
+  border-radius: 9999px;  
   background-color: #1a2732;
   color: #fff;
   font-size: 20px;
@@ -608,13 +532,11 @@ button {
   padding: 1.25rem 7rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  margin: 0 0.5rem;        /* small horizontal spacing if you have multiple buttons */
+  margin: 0 0.5rem; 
 }
-
 .next-btn:hover {
   background-color: #141d28;
 }
-/* Inline back button */
 .back-btn {
   border: none;
   border-radius: 0;
@@ -634,36 +556,30 @@ button {
   width: 24px;
   height: 24px;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
-              no-repeat center center;
+    no-repeat center center;
   background-size: 24px 24px;
   transition: opacity 0.2s ease;
 }
 .back-btn:hover::before {
   opacity: 0.7;
 }
-
 .state-header {
-  position: relative;     /* allows absolute positioning of the back button */
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center; 
-  margin-bottom: 1rem;    /* your existing spacing */
+  margin-bottom: 1rem; 
 }
-
 .state-header .back-btn {
   position: absolute;
-  left: 0;                /* pins the back button to the left edge */
+  left: 0;  
   top: 50%;
-  transform: translateY(-50%); /* vertically center it if needed */
+  transform: translateY(-50%);
 }
-
 .state-title {
   margin: 0; 
-  text-align: center;     /* ensures the text is centered within the flex container */
+  text-align: center; 
 }
-
-
-
 
 /*******************************************************
  * SECTION H: ROWS, FIELDS, ETC.
@@ -682,7 +598,7 @@ button {
   transition: background-color 0.2s ease;
 }
 .output-row:hover {
-  background-color: #f8faff; /* slight hover highlight */
+  background-color: #f8faff; 
 }
 .output-left {
   display: flex;
@@ -704,21 +620,16 @@ button {
   font-weight: 600;
   color: #1a2732;
 }
-/* Make the entire row a nice card-like box */
 .program-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  /* Instead of just border-bottom, use a 1px border all around: */
   border: 1px solid #DFE5EB;
   border-radius: 6px;
   padding: 1rem;
   margin-bottom: 1rem;
   background-color: #fff;
 }
-
-
-
 .program-left {
   display: flex;
   align-items: center;
@@ -729,7 +640,6 @@ button {
   align-items: center;
   gap: 0.75rem;
 }
-
 .program-logo {
   width: 32px;
   height: auto;
@@ -744,8 +654,8 @@ button {
   background-color: #fff;
   height: 2.75rem;
   padding: 0 1rem;
-   border: none;
-  background-color: transparent; /* optional */
+  border: none;
+  background-color: transparent;
 }
 .program-values {
   margin-top: 0.5rem;
@@ -880,12 +790,12 @@ button {
  * SECTION K: USECASE STATE
  *******************************************************/
 #usecase-state {
-  background-color: #1a2732; /* Or whatever shade of blue you want */
-  color: #fff;              /* Ensure text is visible on dark bg */
+  background-color: #1a2732; 
+  color: #fff;              
   min-height: 100vh; 
   padding: 40px 20px;
   height: 100%; 
-  object-fit: cover; /* fills the column’s vertical space */
+  object-fit: cover; 
 }
 #usecase-state .module-title h1 {
   font-size: 24px;
@@ -919,7 +829,6 @@ button {
   max-width: 1200px;
   margin: 0 auto;
   padding: 3rem 1rem;
-  background-color: ; /* a subtle background like your ref */
 }
 .section-title {
   text-align: center;
@@ -1010,9 +919,8 @@ button {
   transition: background-color 0.2s ease;
 }
 .output-row:hover {
-  background-color: #f8faff; /* slight hover highlight */
+  background-color: #f8faff; 
 }
-
 /* (B) Hidden Accordion Container */
 .usecase-accordion {
   border: 1px solid #dce3eb;
@@ -1020,11 +928,10 @@ button {
   margin-bottom: 12px;
   padding: 1rem;
 }
-
 /* (C) Pills => Rounded "ovals" with minimal spacing & hover states */
 .mini-pill {
   display: inline-block;
-  background-color: #f0f0f0;  /* subtle gray or adapt to your brand palette */
+  background-color: #f0f0f0; 
   color: #333;
   border-radius: 9999px;      
   margin-right: 8px;
@@ -1040,7 +947,6 @@ button {
   background-color: #e9f2fe;  
   color: #333;
 }
-
 /* (D) Image left, text right in the expanded panel */
 .usecases-panel {
   display: flex;
@@ -1160,14 +1066,14 @@ button {
   background-color: #0056b3;
 }
 
+/* Additional toggle container styling */
 .toggle-container {
   display: inline-flex;
   background-color: #f0f0f0;
   border-radius: 9999px;
   padding: 4px;
-  margin-bottom: 1.5rem; /* add extra spacing below */
+  margin-bottom: 1.5rem; 
 }
-
 .toggle-btn {
   background: transparent;
   border: none;
@@ -1179,11 +1085,9 @@ button {
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
-
 .toggle-btn:not(.active):hover {
   background-color: #e7e7e7;
 }
-
 .toggle-btn.active {
   background-color: #ffffff;
   color: #333;
@@ -1198,33 +1102,28 @@ button {
   border-radius: 8px;
   margin-bottom: 10px;
   padding: 12px 16px;
-  border: 1px solid #e6e6e6;       /* Light border */
+  border: 1px solid #e6e6e6;       
   transition: background-color 0.2s ease;
 }
-
 .output-row:hover {
-  background-color: #f9f9f9;      /* Subtle hover highlight */
+  background-color: #f9f9f9;      
 }
-
 .output-left {
   display: flex;
   align-items: center;
   gap: 0.75rem;
 }
-
 .output-logo {
   width: 40px;
   height: 40px;
-  border-radius: 4px;             /* If you want slightly rounded logos */
+  border-radius: 4px;   
   object-fit: contain;
 }
-
 .program-name {
   font-size: 16px;
   font-weight: 500;
   color: #333;
 }
-
 .output-value {
   font-size: 16px;
   font-weight: 600;
@@ -1246,88 +1145,46 @@ button {
   font-weight: 600;
 }
 .state-title {
-  font-size: 2rem;     /* bigger heading */
+  font-size: 2rem; 
   font-weight: 700;
   color: #333;
   text-align: center;
 }
 
-
-/* 2) The modal overlay, covering the entire right column */
+/* Modal overlay + content (centered in right column) */
 #report-modal {
-  display: none;            /* hidden by default */
-  position: absolute;       /* absolutely within right-column */
-  z-index: 9999;            /* on top of other elements in .right-column */
+  display: none;
+  position: absolute; 
+  z-index: 9999;      
   top: 0; 
   left: 0;
-  width: 100%;              /* fill the right column horizontally */
-  height: 100%;             /* fill the right column vertically */
-  background: rgba(0,0,0,0.5); /* semi-transparent overlay */
+  width: 100%;       
+  height: 100%;      
+  background: rgba(0,0,0,0.5); 
 }
-
-/* 3) Center the modal’s content inside #report-modal */
 #report-modal-content {
   position: absolute;
   top: 50%; 
   left: 50%;
   transform: translate(-50%, -50%);
-
-  width: 40rem;             /* or your chosen fixed width */
-  max-width: 90%;           /* optional, so it shrinks on small screens */
+  width: 40rem;         
+  max-width: 90%;       
   background: #fff;
   border-radius: 8px;
   padding: 20px;
 }
 
-
-  /* Modal close button (X) top-right corner */
-  #modal-close-btn {
-    float: right; 
-    background: none; 
-    border: none;
-    font-size: 24px; 
-    cursor: pointer;
-    line-height: 1;
-  }
-
-  /* Smaller CTA for the modal send button */
-  #modal-send-btn {
-    font-size: 16px;
-    font-weight: 600;
-    padding: 0.5rem 1.5rem;
-    border-radius: 6px;
-  }
-
-  /* The "Email Sent" status text */
-  #email-sent-message {
-    display: none;
-    color: green;
-    margin-top: 10px;
-    font-weight: 600;
-    text-align: center;
-  }
-
-  /* Basic styling for the new subheader inside the modal */
-  .modal-subheader {
-    font-size: 14px;
-    color: #555;
-    margin-bottom: 12px;
-  }
-
-
-
-
-
-
+/*******************************************************
+ * Additional Calculator/Spend Row
+ *******************************************************/
 .calculator-state .state-title {
-  font-size: 2rem;       /* bigger font */
-  font-weight: 700;      /* bolder */
-  color: #1F2C40;        /* darker navy-ish color */
-  margin-bottom: 1rem;   /* space below heading */
+  font-size: 2rem;   
+  font-weight: 700;  
+  color: #1F2C40;     
+  margin-bottom: 1rem; 
 }
-
 .calculator-state .points-info-box {
-  background-color: #F5F7FA; /* softer background */
+  background-color: #F5F7FA; 
   border-radius: 8px;
   padding: 16px;
   margin-bottom: 1.5rem;
@@ -1335,148 +1192,15 @@ button {
   align-items: flex-start;
   gap: 12px;
 }
-
 .calculator-state .points-info-box p {
   color: #444;
   font-size: 14px;
   line-height: 1.4;
   margin: 0;
 }
-
 .calculator-state .info-icon {
   width: 24px;
   height: 24px;
   object-fit: contain;
 }
-.spend-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 0;
-  border-bottom: 1px solid #EAEAEA; /* subtle divider */
-}
-
-.spend-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.spend-icon {
-  width: 32px;
-  height: 32px;
-  object-fit: contain;
-}
-
-.spend-label {
-  font-size: 16px;
-  font-weight: 500;
-  color: #1F2C40;
-}
-
-.spend-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.spend-input {
-  width: 80px;
-  font-size: 16px;
-  font-weight: 500;
-  color: #1F2C40;
-  text-align: right;
-  padding: 0.5rem;
-  border: 1px solid #CED4DA;
-  border-radius: 4px;
-  background-color: #fff;
-  outline: none;
-}
-.spend-input:focus {
-  border-color: #8da2b9;
-}
-
-/* Toggle "Monthly | Yearly" as pill buttons */
-.toggle-group {
-  display: inline-flex;
-  border-radius: 9999px;
-  background-color: #F0F0F0;
-  padding: 4px;
-}
-.toggle-button {
-  background: transparent;
-  border: none;
-  outline: none;
-  border-radius: 9999px;
-  font-size: 14px;
-  color: #666;
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.toggle-button.active {
-  background-color: #FFFFFF;
-  color: #333;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-.toggle-button:not(.active):hover {
-  background-color: #E2E2E2;
-}
-
-.zip-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #F5F7FA;
-  padding: 1rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-.zip-row label {
-  font-size: 14px;
-  color: #333;
-}
-.zip-input {
-  width: 80px;
-  border: 1px solid #CED4DA;
-  border-radius: 4px;
-  padding: 0.5rem;
-  outline: none;
-}
-.total-spending-bar {
-  position: sticky;
-  bottom: 0;
-  background-color: #FFFFFF;
-  padding: 1rem;
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  color: #28A745; /* or your brand color */
-  border-top: 1px solid #EAEAEA; /* separate from content */
-}
-
-/* 1) Default pill style */
-.mini-pill {
-  display: inline-block;
-  background-color: #f0f0f0; /* light grey default */
-  color: #333;
-  border-radius: 9999px;
-  padding: 6px 12px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-
-/* 2) Hover => dark navy background, white text */
-.mini-pill:hover {
-  background-color: #1F2C40; /* your dark navy color */
-  color: #fff;
-}
-
-/* 3) Active/clicked => also dark navy + white text */
-.mini-pill.active {
-  background-color: #1F2C40;
-  color: #fff;
-}
-
+/* Example for spend rows if needed... */
