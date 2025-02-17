@@ -6,10 +6,14 @@
 let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = []; 
-let isTransitioning = false;  // for double-click guard
-let hasSentReport = false;    // track if user has already sent
 
-// Static pill data for your #points-showcase (Use Case State)
+// Prevent double-click transitions
+let isTransitioning = false;  
+
+// Track if user has already sent a report
+let hasSentReport = false;    
+
+// Static pill data for your #points-showcase
 const pointsData = {
   "10000": {
     image: "https://www.point.me/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbertrand-bouchez-Xjd9vc3vwik-unsplash.c121795b.jpg&w=640&q=75",
@@ -33,13 +37,15 @@ const pointsData = {
   }
 };
 
-// Stage graphic images for left column
+// Stage graphic images
+// (Added sendReport so updateStageGraphic("sendReport") works)
 const stageImages = {
   default: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/af0bbfc5-9892-4487-a87d-5fd185a47819/unnamed+%284%29.png",
   input:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/5474cde0-06cb-4afb-9c99-2cdf9d136a17/unnamed+%281%29.png",
   calc:    "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif",
   output:  "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/ab18a97d-fe5e-4d0c-9c27-67d36e13a11e/unnamed+%281%29+copy.png",
-  usecase: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/0f4cf2b3-b35f-41b4-a0a7-6f240604617f/unnamed+%281%29.gif"
+  usecase: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/0f4cf2b3-b35f-41b4-a0a7-6f240604617f/unnamed+%281%29.gif",
+  sendReport: "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif" 
 };
 
 /*******************************************************
@@ -65,19 +71,14 @@ function hideReportModal() {
 
 // Basic email validator
 function isValidEmail(str) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+  return /^[^\s@]+@[^\s@]+(\.[^\s@]+)+$/.test(str);
 }
 
 /*******************************************************
  * B) FETCH & DATA-RELATED UTILITIES
  *******************************************************/
-
-/**
- * fetchWithTimeout => basic fetch wrapper with timeouts and built-in retry logic.
- */
 async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries = 2) {
   let attempt = 0;
-
   while (attempt <= maxRetries) {
     attempt++;
     const controller = new AbortController();
@@ -89,9 +90,8 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
       clearTimeout(timeoutId);
 
       if (response.ok) {
-        return response; // success
+        return response;
       }
-
       if (attempt > maxRetries) {
         throw new Error(`Non-OK HTTP status: ${response.status}`);
       }
@@ -100,7 +100,6 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
 
     } catch (err) {
       clearTimeout(timeoutId);
-
       if (err.name === "AbortError") {
         if (attempt > maxRetries) {
           throw new Error("Request timed out multiple times.");
@@ -116,13 +115,8 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
       }
     }
   }
-
   throw new Error("Failed to fetch after maxRetries attempts.");
 }
-
-/**
- * fetchAirtableTable => fetch data from an Airtable proxy
- */
 async function fetchAirtableTable(tableName) {
   const response = await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
@@ -130,7 +124,6 @@ async function fetchAirtableTable(tableName) {
     10000,
     2
   );
-
   if (!response.ok) {
     throw new Error(`Non-OK status from Airtable proxy: ${response.status}`);
   }
@@ -138,7 +131,7 @@ async function fetchAirtableTable(tableName) {
 }
 
 /*******************************************************
- * C) INITIALIZE APP => loads all data
+ * C) INITIALIZE APP => loads data
  *******************************************************/
 async function initializeApp() {
   console.log("=== initializeApp() CALLED ===");
@@ -167,7 +160,7 @@ async function initializeApp() {
 
   } catch (err) {
     console.error("Error fetching Points Calculator data:", err);
-    return; // Stop if this fails
+    return; // Stop if fails
   }
 
   // 2) Fetch Real-World Use Cases
@@ -183,9 +176,8 @@ async function initializeApp() {
     console.error("Error fetching Real-World Use Cases:", err);
   }
 
-  // 3) Build the 'Popular Programs' grid
+  // 3) Build 'Popular Programs' grid
   buildTopProgramsSection();
-
   console.log("=== All Data loaded, app is ready. ===");
 }
 
@@ -245,9 +237,7 @@ function filterPrograms() {
   const filtered = Object.keys(loyaltyPrograms).filter(recordId => {
     const program = loyaltyPrograms[recordId];
     if (!program || !program["Program Name"]) return false;
-    // If it’s already added
     const alreadyAdded = $(`#program-container .program-row[data-record-id='${recordId}']`).length > 0;
-
     return (
       program["Program Name"].toLowerCase().includes(searchValue) &&
       !alreadyAdded
@@ -327,7 +317,6 @@ function addProgramRow(recordId) {
       </div>
     </div>
   `;
-
   $("#program-container").append(rowHTML);
   updateClearAllVisibility();
   calculateTotal();
@@ -518,7 +507,7 @@ function formatNumberInput(el) {
  *******************************************************/
 function calculateTotal() {
   let totalTravel = 0;
-  let totalCash = 0;
+  let totalCash   = 0;
   let totalPoints = 0;
 
   const rows = $(".program-row");
@@ -533,11 +522,11 @@ function calculateTotal() {
 
     const travelRate = program["Travel Value"] || 0;
     const cashRate   = program["Cash Value"]   || 0;
-    const rowTravel  = points * travelRate;
-    const rowCash    = points * cashRate;
 
-    totalTravel += rowTravel;
-    totalCash   += rowCash;
+    const rowTravel = points * travelRate;
+    const rowCash   = points * cashRate;
+    totalTravel    += rowTravel;
+    totalCash      += rowCash;
   });
 }
 
@@ -551,14 +540,12 @@ function gatherProgramData() {
     const program = loyaltyPrograms[recordId];
     if (!program) return;
 
-    const pointsStr = $(this)
-      .find(".points-input")
-      .val()
-      .replace(/,/g, "") || "0";
+    const pointsStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
     const points = parseFloat(pointsStr) || 0;
 
     const travelRate = program["Travel Value"] || 0;
     const cashRate   = program["Cash Value"]   || 0;
+
     const travelValue = points * travelRate;
     const cashValue   = points * cashRate;
 
@@ -572,16 +559,6 @@ function gatherProgramData() {
   });
   return data;
 }
-
-/*******************************************************
- * O) BUILD USE CASE SHOWCASE (#usecase-state)
- *******************************************************/
-// (Your existing logic)...
-
-/*******************************************************
- * P) SHOW USE CASE DETAILS (#usecase-state)
- *******************************************************/
-// (Your existing logic)...
 
 /*******************************************************
  * Q) NAVY SHOWCASE => INIT STATIC PILLS
@@ -608,26 +585,26 @@ function initNavyShowcase() {
     });
   });
 
+  // Default => 10k
   updateStaticView("10000");
   if (staticPills[0]) staticPills[0].classList.add("active");
 }
 
 /*******************************************************
- * R) SEND REPORT (existing logic)
+ * R) SEND REPORT
  *******************************************************/
 async function sendReport(email) {
   if (!email) return;
-
   if (!isValidEmail(email)) {
     throw new Error("Invalid email format");
   }
 
   const programs = gatherProgramData();
   let totalTravel = 0;
-  let totalCash = 0;
+  let totalCash   = 0;
   programs.forEach(item => {
     totalTravel += item.travelValue;
-    totalCash += item.cashValue;
+    totalCash   += item.cashValue;
   });
 
   const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
@@ -672,6 +649,7 @@ async function sendReportFromModal() {
     sentMsgEl.show();
     hasSentReport = true;
 
+    // Wait 2s, then hide modal & transform button
     setTimeout(() => {
       hideReportModal();
       sentMsgEl.hide();
@@ -687,14 +665,12 @@ async function sendReportFromModal() {
   }
 }
 
-/**
- * transformUnlockButtonToResend => once we've sent the email,
- * rename the Unlock button to "Resend Report" with no background,
- * and display the "Explore Concierge Services" button.
- */
+/*******************************************************
+ * transformUnlockButtonToResend
+ *******************************************************/
 function transformUnlockButtonToResend() {
-  const unlockBtn = $("#unlock-report-btn");
-  const conciergeBtn = $("#explore-concierge-lower");
+  const unlockBtn   = $("#unlock-report-btn");
+  const conciergeBtn= $("#explore-concierge-lower");
 
   unlockBtn.html("Resend Report");
   unlockBtn.css({
@@ -704,7 +680,6 @@ function transformUnlockButtonToResend() {
     color: "#1a2732",
     "font-weight": "600"
   });
-
   conciergeBtn.show();
 }
 
@@ -717,6 +692,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
+  // Filter: must be recommended, have required fields, and require <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
     if (!uc["Points Required"]) return false;
@@ -727,21 +703,25 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && userHasEnoughPoints;
   });
 
+  // Sort ascending by Points Required
   matchingUseCases.sort((a, b) => {
     const aPoints = a["Points Required"] || 0;
     const bPoints = b["Points Required"] || 0;
     return aPoints - bPoints;
   });
 
+  // Take up to 4
   matchingUseCases = matchingUseCases.slice(0, 4);
 
+  // If no results
   if (!matchingUseCases.length) {
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
+  // Build pills (first pill "active")
   let pillsHTML = "";
   matchingUseCases.forEach((uc, index) => {
-    const pointsReq   = uc["Points Required"] || 0;
+    const pointsReq = uc["Points Required"] || 0;
     const activeClass = (index === 0) ? "active" : "";
     pillsHTML += `
       <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
@@ -750,6 +730,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     `;
   });
 
+  // Show the first use case's details by default
   const first = matchingUseCases[0];
   const imageURL = first["Use Case URL"]  || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -768,7 +749,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
       >
         ${pillsHTML}
       </div>
-
       <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
         <div class="image-wrap" style="max-width:180px;">
           <img
@@ -800,13 +780,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
  * HIDE ALL STATES
  *******************************************************/
 function hideAllStates() {
-  $("#default-hero").hide();
-  $("#input-state").hide();
-  $("#calculator-state").hide();
-  $("#output-state").hide();
-  $("#usecase-state").hide();
-  $("#send-report-state").hide();
-  $("#submission-takeover").hide();
+  $("#default-hero, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
 
 /*******************************************************
@@ -828,7 +802,6 @@ function showCTAsForState(state) {
       $("#to-output-btn").show();
       break;
     case "output":
-      // Show "Unlock" or "Resend" depending on hasSentReport
       $("#unlock-report-btn").show();
       if (hasSentReport) {
         $("#explore-concierge-lower").show();
@@ -851,14 +824,14 @@ $(document).ready(async function() {
   initNavyShowcase();
   await initializeApp().catch(err => console.error("initApp error =>", err));
 
-  // 2) Hide all, show default
+  // 2) Hide all, show default hero
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
   showCTAsForState("default");
 
   /*******************************************************
-   * Transitions
+   * TRANSITIONS
    *******************************************************/
   // “Get Started” => Input
   $("#get-started-btn").on("click", function() {
@@ -903,7 +876,7 @@ $(document).ready(async function() {
     });
     updateStageGraphic("output");
 
-    // Default => Travel
+    // default => Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
@@ -998,7 +971,7 @@ $(document).ready(async function() {
   // Program search => filter
   $("#program-search").on("input", filterPrograms);
 
-  // Enter => auto-add if only one
+  // If user presses Enter & only one => auto-add
   $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       $(".preview-item").click();
@@ -1011,7 +984,7 @@ $(document).ready(async function() {
     $("#program-preview").hide().empty();
   });
 
-  // Top Program Box => toggle
+  // “Top Program Box” => toggle
   $(document).on("click", ".top-program-box", function() {
     toggleProgramSelection($(this));
   });
@@ -1030,7 +1003,7 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // Clicking output-row => expand/collapse use-case
+  // Clicking output-row => expand/collapse usecase
   $(document).on("click", ".output-row", function() {
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
       return;
@@ -1057,20 +1030,19 @@ $(document).ready(async function() {
     updateStageGraphic("default");
   });
 
-  // (NEW) Modal close
+  // Modal close
   $("#modal-close-btn").on("click", function() {
     hideReportModal();
   });
 
-  // (NEW) Modal send
+  // Modal send
   $("#modal-send-btn").on("click", async function() {
     await sendReportFromModal();
   });
-
 });
 
 /*******************************************************
- * U) REPLACE buildOutputRows => Show "Total Value", row clickable
+ * U) buildOutputRows => Show "Total Value"
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
@@ -1082,20 +1054,16 @@ function buildOutputRows(viewType) {
     const logoUrl = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unknown";
 
-    // Decide which column to use
     let rowValue = (viewType === "travel")
       ? item.travelValue
       : item.cashValue;
-
     totalValue += rowValue;
 
-    // Format with commas => $xx,xxx.xx
     const formattedRowVal = `$${rowValue.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
-    // Basic row
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -1107,8 +1075,6 @@ function buildOutputRows(viewType) {
         </div>
       </div>
     `;
-
-    // If Travel => build the hidden accordion; if Cash => skip
     if (viewType === "travel") {
       const accordionHtml = `
         <div class="usecase-accordion" style="display:none;">
@@ -1117,16 +1083,13 @@ function buildOutputRows(viewType) {
       `;
       rowHtml += accordionHtml;
     }
-
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Format the total
   const formattedTotal = `$${totalValue.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
-
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalRowHtml = `
     <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
