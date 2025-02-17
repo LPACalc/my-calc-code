@@ -3,10 +3,12 @@
 /*******************************************************
  * A) GLOBAL VARIABLES & DATA
  *******************************************************/
-
 let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = []; // array of recordIds that user has selected
+
+// Transition lock to prevent double-click issues
+let isTransitioning = false;
 
 // Static pill data for your #points-showcase (Use Case State)
 const pointsData = {
@@ -319,12 +321,12 @@ function addProgramRow(recordId) {
       <div class="program-right">
         <div class="dollar-input-container">
           <input
-      type="text"
-  inputmode="numeric"
-  pattern="[0-9]*"
-  class="points-input"
-  placeholder="Enter Total"
-  oninput="formatNumberInput(this); calculateTotal()"
+            type="text"
+            inputmode="numeric"
+            pattern="[0-9]*"
+            class="points-input"
+            placeholder="Enter Total"
+            oninput="formatNumberInput(this); calculateTotal()"
           />
         </div>
         <button class="remove-btn">×</button>
@@ -338,7 +340,7 @@ function addProgramRow(recordId) {
 }
 
 /*******************************************************
- * G) UPDATE CHOSEN PROGRAMS
+ * G) UPDATE CHOSEN PROGRAMS DISPLAY
  *******************************************************/
 function updateChosenProgramsDisplay() {
   const container = $("#chosen-programs-row");
@@ -486,20 +488,19 @@ function clearAllPrograms() {
  * K) INPUT => CALCULATOR
  *******************************************************/
 $("#input-next-btn").on("click", function() {
-  // Prevent double-click by disabling for ~0.5s
-  const $btn = $(this);
-  $btn.prop("disabled", true);
-  setTimeout(() => $btn.prop("disabled", false), 500);
+  if (isTransitioning) return;
+  isTransitioning = true;
 
   hideAllStates();
-  $("#calculator-state").fadeIn();
+  $("#calculator-state").fadeIn(() => {
+    showCTAsForState("calculator");
+    isTransitioning = false;
+  });
   updateStageGraphic("calc");
 
   // Build rows from chosenPrograms
   $("#program-container").empty();
   chosenPrograms.forEach(recordId => addProgramRow(recordId));
-
-  showCTAsForState("calculator");
 });
 
 /*******************************************************
@@ -708,7 +709,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
 
-  // 1) Filter: must be recommended, linked to this recordId, 
+  // 1) Filter: must be recommended, linked to this recordId,
   //    have required fields, and require <= userPoints
   let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
     if (!uc.Recommended) return false;
@@ -796,75 +797,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   `;
 }
 
-
-/*******************************************************
- * U) REPLACE buildOutputRows => Show "Total Value", row clickable
- *******************************************************/
-function buildOutputRows(viewType) {
-  const data = gatherProgramData();
-  $("#output-programs-list").empty();
-  let totalValue = 0;
-
-  data.forEach(item => {
-    const prog = loyaltyPrograms[item.recordId] || {};
-    const logoUrl = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"] || "Unknown";
-
-    // Decide which column to use
-    let rowValue = (viewType === "travel")
-      ? item.travelValue
-      : item.cashValue;
-
-    totalValue += rowValue;
-
-    // Format with commas => $xx,xxx.xx
-    const formattedRowVal = `$${rowValue.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    // Basic row 
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="${programName} logo" class="output-logo" />
-          <span class="program-name">${programName}</span>
-        </div>
-        <div class="output-value" style="font-weight:600;">
-          ${formattedRowVal}
-        </div>
-      </div>
-    `;
-
-    // If Travel => build the hidden accordion; if Cash => skip
-    if (viewType === "travel") {
-      const accordionHtml = `
-        <div class="usecase-accordion" style="display:none;">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-      rowHtml += accordionHtml;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  // Format the total similarly
-  const formattedTotal = `$${totalValue.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalRowHtml = `
-    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${formattedTotal}
-    </div>
-  `;
-  $("#output-programs-list").append(totalRowHtml);
-}
-
-
 /*******************************************************
  * HIDE ALL STATES
  *******************************************************/
@@ -941,10 +873,8 @@ $(document).ready(async function() {
    * only the relevant button(s) for a given "state" key.
    */
   function showCTAsForState(state) {
-    // Hide every CTA
     $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
 
-    // Show only what's relevant
     switch (state) {
       case "default":
         $("#get-started-btn").show();
@@ -970,10 +900,6 @@ $(document).ready(async function() {
 
       case "send-report":
         $("#send-report-next-btn").show();
-        break;
-
-      default:
-        // no buttons
         break;
     }
   }
@@ -1002,10 +928,15 @@ $(document).ready(async function() {
 
   // “Get Started” => goes to Input
   $("#get-started-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#input-state").show();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
     updateStageGraphic("input");
-    showCTAsForState("input");
   });
 
   // “Clear All”
@@ -1013,95 +944,117 @@ $(document).ready(async function() {
     clearAllPrograms();
   });
 
-  // “Input -> Next” => Calculator
-  $("#input-next-btn").on("click", function() {
-    // Prevent double-click by disabling for ~0.5s
-    const $btn = $(this);
-    $btn.prop("disabled", true);
-    setTimeout(() => $btn.prop("disabled", false), 500);
-
-    hideAllStates();
-    $("#calculator-state").fadeIn();
-    updateStageGraphic("calc");
-
-    // Build rows from chosenPrograms
-    $("#program-container").empty();
-    chosenPrograms.forEach(recordId => addProgramRow(recordId));
-
-    showCTAsForState("calculator");
-  });
-
   // “Calculator -> Back” => Input
   $("#calc-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#input-state").fadeIn();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
     updateStageGraphic("input");
-    showCTAsForState("input");
   });
 
   // “Calculator -> Next” => Output
   $("#to-output-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#output-state").fadeIn();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
     updateStageGraphic("output");
 
     // Default to Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
-
-    showCTAsForState("output");
   });
 
   // “Output -> Back” => Calculator
   $("#output-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#calculator-state").show();
+    $("#calculator-state").fadeIn(() => {
+      showCTAsForState("calculator");
+      isTransitioning = false;
+    });
     updateStageGraphic("calc");
-    showCTAsForState("calculator");
   });
 
   // “Unlock Full Report” => show email
   $("#unlock-report-btn").on("click", function() {
+    // We can just show #save-results-section
     $("#save-results-section").show();
   });
 
   // “Usecase -> Back” => Output
   $("#usecase-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#output-state").show();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
     updateStageGraphic("output");
-    showCTAsForState("output");
   });
 
   // “Usecase -> Next” => Send-Report
   $("#usecase-next-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#send-report-state").fadeIn();
+    $("#send-report-state").fadeIn(() => {
+      showCTAsForState("send-report");
+      isTransitioning = false;
+    });
     updateStageGraphic("sendReport");
-    showCTAsForState("send-report");
   });
 
   // “Send-Report -> Back” => Usecase
   $("#send-report-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#usecase-state").fadeIn();
+    $("#usecase-state").fadeIn(() => {
+      showCTAsForState("usecase");
+      isTransitioning = false;
+    });
     updateStageGraphic("usecase");
-    showCTAsForState("usecase");
   });
 
   // “Send-Report -> Next” => Submission
   $("#send-report-next-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#submission-takeover").fadeIn();
+    $("#submission-takeover").fadeIn(() => {
+      isTransitioning = false;
+    });
   });
 
   // “Go Back” in submission => Output
   $("#go-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#output-state").fadeIn();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
     updateStageGraphic("output");
-    showCTAsForState("output");
   });
 
   // Explore Concierge => external link
@@ -1164,10 +1117,15 @@ $(document).ready(async function() {
 
   // “Input -> Back” => show default hero
   $("#input-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
     hideAllStates();
-    $("#default-hero").fadeIn();
+    $("#default-hero").fadeIn(() => {
+      showCTAsForState("default");
+      isTransitioning = false;
+    });
     updateStageGraphic("default");
-    showCTAsForState("default");
   });
 
   // Mini-pill click => switch active use case
@@ -1189,3 +1147,70 @@ $(document).ready(async function() {
     container.find("img").attr("src", uc["Use Case URL"] || "");
   });
 });
+
+/*******************************************************
+ * U) REPLACE buildOutputRows => Show "Total Value", row clickable
+ *******************************************************/
+function buildOutputRows(viewType) {
+  const data = gatherProgramData();
+  $("#output-programs-list").empty();
+  let totalValue = 0;
+
+  data.forEach(item => {
+    const prog = loyaltyPrograms[item.recordId] || {};
+    const logoUrl = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unknown";
+
+    // Decide which column to use
+    let rowValue = (viewType === "travel")
+      ? item.travelValue
+      : item.cashValue;
+
+    totalValue += rowValue;
+
+    // Format with commas => $xx,xxx.xx
+    const formattedRowVal = `$${rowValue.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    // Basic row 
+    let rowHtml = `
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="${programName} logo" class="output-logo" />
+          <span class="program-name">${programName}</span>
+        </div>
+        <div class="output-value" style="font-weight:600;">
+          ${formattedRowVal}
+        </div>
+      </div>
+    `;
+
+    // If Travel => build the hidden accordion; if Cash => skip
+    if (viewType === "travel") {
+      const accordionHtml = `
+        <div class="usecase-accordion" style="display:none;">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+      rowHtml += accordionHtml;
+    }
+
+    $("#output-programs-list").append(rowHtml);
+  });
+
+  // Format the total similarly
+  const formattedTotal = `$${totalValue.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const totalRowHtml = `
+    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${formattedTotal}
+    </div>
+  `;
+  $("#output-programs-list").append(totalRowHtml);
+}
