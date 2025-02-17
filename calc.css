@@ -1158,7 +1158,64 @@ button {
   text-align: center;
 }
 
+/* The modal overlay, confined to the right column */
+  #report-modal {
+    display: none;
+    position: absolute;
+    z-index: 99999;
+    top: 0; 
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5); /* semi-transparent overlay */
+  }
 
+  /* Center the modal content within .right-column */
+  #report-modal-content {
+    position: absolute;
+    top: 50%; 
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    min-width: 280px;
+    max-width: 90%;
+  }
+
+  /* Modal close button (X) top-right corner */
+  #modal-close-btn {
+    float: right; 
+    background: none; 
+    border: none;
+    font-size: 24px; 
+    cursor: pointer;
+    line-height: 1;
+  }
+
+  /* Smaller CTA for the modal send button */
+  #modal-send-btn {
+    font-size: 16px;
+    font-weight: 600;
+    padding: 0.5rem 1.5rem;
+    border-radius: 6px;
+  }
+
+  /* The "Email Sent" status text */
+  #email-sent-message {
+    display: none;
+    color: green;
+    margin-top: 10px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  /* Basic styling for the new subheader inside the modal */
+  .modal-subheader {
+    font-size: 14px;
+    color: #555;
+    margin-bottom: 12px;
+  }
 
 
 
