@@ -147,6 +147,44 @@ button {
 }
 
 
+/* 1) A common smaller CTA style you can apply to both 
+   "Unlock Full Report" and "Explore Concierge" 
+   when they appear in the output state. */
+
+.output-cta-btn {
+  font-size: 14px;          /* smaller font than your default next-btn */
+  font-weight: 600;
+  padding: 0.5rem 1rem;     /* smaller padding => smaller overall look */
+  border-radius: 4px;       /* slightly less rounding */
+  margin: 0 6px;            /* small space horizontally */
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* 2) Primary style for "Unlock Full Report" 
+      (could be darker or brand color) */
+#unlock-report-btn.output-cta-btn {
+  background-color: #1a2732;  /* dark navy (example) */
+  color: #fff;
+  border: none;
+}
+#unlock-report-btn.output-cta-btn:hover {
+  background-color: #141d28;  /* slightly darker on hover */
+}
+
+/* 3) Inverse style for "Explore Concierge" */
+#explore-concierge-lower.output-cta-btn {
+  background-color: #fff;     /* white */
+  color: #1a2732;             /* navy text for contrast */
+  border: 1px solid #1a2732;  /* define a border for clarity */
+}
+#explore-concierge-lower.output-cta-btn:hover {
+  background-color: #f0f0f0;  /* subtle hover */
+  color: #1a2732;
+}
+
+
+
 /*******************************************************
  * SECTION C: HERO (Default)
  *******************************************************/
