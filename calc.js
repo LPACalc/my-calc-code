@@ -752,24 +752,27 @@ function showCTAsForState(state) {
   }
 }
 
-/*******************************************************
- * DOCUMENT READY
- *******************************************************/
 $(document).ready(async function() {
-  // 1) Initialize
+  /*******************************************************
+   * 1) INITIALIZE
+   *******************************************************/
+  // A) Initialize static pills in #usecase-state (if used)
   initNavyShowcase();
-  await initializeApp().catch(err => console.error("initApp error =>", err));
 
-  // 2) Hide all, show default hero
+  // B) Fetch data & build top programs
+  await initializeApp().catch(err => console.error("initializeApp error =>", err));
+
+  // C) Hide all states initially, show default hero
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
   showCTAsForState("default");
 
   /*******************************************************
-   * STATE TRANSITIONS
+   * 2) TRANSITIONS: BACK & NEXT
    *******************************************************/
-  // "Get Started" => Input
+
+  // (A) “Get Started” => goes to Input State
   $("#get-started-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -782,12 +785,20 @@ $(document).ready(async function() {
     updateStageGraphic("input");
   });
 
-  // "Clear All"
-  $("#clear-all-btn").on("click", function() {
-    clearAllPrograms();
+  // (B) “Input -> Back” => show default hero
+  $("#input-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#default-hero").fadeIn(() => {
+      showCTAsForState("default");
+      isTransitioning = false;
+    });
+    updateStageGraphic("default");
   });
 
-  // Input -> Next => Calculator
+  // (C) “Input -> Next” => Calculator
   $("#input-next-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -801,10 +812,10 @@ $(document).ready(async function() {
 
     // Build rows from chosenPrograms
     $("#program-container").empty();
-    chosenPrograms.forEach(rid => addProgramRow(rid));
+    chosenPrograms.forEach(recordId => addProgramRow(recordId));
   });
 
-  // "Calculator -> Back" => Input
+  // (D) “Calculator -> Back” => Input
   $("#calc-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -817,7 +828,7 @@ $(document).ready(async function() {
     updateStageGraphic("input");
   });
 
-  // "Calculator -> Next" => Output
+  // (E) “Calculator -> Next” => Output
   $("#to-output-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -835,7 +846,7 @@ $(document).ready(async function() {
     buildOutputRows("travel");
   });
 
-  // "Output -> Back" => Calculator
+  // (F) “Output -> Back” => Calculator
   $("#output-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -848,17 +859,17 @@ $(document).ready(async function() {
     updateStageGraphic("calc");
   });
 
-  // “Unlock Full Report” => open modal
+  // (G) Unlock => open modal
   $("#unlock-report-btn").on("click", function() {
+    // If you want to block it with transitions, you can, or skip:
+    // if (isTransitioning) return;
+    // isTransitioning = true;
+
+    // Show the report modal
     showReportModal();
   });
 
-  // “Explore Concierge Services” => link
-  $("#explore-concierge-lower").on("click", function() {
-    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
-  });
-
-  // “Usecase -> Back” => Output
+  // (H) “Usecase -> Back” => Output
   $("#usecase-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -871,7 +882,7 @@ $(document).ready(async function() {
     updateStageGraphic("output");
   });
 
-  // “Usecase -> Next” => Send-Report
+  // (I) “Usecase -> Next” => Send-Report
   $("#usecase-next-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -884,7 +895,7 @@ $(document).ready(async function() {
     updateStageGraphic("sendReport");
   });
 
-  // “Send-Report -> Back” => Usecase
+  // (J) “Send-Report -> Back” => Usecase
   $("#send-report-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -897,7 +908,7 @@ $(document).ready(async function() {
     updateStageGraphic("usecase");
   });
 
-  // “Send-Report -> Next” => Submission
+  // (K) “Send-Report -> Next” => Submission
   $("#send-report-next-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -908,7 +919,7 @@ $(document).ready(async function() {
     });
   });
 
-  // “Go Back” in submission => Output
+  // (L) “Go Back” in Submission => Output
   $("#go-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -921,7 +932,26 @@ $(document).ready(async function() {
     updateStageGraphic("output");
   });
 
-  // Searching => filter
+  // (M) Explore Concierge => external link
+  $("#explore-concierge-btn, #explore-concierge-lower").on("click", function() {
+    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
+  });
+
+  // (N) Modal close (X)
+  $("#modal-close-btn").on("click", function() {
+    hideReportModal();
+  });
+
+  // (O) Modal send
+  $("#modal-send-btn").on("click", async function() {
+    await sendReportFromModal();
+  });
+
+  /*******************************************************
+   * 3) OTHER LISTENERS (Search, Program Toggling, Pills)
+   *******************************************************/
+
+  // Program search => filter
   $("#program-search").on("input", filterPrograms);
 
   // If user presses Enter & only one => auto-add
@@ -948,7 +978,7 @@ $(document).ready(async function() {
     calculateTotal();
   });
 
-  // Toggle Travel vs Cash in output
+  // Toggle Travel vs Cash
   $(document).on("click", ".toggle-btn", function() {
     $(".toggle-btn").removeClass("active");
     $(this).addClass("active");
@@ -956,10 +986,11 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // Output row => expand/collapse usecase if travel
+  // Clicking output-row => expand/collapse usecase (travel only)
   $(document).on("click", ".output-row", function() {
-    if ($(".toggle-btn[data-view='cash']").hasClass("active")) return;
-
+    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
+      return; // no accordion in cash view
+    }
     $(".usecase-accordion:visible").slideUp();
     const panel = $(this).next(".usecase-accordion");
     if (panel.is(":visible")) {
@@ -969,29 +1000,28 @@ $(document).ready(async function() {
     }
   });
 
-  // “Input -> Back” => show default hero
-  $("#input-back-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
+  // (NEW) Clicking a mini-pill => load that use case
+  $(document).on("click", ".mini-pill", function() {
+    // 1) Mark this pill active
+    $(this).siblings(".mini-pill").removeClass("active");
+    $(this).addClass("active");
 
-    hideAllStates();
-    $("#default-hero").fadeIn(() => {
-      showCTAsForState("default");
-      isTransitioning = false;
-    });
-    updateStageGraphic("default");
-  });
+    // 2) Grab its data-usecase-id
+    const useCaseId = $(this).data("usecaseId");
+    if (!useCaseId) return;
 
-  // Modal close
-  $("#modal-close-btn").on("click", function() {
-    hideReportModal();
-  });
+    // 3) Find the record in realWorldUseCases
+    const uc = realWorldUseCases[useCaseId];
+    if (!uc) return;
 
-  // Modal send
-  $("#modal-send-btn").on("click", async function() {
-    await sendReportFromModal();
+    // 4) Update the local .usecase-details
+    const container = $(this).closest(".usecases-panel");
+    container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
+    container.find(".uc-body").text(uc["Use Case Body"] || "");
+    container.find("img").attr("src", uc["Use Case URL"] || "");
   });
 });
+
 
 /*******************************************************
  * U) buildOutputRows => Show "Total Value"
