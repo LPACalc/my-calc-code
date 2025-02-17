@@ -974,13 +974,11 @@ h2 {
   /* (11) Use case => we forced .usecase-details to flex-dir:col & center 
      => done above in #usecase-state .usecase-details override. */
 
-  /* Also ensure no side padding => container => 0 */
-  .container,
-  .outer-scroll-wrapper,
-  .content-limiter {
-    padding: 0 !important;
-    margin: 0 !important;
-  }
+.container,
+.outer-scroll-wrapper,
+.content-limiter {
+  padding: 0 1rem !important;
+  margin: 0 auto !important;
 }
 
 /*******************************************************
