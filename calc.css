@@ -134,25 +134,13 @@ button {
 }
 
 /* 
-   2) SCROLL AREA => 
-      This is the “real” scrolling container. 
-      We make it slightly wider than the screen, then shift it back. 
-*/
-.scroll-area {
-  width: calc(100% + 16px);   /* Enough extra so the scrollbar sits at the page edge */
-  margin-right: -16px;        /* Negative margin to pull the scrollbar into view */
-  overflow-y: auto;           /* This is the scroller! */
-  height: 100%;               /* Fill the outer wrapper’s height (if desired) */
-  box-sizing: content-box;
-  padding-right: 16px;        /* So content isn't hidden behind the scrollbar */
-}
+
 
 /*
    3) CONTENT LIMITER => 
       Keeps your actual content centered + capped at 40rem.
 */
 .content-limiter {
-  max-width: 50rem;
   padding-bottom:40px;
   margin: 0 auto;  /* center within the scroll-area's space */
   /* optional: add left/right padding if you want more breathing room at small screens */
@@ -222,7 +210,7 @@ button {
   color: #333;
 }
 .points-info-box {
-  max-width: 600px;
+  max-width: 50rem;
   margin: 0 auto 20px auto;
   background-color: rgb(245 245 247);
   border-radius: 8px;
@@ -245,14 +233,14 @@ button {
 }
 .started-search-area{
   margin: 30px auto 10px auto;
-  max-width: 600px;
+  max-width: 40rem;
   position: relative;
   text-align: center;
 }
 
 .dollar-input-container{
   margin: 5px auto 5px auto;
-  max-width: 600px;
+  max-width: 40rem;
   position: relative;
   text-align: center;
 }
@@ -291,7 +279,7 @@ button {
 #program-preview {
   position: absolute;
   width: 100%;
-  max-width: 600px;
+  max-width: 50rem;
   left: 50%;
   transform: translateX(-50%);
   background-color: #ffffff;
@@ -1050,7 +1038,7 @@ button {
   z-index: 9999;
   text-align: center;
   padding: 20px;
-  max-width: 600px;
+  max-width: 50rem;
 }
 #submission-takeover h2 {
   font-size: 24px;
