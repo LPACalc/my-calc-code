@@ -56,6 +56,14 @@ function updateStageGraphic(stageKey) {
   $(".stage-graphic").attr("src", stageImages[stageKey]);
 }
 
+// NEW: Show and Hide the Report Modal
+function showReportModal() {
+  $("#report-modal").fadeIn(200);
+}
+function hideReportModal() {
+  $("#report-modal").fadeOut(200);
+}
+
 /*******************************************************
  * B) FETCH & DATA-RELATED UTILITIES
  *******************************************************/
@@ -621,29 +629,25 @@ function initNavyShowcase() {
 }
 
 /*******************************************************
- * R) SEND REPORT
+ * R) SEND REPORT (existing logic)
  *******************************************************/
-async function sendReport() {
-  const emailEl = document.getElementById("email-input");
-  const errorEl = document.getElementById("email-error");
-  const sendBtn = document.getElementById("send-results-btn");
+/**
+ * This is the old function you had. We can keep it if you want
+ * for certain flows. But the new modal will use a custom function
+ * that re-uses the same submission logic but pulls email from the
+ * modal input. You could unify them if you like.
+ */
+async function sendReport(email) {
+  // If no email was passed, bail
+  if (!email) return;
 
-  if (!emailEl || !sendBtn) return; // sanity check
-  const email = emailEl.value.trim();
-
-  // 1) Validate
+  // Validate
   if (!isValidEmail(email)) {
-    errorEl.textContent = "Invalid email address.";
-    errorEl.style.display = "block";
-    emailEl.classList.add("input-error");
-    return;
-  } else {
-    errorEl.textContent = "";
-    errorEl.style.display = "none";
-    emailEl.classList.remove("input-error");
+    // We'll handle showing errors in the new function
+    throw new Error("Invalid email format");
   }
 
-  // 2) Gather data
+  // Gather data
   const programs = gatherProgramData();
   let totalTravel = 0;
   let totalCash = 0;
@@ -652,45 +656,104 @@ async function sendReport() {
     totalCash += item.cashValue;
   });
 
-  // 3) Update button => "Sending..."
-  sendBtn.disabled = true;
-  const originalBtnText = "Send Report";
-  sendBtn.textContent = "Sending...";
-  const slowTimeout = setTimeout(() => {
-    sendBtn.textContent = "Still working...";
-  }, 7000);
+  // Post data
+  const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      email,
+      totalTravelValue: totalTravel,
+      totalCashValue: totalCash,
+      programs
+    })
+  });
+
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.error || `HTTP ${response.status}`);
+  }
+  // If OK => done
+  return true;
+}
+
+// Helper: quick email validator
+function isValidEmail(str) {
+  // A basic approach
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+}
+
+/*******************************************************
+ * R2) SEND REPORT FROM MODAL
+ *   - Reuses your "sendReport" logic, but toggles UI
+ *******************************************************/
+async function sendReportFromModal() {
+  const emailInput = $("#modal-email-input").val().trim();
+  const errorEl    = $("#modal-email-error");
+  const sentMsgEl  = $("#email-sent-message");
+  const sendBtn    = $("#modal-send-btn");
+
+  // Clear any old errors
+  errorEl.hide().text("");
+  sentMsgEl.hide();
+  
+  // Basic validation
+  if (!isValidEmail(emailInput)) {
+    errorEl.text("Invalid email address.").show();
+    return;
+  }
+
+  // Lock the button
+  sendBtn.prop("disabled", true).text("Sending...");
 
   try {
-    // 4) Post to your endpoint
-    const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        totalTravelValue: totalTravel,
-        totalCashValue: totalCash,
-        programs
-      })
-    });
-    clearTimeout(slowTimeout);
+    await sendReport(emailInput);
 
-    const result = await response.json();
-    if (!response.ok) {
-      alert("Error: " + (result.error || "Unknown error"));
-      sendBtn.disabled = false;
-      sendBtn.textContent = originalBtnText;
-      return;
-    }
+    // If success, show "Email Sent" message
+    sentMsgEl.show();
 
-    // 5) On success => show "Report Sent"
-    sendBtn.textContent = "Report Sent";
+    // Mark that the user has sent at least one report
+    hasSentReport = true;
+
+    // After 1.5-2 seconds, close the modal
+    setTimeout(() => {
+      hideReportModal();
+      sentMsgEl.hide();
+      // Update the UI in the sticky footer
+      transformUnlockButtonToResend();
+    }, 2000);
 
   } catch (err) {
-    alert("Failed to submit => " + err.message);
-    sendBtn.disabled = false;
-    sendBtn.textContent = originalBtnText;
-    clearTimeout(slowTimeout);
+    console.error("Failed to send report =>", err);
+    errorEl.text(err.message || "Error sending report.").show();
+
+  } finally {
+    // Re-enable button
+    sendBtn.prop("disabled", false).text("Send Report");
   }
+}
+
+/**
+ * transformUnlockButtonToResend => once we've sent the email,
+ * we rename the Unlock button to "Resend Report" with no background
+ * and display the "Explore Concierge Services" button.
+ */
+function transformUnlockButtonToResend() {
+  const unlockBtn = $("#unlock-report-btn");
+  const conciergeBtn = $("#explore-concierge-lower");
+
+  // If it's the first time, hide the icon and remove background
+  unlockBtn.html("Resend Report");
+  // Make it appear more like a text link (no background)
+  unlockBtn.css({
+    background: "none",
+    "background-color": "transparent",
+    "border": "none",
+    color: "#1a2732",
+    "font-weight": "600"
+  });
+
+  // Show the new "Explore Concierge Services" button
+  conciergeBtn.show();
 }
 
 /*******************************************************
@@ -854,79 +917,60 @@ function showCTAsForState(state) {
   }
 }
 
-/*======================================================
-  SECTION V: DOCUMENT READY
-======================================================*/
+/*******************************************************
+ * Show CTAs For State
+ *******************************************************/
+function showCTAsForState(state) {
+  // Hide every CTA
+  $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn, #explore-concierge-lower").hide();
+
+  switch (state) {
+    case "default":
+      $("#get-started-btn").show();
+      break;
+    case "input":
+      if (chosenPrograms.length > 0) {
+        $("#input-next-btn").show();
+      }
+      break;
+    case "calculator":
+      $("#to-output-btn").show();
+      break;
+    case "output":
+      // We always show #unlock-report-btn, but text might be "Resend Report"
+      $("#unlock-report-btn").show();
+      // If user already sent a report, also show Concierge
+      if (hasSentReport) {
+        $("#explore-concierge-lower").show();
+      }
+      break;
+    case "usecase":
+      $("#usecase-next-btn").show();
+      break;
+    case "send-report":
+      $("#send-report-next-btn").show();
+      break;
+  }
+}
+
+/*******************************************************
+ * Document Ready
+ *******************************************************/
 $(document).ready(async function() {
-  /*******************************************************
-   * A) Initialize + Helper
-   *******************************************************/
-
-  // 1) Initialize static pills in #usecase-state (if used)
+  // 1) Initialize
   initNavyShowcase();
-
-  // 2) Fetch data & build top programs
   await initializeApp().catch(err => console.error("initApp error =>", err));
 
-  /**
-   * showCTAsForState => hides all footer CTAs, then shows
-   * only the relevant button(s) for a given "state" key.
-   */
-  function showCTAsForState(state) {
-    $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn").hide();
-
-    switch (state) {
-      case "default":
-        $("#get-started-btn").show();
-        break;
-
-      case "input":
-        if (chosenPrograms.length > 0) {
-          $("#input-next-btn").show();
-        }
-        break;
-
-      case "calculator":
-        $("#to-output-btn").show();
-        break;
-
-      case "output":
-        $("#unlock-report-btn").show();
-        break;
-
-      case "usecase":
-        $("#usecase-next-btn").show();
-        break;
-
-      case "send-report":
-        $("#send-report-next-btn").show();
-        break;
-    }
-  }
-
-  /**
-   * updateNextCTAVisibility => decides if #input-next-btn
-   * should show while in Input State
-   */
-  function updateNextCTAVisibility() {
-    if (chosenPrograms.length > 0 && $("#input-state").is(":visible")) {
-      $("#input-next-btn").show();
-    } else {
-      $("#input-next-btn").hide();
-    }
-  }
-
-  // Hide all states (and CTAs) at start => show default hero
+  // 2) Hide all, show default
   hideAllStates();
   $("#default-hero").show();
   updateStageGraphic("default");
   showCTAsForState("default");
 
   /*******************************************************
-   * B) Transitions
+   * Transitions
    *******************************************************/
-
-  // “Get Started” => goes to Input
+  // “Get Started” => Input
   $("#get-started-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
@@ -969,7 +1013,7 @@ $(document).ready(async function() {
     });
     updateStageGraphic("output");
 
-    // Default to Travel
+    // default to Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
@@ -988,10 +1032,16 @@ $(document).ready(async function() {
     updateStageGraphic("calc");
   });
 
-  // “Unlock Full Report” => show email
+  // (NEW) “Unlock Full Report” => open modal
   $("#unlock-report-btn").on("click", function() {
-    // We can just show #save-results-section
-    $("#save-results-section").show();
+    // If user has sent a report before => text is "Resend Report"
+    // Either way, open the modal
+    showReportModal();
+  });
+
+  // (NEW) “Explore Concierge Services” => go to link
+  $("#explore-concierge-lower").on("click", function() {
+    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
 
   // “Usecase -> Back” => Output
@@ -1057,15 +1107,6 @@ $(document).ready(async function() {
     updateStageGraphic("output");
   });
 
-  // Explore Concierge => external link
-  $("#explore-concierge-btn").on("click", function() {
-    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
-  });
-
-  /*******************************************************
-   * C) Other Listeners (Search, Program Toggling, etc.)
-   *******************************************************/
-
   // Program search => filter
   $("#program-search").on("input", filterPrograms);
 
@@ -1082,7 +1123,7 @@ $(document).ready(async function() {
     $("#program-preview").hide().empty();
   });
 
-  // “Top Program Box” => toggle
+  // Top Program Box => toggle
   $(document).on("click", ".top-program-box", function() {
     toggleProgramSelection($(this));
   });
@@ -1093,7 +1134,7 @@ $(document).ready(async function() {
     calculateTotal();
   });
 
-  // Toggle “Travel” vs “Cash”
+  // Toggle Travel vs Cash
   $(document).on("click", ".toggle-btn", function() {
     $(".toggle-btn").removeClass("active");
     $(this).addClass("active");
@@ -1101,7 +1142,7 @@ $(document).ready(async function() {
     buildOutputRows(viewType);
   });
 
-  // Clicking output-row => expand/collapse use-case (travel only)
+  // Clicking output-row => expand/collapse use-case
   $(document).on("click", ".output-row", function() {
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
       return;
@@ -1128,24 +1169,16 @@ $(document).ready(async function() {
     updateStageGraphic("default");
   });
 
-  // Mini-pill click => switch active use case
-  $(document).on("click", ".mini-pill", function() {
-    // 1) Toggle which pill is active
-    $(this).siblings(".mini-pill").removeClass("active");
-    $(this).addClass("active");
-
-    // 2) Grab its data-usecase-id
-    const useCaseId = $(this).data("usecaseId");
-    // 3) Update the .usecase-details text + image
-    const uc = realWorldUseCases[useCaseId];
-    if (!uc) return;
-
-    // Example: find the local .usecase-details in the same accordion panel
-    const container = $(this).closest(".usecases-panel");
-    container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
-    container.find(".uc-body").text(uc["Use Case Body"] || "No description");
-    container.find("img").attr("src", uc["Use Case URL"] || "");
+  // (NEW) Modal close
+  $("#modal-close-btn").on("click", function() {
+    hideReportModal();
   });
+
+  // (NEW) Modal send
+  $("#modal-send-btn").on("click", async function() {
+    await sendReportFromModal();
+  });
+
 });
 
 /*******************************************************
