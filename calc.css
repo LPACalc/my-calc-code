@@ -207,22 +207,24 @@ button {
    MOBILE OVERRIDES => Smaller, Stacked
 ========================================= */
 @media (max-width: 576px) {
-  /* 
-    1) Stack buttons vertically instead of side-by-side
-    2) Make them smaller in font and padding
-  */
+  /* Make the footer a row with two equally sized columns */
   .calc-footer {
-    flex-direction: column;  /* stack vertically */
-    gap: 8px;               /* small space between each button */
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;  /* force buttons to be the same height */
+    gap: 8px;             /* small space between CTAs */
   }
-
   .calc-footer .next-btn {
-    font-size: 16px;        /* smaller text */
-    padding: 0.75rem 1.5rem;/* less padding */
-    margin: 0 auto;         /* center horizontally if needed */
-    width: auto;            /* don’t stretch full width unless you want to */
+    flex: 1;             /* each button takes up half the width */
+    display: flex;       /* so we can vertically center text if you want */
+    align-items: center; 
+    justify-content: center;
+    font-size: 16px;
+    padding: 0.75rem 1rem;
   }
 }
+
 
 
 @media (max-width: 576px) {
