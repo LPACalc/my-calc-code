@@ -34,33 +34,35 @@ button {
 }
 
 @media (max-width: 576px) {
-  /* 1) Force everything to expand edge-to-edge */
-  .right-column,
-  .scrollable-content,
-  .container,
-  .hero-section,
+  /* 1) Footer side-by-side */
   .calc-footer {
-    max-width: 100% !important;
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
+    position: fixed !important; /* pinned to bottom */
+    bottom: 0; left: 0; right: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center; /* or flex-start if you want them left-aligned */
+    gap: 8px; /* space between buttons */
+    padding: 1rem 0 !important; /* Adjust top/bottom padding */
+    margin: 0 !important;
+    max-width: 100% !important; /* full bleed horizontally */
+    background-color: #fff; 
   }
 
-  /* 2) If Squarespace injects inline max-width or width styles,
-     override them globally here. */
-  [style*="max-width"] {
-    max-width: 100% !important;
-    margin: 0 !important;
-  }
-  [style*="width"] {
-    width: 100% !important; /* optional if Squarespace sets a specific width */
-    margin: 0 !important;
+  /* Ensure content above has enough bottom padding so it doesn’t hide under CTA */
+  .scrollable-content {
+    padding-bottom: 80px !important; 
   }
 
-  /* 3) Optionally remove or reduce default top/bottom padding on sections */
-  .hero-section {
-    padding: 20px 0 !important; /* less vertical padding if desired */
+  /* 2) Buttons => auto-width (shrink to fit text), smaller font/padding */
+  .calc-footer .next-btn {
+    flex: 0 0 auto !important; 
+    width: auto !important;     /* no forced width */
+    margin: 0 !important;
+    padding: 0.75rem 1rem !important; /* smaller padding */
+    font-size: 16px !important;       
+    border-radius: 6px !important;
   }
 }
 
