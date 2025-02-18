@@ -499,7 +499,7 @@ h2 {
   background: #fff;
   background-size: 10px 20px;
   padding: .75rem;
-  width: 100%;
+  max-width: 8rem;
   border-radius: 0.5rem;
   border: 1px solid rgb(223, 229, 235);
   outline: none;
@@ -1499,7 +1499,6 @@ h2 {
   /* 1) Program name => .85rem, width = 8rem */
   .program-name {
     font-size: 0.85rem !important;
-    width: 8rem !important; /* fix a set width to 8rem */
      line-height: 18px;
   }
 
