@@ -620,6 +620,13 @@ h2 {
   text-align: left;
 }
 
+@media (max-width: 576px) {
+  .dollar-input-container {
+    width: 60% !important;       /* container is 60% wide */
+    margin-left: auto !important;
+    margin-right: 0 !important;  /* ensures it's anchored to the right */
+  }
+}
 /*******************************************************
  * SECTION E: CALCULATOR STATE
  *******************************************************/
