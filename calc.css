@@ -161,11 +161,11 @@ button {
        override their width/padding:
   */
   .calc-footer .next-btn {
-    width: 90% !important; /* or 95%, your preference */
-    max-width: 500px;      /* optional cap */
-    margin: 0 auto;        /* center horizontally */
-    padding: 0.75rem 1rem !important; /* smaller padding if needed */
-    font-size: 16px !important;       /* smaller text if needed */
+   width: 90% !important;
+    margin: 0 auto !important;
+    padding: 0.75rem 1rem !important; 
+    font-size: 16px !important;
+    border-radius: 6px !important;
   }
 }
 
