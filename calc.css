@@ -1418,3 +1418,70 @@ h2 {
   text-align: center;
   display: none;
 }
+
+/*******************************************************
+ * FINAL MOBILE OVERRIDES => PLACE AT END OF STYLES
+ *******************************************************/
+@media (max-width: 576px) {
+  /****************************************
+   * 1) FORCE EDGE-TO-EDGE LAYOUT
+   ****************************************/
+  html, body,
+  .page-wrap,
+  .right-column,
+  .scrollable-content,
+  .container,
+  .hero-section,
+  #input-state,
+  #calculator-state,
+  #output-state,
+  #usecase-state,
+  #send-report-state {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* If Squarespace inlines "max-width" or "cell-max-width" styles: */
+  [style*="max-width"],
+  [style*="cell-max-width"],
+  [style*="width"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /****************************************
+   * 2) FIX THE FOOTER AT BOTTOM ON MOBILE
+   ****************************************/
+  .calc-footer {
+    position: fixed !important;
+    bottom: 0; left: 0; right: 0;
+    z-index: 9999;
+    /* Adjust vertical padding, remove horizontal */
+    padding: 1rem 0 !important;
+    margin: 0 !important;
+    /* If you want the footer background to span full width */
+    max-width: 100% !important;
+  }
+
+  /* Ensure enough bottom padding for content above the fixed footer */
+  .scrollable-content {
+    padding-bottom: 80px !important; /* or however tall the .calc-footer is */
+  }
+
+  /****************************************
+   * 3) OPTIONAL: CTAS & BUTTONS NEARLY FULL WIDTH
+   ****************************************/
+  .calc-footer .next-btn {
+    width: 90% !important; /* 95% or 100%, your preference */
+    max-width: 500px;      /* optional cap if you want a limit */
+    margin: 0 auto !important; /* center horizontally */
+    padding: 0.75rem 1rem !important; /* smaller padding */
+    font-size: 16px !important;       /* smaller text */
+    border-radius: 6px !important;    /* or 0 for square corners */
+  }
+}
+
