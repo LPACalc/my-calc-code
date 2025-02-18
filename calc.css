@@ -1517,3 +1517,24 @@ h2 {
   }
 }
 
+@media (max-width: 576px) {
+  .calc-footer {
+    /* Stack buttons vertically */
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;  /* center horizontally */
+    gap: 8px !important;            /* space between stacked buttons */
+  }
+
+  /* Let each button stretch nearly full width if you like */
+  .calc-footer .next-btn {
+    width: 90% !important;  /* or 100%, your preference */
+    max-width: 500px;       /* optional cap */
+    margin: 0 auto !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 16px !important;
+    border-radius: 6px !important;
+  }
+}
+
+
