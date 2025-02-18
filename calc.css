@@ -63,6 +63,24 @@ button {
 .sqs-block:empty {
   display: none !important;
 }
+@media (max-width: 576px) {
+  .right-column {
+    height: auto !important;
+    /* Or min-height: 100vh if you want it to fill the screen but still scroll beyond */
+  }
+}
+@media (max-width: 576px) {
+  .calc-footer {
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+  }
+  .container {
+    padding-bottom: 80px !important; /* same or slightly larger than .calc-footer’s height */
+  }
+}
 
 /*
    RIGHT COLUMN 
