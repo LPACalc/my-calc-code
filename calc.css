@@ -138,6 +138,32 @@ button {
 }
 
 
+@media (max-width: 576px) {
+  /* 
+    1) If Squarespace is applying something like:
+       cell-max-width: calc((var(--sqs-site-max-width, 1500px) ... ) / 8)
+       We force it to 100% instead. 
+  */
+  [style*="cell-max-width"] {
+    max-width: 100% !important;
+    width: 100% !important;
+    cell-max-width: 100% !important; /* In case it's an inline style */
+  }
+
+  /* 
+    2) If you want your CTAs themselves to be nearly full-width,
+       override their width/padding:
+  */
+  .calc-footer .next-btn {
+    width: 90% !important; /* or 95%, your preference */
+    max-width: 500px;      /* optional cap */
+    margin: 0 auto;        /* center horizontally */
+    padding: 0.75rem 1rem !important; /* smaller padding if needed */
+    font-size: 16px !important;       /* smaller text if needed */
+  }
+}
+
+
 /*
    RIGHT COLUMN 
    - 75% width on desktop
