@@ -92,6 +92,30 @@ button {
   position: relative; 
 }
 
+@media (max-width: 576px) {
+  /* A) Make the footer fixed at bottom */
+  .calc-footer {
+    position: fixed !important;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999; /* stays on top of content */
+  }
+
+  /* B) Let .right-column auto-height instead of 100vh */
+  .right-column {
+    height: auto !important;
+  }
+
+  /* C) Ensure we have enough bottom padding so scrolling content
+     isn't hidden behind the fixed footer */
+  .container {
+    padding-bottom: 80px !important; /* match the .calc-footer’s height */
+  }
+}
+
+
+
 /*
    Main states => fill available space, 
    now each has top padding we can adjust for mobile
