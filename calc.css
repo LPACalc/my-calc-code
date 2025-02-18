@@ -77,6 +77,13 @@ button {
   position: relative; 
 }
 
+/* Increase program name font size in output rows on desktop */
+@media (min-width: 992px) {
+  #output-state .output-row .program-name {
+    font-size: 1rem !important; /* or whatever size you prefer */
+  }
+}
+
 .container {
   flex: 1 1 auto;
   overflow-y: auto;
