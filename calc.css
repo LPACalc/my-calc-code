@@ -141,6 +141,39 @@ button {
   margin: 0;
   position: relative; 
 }
+/* =========================================
+   DESKTOP (DEFAULT) => Horizontal Buttons
+   Keep your existing sizes if you like
+========================================= */
+.calc-footer .next-btn {
+  /* Example default sizes for desktop */
+  font-size: 20px;
+  padding: 1.25rem 7rem;
+  margin: 0 0.5rem;
+  /* etc. */
+}
+
+/* =========================================
+   MOBILE OVERRIDES => Smaller, Stacked
+========================================= */
+@media (max-width: 576px) {
+  /* 
+    1) Stack buttons vertically instead of side-by-side
+    2) Make them smaller in font and padding
+  */
+  .calc-footer {
+    flex-direction: column;  /* stack vertically */
+    gap: 8px;               /* small space between each button */
+  }
+
+  .calc-footer .next-btn {
+    font-size: 16px;        /* smaller text */
+    padding: 0.75rem 1.5rem;/* less padding */
+    margin: 0 auto;         /* center horizontally if needed */
+    width: auto;            /* don’t stretch full width unless you want to */
+  }
+}
+
 
 @media (max-width: 576px) {
   /* A) Make the footer fixed at bottom */
