@@ -82,6 +82,38 @@ button {
   }
 }
 
+/* The parent container that will scroll on mobile. */
+.scrollable-content {
+  /* On desktop, let it flow normally. On mobile, make it scroll. */
+  height: auto;
+  overflow: visible;
+}
+
+/* On mobile (<= 576px), fix the height so we can scroll. */
+@media (max-width: 576px) {
+  .scrollable-content {
+    /* fill the screen height minus any top nav, etc. */
+    max-height: 100vh; 
+    overflow-y: auto;  /* scroller on mobile */
+  }
+}
+
+/* The CTA bar at bottom. 
+   “Sticky” means it stays pinned until the 
+   parent’s bottom is reached, then it scrolls away. 
+*/
+.calc-footer {
+  position: -webkit-sticky; /* for Safari iOS */
+  position: sticky;
+  bottom: 0;
+  z-index: 9999;
+  background-color: #fff; /* or your color */
+  padding: 1rem;
+  /* Any other styling you want */
+}
+
+
+
 /*
    RIGHT COLUMN 
    - 75% width on desktop
