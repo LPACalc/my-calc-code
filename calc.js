@@ -1081,6 +1081,15 @@ $(document).ready(async function() {
   $(document).on("click", ".preview-item", function() {
     logSessionEvent("program_preview_item_clicked", {
       recordId: $(this).data("record-id")
+
+       // Look up the program data from your front-end dictionary
+  const prog = loyaltyPrograms[rid];
+  const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+
+  // Now log the programName instead of recordId
+  logSessionEvent("top_program_box_clicked", {
+    programName: programName 
+  });
     });
     toggleSearchItemSelection($(this));
     $("#program-preview").hide().empty();
@@ -1090,6 +1099,15 @@ $(document).ready(async function() {
   $(document).on("click", ".top-program-box", function() {
     logSessionEvent("top_program_box_clicked", {
       recordId: $(this).data("record-id")
+
+       // Look up the program data from your front-end dictionary
+  const prog = loyaltyPrograms[rid];
+  const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+
+  // Now log the programName instead of recordId
+  logSessionEvent("top_program_box_clicked", {
+    programName: programName 
+  });
     });
     toggleProgramSelection($(this));
   });
@@ -1118,6 +1136,15 @@ $(document).ready(async function() {
   $(document).on("click", ".output-row", function() {
     logSessionEvent("output_row_clicked", {
       recordId: $(this).data("record-id")
+
+       // Look up the program data from your front-end dictionary
+  const prog = loyaltyPrograms[rid];
+  const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+
+  // Now log the programName instead of recordId
+  logSessionEvent("top_program_box_clicked", {
+    programName: programName 
+  });
     });
 
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
