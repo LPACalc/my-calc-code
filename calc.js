@@ -569,6 +569,8 @@ function calculateTotal() {
 function gatherProgramData() {
   const data = [];
   $(".program-row").each(function() {
+    // Correctly retrieve the recordId for each row
+    const rid = $(this).data("record-id");
     const prog = loyaltyPrograms[rid];
     if (!prog) return;
 
@@ -849,7 +851,6 @@ $(document).ready(async function() {
    *******************************************************/
   // (A) “Get Started” => Input
   $("#get-started-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("get_started_clicked");
 
     if (isTransitioning) return;
@@ -865,7 +866,6 @@ $(document).ready(async function() {
 
   // (B) “Input -> Back” => show default hero
   $("#input-back-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("input_back_clicked");
 
     if (isTransitioning) return;
@@ -881,7 +881,6 @@ $(document).ready(async function() {
 
   // (C) “Input -> Next” => Calculator
   $("#input-next-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("input_next_clicked");
 
     if (isTransitioning) return;
@@ -896,12 +895,11 @@ $(document).ready(async function() {
 
     // Build rows from chosenPrograms
     $("#program-container").empty();
-    chosenPrograms.forEach(recordId => addProgramRow(recordId));
+    chosenPrograms.forEach(rid => addProgramRow(rid));
   });
 
   // (D) “Calculator -> Back” => Input
   $("#calc-back-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("calculator_back_clicked");
 
     if (isTransitioning) return;
@@ -917,7 +915,6 @@ $(document).ready(async function() {
 
   // (E) “Calculator -> Next” => Output
   $("#to-output-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("calculator_next_clicked");
 
     if (isTransitioning) return;
@@ -938,7 +935,6 @@ $(document).ready(async function() {
 
   // (F) “Output -> Back” => Calculator
   $("#output-back-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("output_back_clicked");
 
     if (isTransitioning) return;
@@ -954,15 +950,12 @@ $(document).ready(async function() {
 
   // (G) “Unlock” => open modal
   $("#unlock-report-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("unlock_report_clicked");
-
     showReportModal();
   });
 
   // (H) “Usecase -> Back” => Output
   $("#usecase-back-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("usecase_back_clicked");
 
     if (isTransitioning) return;
@@ -978,7 +971,6 @@ $(document).ready(async function() {
 
   // (I) “Usecase -> Next” => Send-Report
   $("#usecase-next-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("usecase_next_clicked");
 
     if (isTransitioning) return;
@@ -994,7 +986,6 @@ $(document).ready(async function() {
 
   // (J) “Send-Report -> Back” => Usecase
   $("#send-report-back-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("send_report_back_clicked");
 
     if (isTransitioning) return;
@@ -1010,7 +1001,6 @@ $(document).ready(async function() {
 
   // (K) “Send-Report -> Next” => Submission
   $("#send-report-next-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("send_report_next_clicked");
 
     if (isTransitioning) return;
@@ -1024,7 +1014,6 @@ $(document).ready(async function() {
 
   // (L) “Go Back” in Submission => Output
   $("#go-back-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("submission_back_clicked");
 
     if (isTransitioning) return;
@@ -1040,25 +1029,19 @@ $(document).ready(async function() {
 
   // (M) Explore Concierge => external link
   $("#explore-concierge-btn, #explore-concierge-lower").on("click", function() {
-    // [NEW] log event
     logSessionEvent("explore_concierge_clicked");
-
     window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
   });
 
   // (N) Modal close (X)
   $("#modal-close-btn").on("click", function() {
-    // [NEW] log event
     logSessionEvent("modal_close_clicked");
-
     hideReportModal();
   });
 
   // (O) Modal send
   $("#modal-send-btn").on("click", async function() {
-    // [NEW] log event
     logSessionEvent("modal_send_clicked");
-
     await sendReportFromModal();
   });
 
@@ -1071,50 +1054,49 @@ $(document).ready(async function() {
   // If user presses Enter & only one => auto-add
   $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
-      logSessionEvent("program_search_enter"); // [NEW] optional
+      logSessionEvent("program_search_enter");
       $(".preview-item").click();
     }
   });
 
   // Preview item => toggle
   $(document).on("click", ".preview-item", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+
+    // Log event with recordId and programName
     logSessionEvent("program_preview_item_clicked", {
-
-       // Look up the program data from your front-end dictionary
-  const prog = loyaltyPrograms[rid];
-  const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-  // Now log the programName instead of recordId
-  logSessionEvent("top_program_box_clicked", {
-    programName: programName 
-  });
+      recordId: rid,
+      programName
     });
+
     toggleSearchItemSelection($(this));
     $("#program-preview").hide().empty();
   });
 
   // Top Program Box => toggle
   $(document).on("click", ".top-program-box", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+
+    // Log event with recordId and programName
     logSessionEvent("top_program_box_clicked", {
-
-       // Look up the program data from your front-end dictionary
-  const prog = loyaltyPrograms[rid];
-  const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-  // Now log the programName instead of recordId
-  logSessionEvent("top_program_box_clicked", {
-    programName: programName 
-  });
+      recordId: rid,
+      programName
     });
+
     toggleProgramSelection($(this));
   });
 
   // Remove row => recalc
   $(document).on("click", ".remove-btn", function() {
-    logSessionEvent("program_remove_clicked", {
-      recordId: $(this).closest(".program-row").data("record-id")
-    });
-    $(this).closest(".program-row").remove();
+    const rowEl = $(this).closest(".program-row");
+    const rid = rowEl.data("record-id");
+
+    logSessionEvent("program_remove_clicked", { recordId: rid });
+    rowEl.remove();
     calculateTotal();
   });
 
@@ -1131,17 +1113,13 @@ $(document).ready(async function() {
 
   // Clicking output-row => expand/collapse usecase (travel only)
   $(document).on("click", ".output-row", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+
     logSessionEvent("output_row_clicked", {
-      recordId: $(this).data("record-id")
-
-       // Look up the program data from your front-end dictionary
-  const prog = loyaltyPrograms[rid];
-  const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-  // Now log the programName instead of recordId
-  logSessionEvent("top_program_box_clicked", {
-    programName: programName 
-  });
+      recordId: rid,
+      programName
     });
 
     if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
@@ -1158,16 +1136,13 @@ $(document).ready(async function() {
 
   // (NEW) mini-pill => load that use case
   $(document).on("click", ".mini-pill", function() {
-    logSessionEvent("mini_pill_clicked", {
-      useCaseId: $(this).data("usecaseId")
-    });
+    const useCaseId = $(this).data("usecaseId");
+    logSessionEvent("mini_pill_clicked", { useCaseId });
 
     $(this).siblings(".mini-pill").removeClass("active");
     $(this).addClass("active");
 
-    const useCaseId = $(this).data("usecaseId");
     if (!useCaseId) return;
-
     const uc = realWorldUseCases[useCaseId];
     if (!uc) return;
 
@@ -1179,9 +1154,7 @@ $(document).ready(async function() {
 });
 
 $(document).on("click", "#clear-all-btn", function() {
-  // [NEW] log event
   logSessionEvent("clear_all_clicked");
-
   clearAllPrograms();
 });
 
