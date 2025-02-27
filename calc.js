@@ -85,6 +85,11 @@ function logSessionEvent(eventName, payload = {}) {
     ...payload
   };
 
+   // If we have a global userEmail, include it
+  if (userEmail) {
+    eventData.email = userEmail;
+  }
+
   fetch("https://young-cute-neptune.glitch.me/logEvent", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -111,6 +116,8 @@ window.addEventListener('beforeunload', () => {
 let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = []; 
+let userEmail = null; // Will store the user's email once they submit
+
 
 // Prevent double-click transitions
 let isTransitioning = false;
@@ -698,6 +705,13 @@ async function sendReportFromModal() {
     await sendReport(emailInput);
     sentMsgEl.show();
     hasSentReport = true;
+
+    
+    // 1) Store email in the global variable
+    userEmail = emailInput;
+
+    // 2) You can also log an event if you want:
+    logSessionEvent("email_submitted", { email: userEmail });
 
     // fade out after 0.7s
     setTimeout(() => {
