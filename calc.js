@@ -116,7 +116,11 @@ window.addEventListener('beforeunload', () => {
 
   // Log an event with the duration
   logSessionEvent("session_end", { durationMs: sessionDurationMs });
+  
+  // Remove the session ID from localStorage
+  localStorage.removeItem("pointsLensSessionId");
 });
+
 
 
 /*******************************************************
