@@ -22,6 +22,50 @@ const sessionId = getOrCreateSessionId();
 console.log("Session ID:", sessionId);
 
 /*******************************************************
+ * [NEW] FETCH CLIENT IP & LOG EVENTS
+ *******************************************************/
+
+// A variable to store the user’s IP address (optional)
+let clientIP = null;
+
+// Fetches IP from your Glitch server
+async function fetchClientIP() {
+  try {
+    const resp = await fetch("https://young-cute-neptune.glitch.me/getClientIP");
+    if (!resp.ok) {
+      throw new Error(`Failed to fetch IP. HTTP status: ${resp.status}`);
+    }
+    const data = await resp.json();
+    clientIP = data.ip;
+    console.log("Client IP =>", clientIP);
+  } catch (err) {
+    console.error("Error fetching IP =>", err);
+  }
+}
+
+/**
+ * Log an event to your Glitch server’s /logEvent endpoint.
+ * Include sessionId + clientIP so you can track usage.
+ */
+function logSessionEvent(eventName, payload = {}) {
+  const eventData = {
+    sessionId,
+    clientIP,
+    eventName,
+    timestamp: Date.now(),
+    ...payload
+  };
+
+  fetch("https://young-cute-neptune.glitch.me/logEvent", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(eventData),
+    // keepalive helps in some browsers when user navigates away quickly
+    keepalive: true
+  }).catch(err => console.error("Failed to log event:", err));
+}
+
+/*******************************************************
  * A) GLOBAL VARIABLES & DATA
  *******************************************************/
 let loyaltyPrograms = {};
@@ -776,6 +820,9 @@ function showReportModal() {
  *******************************************************/
 $(document).ready(async function() {
 
+  // [NEW] Fetch IP before initialization (optional)
+  await fetchClientIP();
+
   /*******************************************************
    * 1) INITIALIZE
    *******************************************************/
@@ -1030,7 +1077,7 @@ $(document).ready(async function() {
   });
 });
 
-  $(document).on("click", "#clear-all-btn", function() {
+$(document).on("click", "#clear-all-btn", function() {
   clearAllPrograms();
 });
 
