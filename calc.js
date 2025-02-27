@@ -117,6 +117,8 @@ let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = []; 
 let userEmail = null; // Will store the user's email once they submit
+let approximateLocation = null;
+
 
 
 // Prevent double-click transitions
