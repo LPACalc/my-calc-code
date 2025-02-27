@@ -569,7 +569,6 @@ function calculateTotal() {
 function gatherProgramData() {
   const data = [];
   $(".program-row").each(function() {
-    const rid = $(this).data("record-id");
     const prog = loyaltyPrograms[rid];
     if (!prog) return;
 
@@ -1080,7 +1079,6 @@ $(document).ready(async function() {
   // Preview item => toggle
   $(document).on("click", ".preview-item", function() {
     logSessionEvent("program_preview_item_clicked", {
-      recordId: $(this).data("record-id")
 
        // Look up the program data from your front-end dictionary
   const prog = loyaltyPrograms[rid];
@@ -1098,7 +1096,6 @@ $(document).ready(async function() {
   // Top Program Box => toggle
   $(document).on("click", ".top-program-box", function() {
     logSessionEvent("top_program_box_clicked", {
-      recordId: $(this).data("record-id")
 
        // Look up the program data from your front-end dictionary
   const prog = loyaltyPrograms[rid];
