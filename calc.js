@@ -43,6 +43,34 @@ async function fetchClientIP() {
   }
 }
 
+async function fetchApproxLocationFromIP() {
+  if (!clientIP) return; // No IP yet
+  try {
+    // ip-api free endpoint. "fields" param reduces the JSON size.
+    const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      throw new Error(`Location fetch error: ${resp.status}`);
+    }
+    const data = await resp.json();
+
+    if (data.status === "success") {
+      approximateLocation = {
+        country: data.country,
+        region:  data.regionName,
+        city:    data.city,
+        lat:     data.lat,
+        lon:     data.lon
+        // plus any other fields you want
+      };
+    }
+    console.log("Approx location =>", approximateLocation);
+
+  } catch (err) {
+    console.error("Error fetching location =>", err);
+  }
+}
+
 /**
  * Log an event to your Glitch server’s /logEvent endpoint.
  * Include sessionId + clientIP so you can track usage.
@@ -52,6 +80,7 @@ function logSessionEvent(eventName, payload = {}) {
     sessionId,
     clientIP,
     eventName,
+     approximateLocation,
     timestamp: Date.now(),
     ...payload
   };
@@ -838,6 +867,12 @@ $(document).ready(async function() {
   // [NEW] Fetch IP before initialization (optional)
   await fetchClientIP();
 
+    // If you want to immediately fetch approximate location after IP:
+  await fetchApproxLocationFromIP();
+
+  // Continue with your other initialization code...
+  await initializeApp();
+
   /*******************************************************
    * 1) INITIALIZE
    *******************************************************/
@@ -1044,8 +1079,11 @@ $(document).ready(async function() {
 
   // (O) Modal send
   $("#modal-send-btn").on("click", async function() {
-    logSessionEvent("modal_send_clicked");
-    await sendReportFromModal();
+// Suppose emailInput is the user’s typed email
+  const emailInput = $("#modal-email-input").val().trim();
+
+  // Log the event with the email
+  logSessionEvent("modal_send_clicked", { email: emailInput });    await sendReportFromModal();
   });
 
   /*******************************************************
