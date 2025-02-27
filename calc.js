@@ -1,5 +1,26 @@
 "use strict";
 
+// STEP 1: CREATE/RETRIEVE SESSION ID
+function generateSessionId() {
+  return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => {
+    return (Math.random() * 16 | 0).toString(16);
+  });
+}
+
+function getOrCreateSessionId() {
+  // Try localStorage first
+  let stored = localStorage.getItem("pointsLensSessionId");
+  if (!stored) {
+    stored = generateSessionId();
+    localStorage.setItem("pointsLensSessionId", stored);
+  }
+  return stored;
+}
+
+// You can now access this anywhere in calc.js
+const sessionId = getOrCreateSessionId();
+console.log("Session ID:", sessionId);
+
 /*******************************************************
  * A) GLOBAL VARIABLES & DATA
  *******************************************************/
