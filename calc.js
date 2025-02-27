@@ -45,49 +45,34 @@ async function fetchClientIP() {
 
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return; // No IP yet
+  
   try {
-    // Check if IP contains a colon => likely IPv6
+    // Check if IP is likely IPv6 by looking for a colon
     if (clientIP.includes(":")) {
-      // Either skip, or use a different service that supports IPv6 free
-      console.warn("Detected IPv6 address. Skipping ip-api (free plan doesn't support IPv6).");
-
-      // Example fallback using ipapi.co:
-      const fallbackUrl = `https://ipapi.co/${clientIP}/json/`;
-      const fallbackResp = await fetch(fallbackUrl);
-      if (!fallbackResp.ok) {
-        throw new Error(`Fallback geolocation error: ${fallbackResp.status}`);
-      }
-      const fallbackData = await fallbackResp.json();
-
-      approximateLocation = {
-        country: fallbackData.country_name || "",
-        region:  fallbackData.region       || "",
-        city:    fallbackData.city         || "",
-        lat:     fallbackData.latitude     || 0,
-        lon:     fallbackData.longitude    || 0
-      };
-      console.log("Approx location (IPv6/fallback) =>", approximateLocation);
-
-    } else {
-      // IP is IPv4 => proceed with ip-api free
-      const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
-      const resp = await fetch(url);
-      if (!resp.ok) {
-        throw new Error(`Location fetch error: ${resp.status}`);
-      }
-      const data = await resp.json();
-
-      if (data.status === "success") {
-        approximateLocation = {
-          country: data.country,
-          region:  data.regionName,
-          city:    data.city,
-          lat:     data.lat,
-          lon:     data.lon
-        };
-      }
-      console.log("Approx location =>", approximateLocation);
+      // ip-api free doesn't handle IPv6 => skip
+      console.warn("Detected IPv6 address. Skipping ip-api to avoid 403.");
+      approximateLocation = null; 
+      return;
     }
+
+    // Otherwise, IP is IPv4 => proceed with ip-api free
+    const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
+    const resp = await fetch(url);
+    if (!resp.ok) {
+      throw new Error(`Location fetch error: ${resp.status}`);
+    }
+    const data = await resp.json();
+
+    if (data.status === "success") {
+      approximateLocation = {
+        country: data.country,
+        region:  data.regionName,
+        city:    data.city,
+        lat:     data.lat,
+        lon:     data.lon
+      };
+    }
+    console.log("Approx location =>", approximateLocation);
 
   } catch (err) {
     console.error("Error fetching location =>", err);
