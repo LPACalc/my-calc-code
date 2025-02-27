@@ -832,6 +832,9 @@ function showReportModal() {
  *******************************************************/
 $(document).ready(async function() {
 
+      // Log session load right at the start
+  logSessionEvent("session_load");
+
   // [NEW] Fetch IP before initialization (optional)
   await fetchClientIP();
 
