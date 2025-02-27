@@ -65,6 +65,17 @@ function logSessionEvent(eventName, payload = {}) {
   }).catch(err => console.error("Failed to log event:", err));
 }
 
+let sessionStartTime = Date.now();
+
+window.addEventListener('beforeunload', () => {
+  const sessionEndTime = Date.now();
+  const sessionDurationMs = sessionEndTime - sessionStartTime;
+
+  // Log an event with the duration
+  logSessionEvent("session_end", { durationMs: sessionDurationMs });
+});
+
+
 /*******************************************************
  * A) GLOBAL VARIABLES & DATA
  *******************************************************/
