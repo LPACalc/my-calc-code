@@ -171,6 +171,27 @@ button {
   }
 }
 
+/* For screens up to 767px wide (typical "mobile" breakpoint): */
+@media screen and (max-width: 767px) {
+  .next-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 9999;
+    /* Optional: account for iPhone's bottom safe area */
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* For larger screens (tablet/desktop), keep it positioned normally: */
+@media screen and (min-width: 768px) {
+  .next-button {
+    position: static; /* Or whatever styling you want on desktop */
+    margin: 1rem auto; /* Example: center it in a container */
+  }
+}
+
+
 
 @media (max-width: 576px) {
   /* 
