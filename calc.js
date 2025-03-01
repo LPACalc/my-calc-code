@@ -1291,6 +1291,55 @@ function buildOutputRows(viewType) {
 /*******************************************************
  * [UPDATED SCROLL LOGIC] .calc-footer stops above .custom-footer
  *******************************************************/
+
+<script>
+/*
+  This script makes .calc-footer "un-stick" and rest above the footer
+  whenever the viewport reaches #customFooter, only on mobile (<= 767px).
+*/
+document.addEventListener("DOMContentLoaded", function() {
+  const stickyFooter = document.querySelector(".calc-footer");
+  const customFooter = document.querySelector("#customFooter");
+  if (!stickyFooter || !customFooter) return;
+
+  function handleScroll() {
+    // Only apply logic on mobile
+    if (window.innerWidth <= 767) {
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+      const viewportBottom = scrollY + window.innerHeight;
+
+      const footerRect = customFooter.getBoundingClientRect();
+      const footerTop = footerRect.top + scrollY;
+
+      const stickyRect = stickyFooter.getBoundingClientRect();
+      const ctaHeight = stickyRect.height;
+
+      // If viewport extends into the actual footer,
+      // position .calc-footer absolutely above it
+      if (viewportBottom >= footerTop) {
+        const finalStop = footerTop - ctaHeight;
+        stickyFooter.style.position = "absolute";
+        stickyFooter.style.top = finalStop + "px";
+        stickyFooter.style.bottom = "auto";
+      } else {
+        // Otherwise, keep it fixed at bottom of screen
+        stickyFooter.style.position = "fixed";
+        stickyFooter.style.bottom = "0";
+        stickyFooter.style.top = "auto";
+      }
+    } else {
+      // On larger screens => normal flow
+      stickyFooter.style.position = "static";
+      stickyFooter.style.top = "auto";
+      stickyFooter.style.bottom = "auto";
+    }
+  }
+
+  window.addEventListener("scroll", handleScroll);
+  window.addEventListener("resize", handleScroll);
+  handleScroll(); // initial run
+});
+</script>
 $(document).ready(function() {
   const stickyFooter = document.querySelector('.calc-footer');
   const customFooter = document.querySelector('#customFooter');
