@@ -1289,49 +1289,44 @@ function buildOutputRows(viewType) {
 }
 
 /*******************************************************
- * [ADDED] SCROLL LOGIC FOR .calc-footer ON MOBILE
+ * [UPDATED SCROLL LOGIC] .calc-footer stops above .custom-footer
  *******************************************************/
 $(document).ready(function() {
-  // This snippet toggles the .stop class on .calc-footer
-  // so it “stops” above the bottom of the page-wrap.
-
   const stickyFooter = document.querySelector('.calc-footer');
-  if (!stickyFooter) return;
+  const customFooter = document.querySelector('#customFooter');
+  if (!stickyFooter || !customFooter) return;
 
   function handleScroll() {
     // Only apply logic on mobile
     if (window.innerWidth <= 767) {
-      const pageWrap = document.querySelector('.page-wrap');
-      if (!pageWrap) return;
+      const stickyRect = stickyFooter.getBoundingClientRect();
+      const footerRect = customFooter.getBoundingClientRect();
 
-      const footerRect = stickyFooter.getBoundingClientRect();
-      const pageRect   = pageWrap.getBoundingClientRect();
-
-      // Distance from top of doc to bottom of viewport
+      // distance from top of document to bottom of viewport
       const scrollY         = window.pageYOffset || document.documentElement.scrollTop;
       const viewportBottom  = scrollY + window.innerHeight;
-      // Bottom boundary of .page-wrap
-      const pageBottom      = pageRect.bottom + scrollY;
 
-      // If the bottom of the viewport crosses the bottom of page-wrap,
-      // anchor the .calc-footer so it won't overlap.
-      if (viewportBottom >= pageBottom) {
-        const finalStop = pageBottom - footerRect.height;
+      // distance from top of document to top of the .custom-footer
+      const footerTop       = footerRect.top + scrollY;
 
-        stickyFooter.classList.add('stop');
-        stickyFooter.style.top    = finalStop + 'px';
-        stickyFooter.style.bottom = 'auto';
+      // If the bottom of the viewport >= top of the footer,
+      // anchor the .calc-footer just above the footer
+      if (viewportBottom >= footerTop) {
+        const finalStop = footerTop - stickyRect.height;
+        stickyFooter.style.position = 'absolute';
+        stickyFooter.style.top      = finalStop + 'px';
+        stickyFooter.style.bottom   = 'auto';
       } else {
         // keep it fixed at the bottom
-        stickyFooter.classList.remove('stop');
-        stickyFooter.style.top    = 'auto';
-        stickyFooter.style.bottom = '0';
+        stickyFooter.style.position = 'fixed';
+        stickyFooter.style.bottom   = '0';
+        stickyFooter.style.top      = 'auto';
       }
     } else {
-      // on larger screens => normal positioning
-      stickyFooter.classList.remove('stop');
-      stickyFooter.style.top    = 'auto';
-      stickyFooter.style.bottom = 'auto';
+      // On larger screens => normal
+      stickyFooter.style.position = 'static';
+      stickyFooter.style.top      = 'auto';
+      stickyFooter.style.bottom   = 'auto';
     }
   }
 
