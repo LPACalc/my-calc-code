@@ -1,3 +1,4 @@
+<script>
 "use strict";
 
 // STEP 1: CREATE/RETRIEVE SESSION ID
@@ -28,6 +29,9 @@ console.log("Session ID:", sessionId);
 // A variable to store the user’s IP address (optional)
 let clientIP = null;
 
+// For approximate location
+let approximateLocation = null;
+
 // Fetches IP from your Glitch server
 async function fetchClientIP() {
   try {
@@ -55,7 +59,7 @@ async function fetchApproxLocationFromIP() {
       return;
     }
 
-    // Otherwise, IP is IPv4 => proceed with ip-api free
+    // Otherwise, IP is IPv4 => proceed with ip-api
     const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
     const resp = await fetch(url);
     if (!resp.ok) {
@@ -78,7 +82,6 @@ async function fetchApproxLocationFromIP() {
     console.error("Error fetching location =>", err);
   }
 }
-
 
 /**
  * Log an event to your Glitch server’s /logEvent endpoint.
@@ -103,8 +106,7 @@ function logSessionEvent(eventName, payload = {}) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(eventData),
-    // keepalive helps in some browsers when user navigates away quickly
-    keepalive: true
+    keepalive: true  // helps in some browsers when user navigates away quickly
   }).catch(err => console.error("Failed to log event:", err));
 }
 
@@ -113,14 +115,11 @@ let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
   const sessionDurationMs = sessionEndTime - sessionStartTime;
-
   // Log an event with the duration
   logSessionEvent("session_end", { durationMs: sessionDurationMs });
-  
   // Remove the session ID from localStorage
   localStorage.removeItem("pointsLensSessionId");
 });
-
 
 /*******************************************************
  * A) GLOBAL VARIABLES & DATA
@@ -129,14 +128,8 @@ let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = []; 
 let userEmail = null; // Will store the user's email once they submit
-let approximateLocation = null;
-
-
-// Prevent double-click transitions
-let isTransitioning = false;
-
-// Track if user has already sent a report
-let hasSentReport = false;
+let hasSentReport = false; // Track if user has already sent a report
+let isTransitioning = false; // Prevent double-click transitions
 
 // Static pill data for your #points-showcase
 const pointsData = {
@@ -349,9 +342,7 @@ function filterPrograms() {
   const results = Object.keys(loyaltyPrograms).filter(id => {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
-    const alreadyInCalc = $(
-      `#program-container .program-row[data-record-id='${id}']`
-    ).length > 0;
+    const alreadyInCalc = $(`#program-container .program-row[data-record-id='${id}']`).length > 0;
 
     return prog["Program Name"].toLowerCase().includes(val) && !alreadyInCalc;
   });
@@ -566,25 +557,6 @@ function clearAllPrograms() {
 }
 
 /*******************************************************
- * K) INPUT => CALCULATOR
- *******************************************************/
-$("#input-next-btn").on("click", function() {
-  if (isTransitioning) return;
-  isTransitioning = true;
-
-  hideAllStates();
-  $("#calculator-state").fadeIn(() => {
-    showCTAsForState("calculator");
-    isTransitioning = false;
-  });
-  updateStageGraphic("calc");
-
-  // Build rows from chosenPrograms
-  $("#program-container").empty();
-  chosenPrograms.forEach(rid => addProgramRow(rid));
-});
-
-/*******************************************************
  * L) FORMAT NUMBER
  *******************************************************/
 function formatNumberInput(el) {
@@ -604,12 +576,12 @@ function formatNumberInput(el) {
  * M) CALCULATE TOTAL
  *******************************************************/
 function calculateTotal() {
-  // purely optional
   let totalPoints = 0;
   $(".program-row").each(function() {
     const pStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
     totalPoints += parseInt(pStr, 10) || 0;
   });
+  // optional: do something with totalPoints if you want
 }
 
 /*******************************************************
@@ -618,7 +590,6 @@ function calculateTotal() {
 function gatherProgramData() {
   const data = [];
   $(".program-row").each(function() {
-    // Correctly retrieve the recordId for each row
     const rid = $(this).data("record-id");
     const prog = loyaltyPrograms[rid];
     if (!prog) return;
@@ -722,7 +693,7 @@ async function sendReportFromModal() {
     // 1) Store email in the global variable
     userEmail = emailInput;
 
-    // 2) You can also log an event if you want:
+    // 2) Optionally log an event
     logSessionEvent("email_submitted", { email: userEmail });
 
     // fade out after 0.7s
@@ -730,7 +701,7 @@ async function sendReportFromModal() {
       hideReportModal();
       sentMsgEl.hide();
 
-      // Swap button colors
+      // Swap button colors if you want
       $("#unlock-report-btn").removeClass("default-colors").addClass("swapped-colors");
       $("#explore-concierge-lower").removeClass("default-colors").addClass("swapped-colors");
     }, 700);
@@ -750,10 +721,8 @@ async function sendReportFromModal() {
 function transformUnlockButtonToResend() {
   const unlockBtn    = $("#unlock-report-btn");
   const conciergeBtn = $("#explore-concierge-lower");
-
   unlockBtn.removeClass("default-colors").addClass("swapped-colors");
   conciergeBtn.removeClass("default-colors").addClass("swapped-colors");
-
   unlockBtn.text("Resend Report");
   conciergeBtn.show();
 }
@@ -777,6 +746,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && userHasEnoughPoints;
   });
 
+  // Sort by ascending "Points Required"
   matchingUseCases.sort((a, b) => {
     const aP = a["Points Required"] || 0;
     const bP = b["Points Required"] || 0;
@@ -844,7 +814,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
  *******************************************************/
 function showCTAsForState(state) {
   $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn, #explore-concierge-lower").hide();
-
   switch (state) {
     case "default":
       $("#get-started-btn").show();
@@ -883,351 +852,6 @@ function showReportModal() {
 }
 
 /*******************************************************
- * DOCUMENT READY
- *******************************************************/
-$(document).ready(async function() {
-
-  // Log session load right at the start
-  logSessionEvent("session_load");
-
-  // [NEW] Fetch IP before initialization (optional)
-  await fetchClientIP();
-
-  // If you want to immediately fetch approximate location after IP:
-  await fetchApproxLocationFromIP();
-
-  // Continue with your other initialization code...
-  await initializeApp();
-
-  /*******************************************************
-   * 1) INITIALIZE
-   *******************************************************/
-  initNavyShowcase();
-  await initializeApp().catch(err => console.error("initializeApp error =>", err));
-
-  hideAllStates();
-  $("#default-hero").show();
-  updateStageGraphic("default");
-  showCTAsForState("default");
-
-  /*******************************************************
-   * 2) TRANSITIONS: BACK & NEXT
-   *******************************************************/
-  // (A) “Get Started” => Input
-  $("#get-started-btn").on("click", function() {
-    logSessionEvent("get_started_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#input-state").fadeIn(() => {
-      showCTAsForState("input");
-      isTransitioning = false;
-    });
-    updateStageGraphic("input");
-  });
-
-  // (B) “Input -> Back” => show default hero
-  $("#input-back-btn").on("click", function() {
-    logSessionEvent("input_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#default-hero").fadeIn(() => {
-      showCTAsForState("default");
-      isTransitioning = false;
-    });
-    updateStageGraphic("default");
-  });
-
-  // (C) “Input -> Next” => Calculator
-  $("#input-next-btn").on("click", function() {
-    logSessionEvent("input_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#calculator-state").fadeIn(() => {
-      showCTAsForState("calculator");
-      isTransitioning = false;
-    });
-    updateStageGraphic("calc");
-
-    // Build rows from chosenPrograms
-    $("#program-container").empty();
-    chosenPrograms.forEach(rid => addProgramRow(rid));
-  });
-
-  // (D) “Calculator -> Back” => Input
-  $("#calc-back-btn").on("click", function() {
-    logSessionEvent("calculator_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#input-state").fadeIn(() => {
-      showCTAsForState("input");
-      isTransitioning = false;
-    });
-    updateStageGraphic("input");
-  });
-
-  // (E) “Calculator -> Next” => Output
-  $("#to-output-btn").on("click", function() {
-    logSessionEvent("calculator_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#output-state").fadeIn(() => {
-      showCTAsForState("output");
-      isTransitioning = false;
-    });
-    updateStageGraphic("output");
-
-    // Default to Travel
-    $(".toggle-btn").removeClass("active");
-    $(".toggle-btn[data-view='travel']").addClass("active");
-    buildOutputRows("travel");
-  });
-
-  // (F) “Output -> Back” => Calculator
-  $("#output-back-btn").on("click", function() {
-    logSessionEvent("output_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#calculator-state").fadeIn(() => {
-      showCTAsForState("calculator");
-      isTransitioning = false;
-    });
-    updateStageGraphic("calc");
-  });
-
-  // (G) “Unlock” => open modal
-  $("#unlock-report-btn").on("click", function() {
-    logSessionEvent("unlock_report_clicked");
-    showReportModal();
-  });
-
-  // (H) “Usecase -> Back” => Output
-  $("#usecase-back-btn").on("click", function() {
-    logSessionEvent("usecase_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#output-state").fadeIn(() => {
-      showCTAsForState("output");
-      isTransitioning = false;
-    });
-    updateStageGraphic("output");
-  });
-
-  // (I) “Usecase -> Next” => Send-Report
-  $("#usecase-next-btn").on("click", function() {
-    logSessionEvent("usecase_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#send-report-state").fadeIn(() => {
-      showCTAsForState("sendReport");
-      isTransitioning = false;
-    });
-    updateStageGraphic("sendReport");
-  });
-
-  // (J) “Send-Report -> Back” => Usecase
-  $("#send-report-back-btn").on("click", function() {
-    logSessionEvent("send_report_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#usecase-state").fadeIn(() => {
-      showCTAsForState("usecase");
-      isTransitioning = false;
-    });
-    updateStageGraphic("usecase");
-  });
-
-  // (K) “Send-Report -> Next” => Submission
-  $("#send-report-next-btn").on("click", function() {
-    logSessionEvent("send_report_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#submission-takeover").fadeIn(() => {
-      isTransitioning = false;
-    });
-  });
-
-  // (L) “Go Back” in Submission => Output
-  $("#go-back-btn").on("click", function() {
-    logSessionEvent("submission_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#output-state").fadeIn(() => {
-      showCTAsForState("output");
-      isTransitioning = false;
-    });
-    updateStageGraphic("output");
-  });
-
-  // (M) Explore Concierge => external link
-  $("#explore-concierge-btn, #explore-concierge-lower").on("click", function() {
-    logSessionEvent("explore_concierge_clicked");
-    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
-  });
-
-  // (N) Modal close (X)
-  $("#modal-close-btn").on("click", function() {
-    logSessionEvent("modal_close_clicked");
-    hideReportModal();
-  });
-
-  // (O) Modal send
-  $("#modal-send-btn").on("click", async function() {
-    // Suppose emailInput is the user’s typed email
-    const emailInput = $("#modal-email-input").val().trim();
-
-    // Log the event with the email
-    logSessionEvent("modal_send_clicked", { email: emailInput });
-    await sendReportFromModal();
-  });
-
-  /*******************************************************
-   * 3) OTHER LISTENERS (Search, Program Toggling, Pills)
-   *******************************************************/
-  // Program search => filter
-  $("#program-search").on("input", filterPrograms);
-
-  // If user presses Enter & only one => auto-add
-  $(document).on("keypress", "#program-search", function(e) {
-    if (e.key === "Enter" && $(".preview-item").length === 1) {
-      logSessionEvent("program_search_enter");
-      $(".preview-item").click();
-    }
-  });
-
-  // Preview item => toggle
-  $(document).on("click", ".preview-item", function() {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-    // Log event with recordId and programName
-    logSessionEvent("program_preview_item_clicked", {
-      recordId: rid,
-      programName
-    });
-
-    toggleSearchItemSelection($(this));
-    $("#program-preview").hide().empty();
-  });
-
-  // Top Program Box => toggle
-  $(document).on("click", ".top-program-box", function() {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-    // Log event with recordId and programName
-    logSessionEvent("top_program_box_clicked", {
-      recordId: rid,
-      programName
-    });
-
-    toggleProgramSelection($(this));
-  });
-
-  // Remove row => recalc
-  $(document).on("click", ".remove-btn", function() {
-    const rowEl = $(this).closest(".program-row");
-    const rid = rowEl.data("record-id");
-
-    logSessionEvent("program_remove_clicked", { recordId: rid });
-    rowEl.remove();
-    calculateTotal();
-  });
-
-  // Toggle Travel vs Cash
-  $(document).on("click", ".toggle-btn", function() {
-    logSessionEvent("toggle_view_clicked", {
-      newView: $(this).data("view")
-    });
-    $(".toggle-btn").removeClass("active");
-    $(this).addClass("active");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
-  });
-
-  // Clicking output-row => expand/collapse usecase (travel only)
-  $(document).on("click", ".output-row", function() {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-    logSessionEvent("output_row_clicked", {
-      recordId: rid,
-      programName
-    });
-
-    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return;
-    }
-    $(".usecase-accordion:visible").slideUp();
-    const panel = $(this).next(".usecase-accordion");
-    if (panel.is(":visible")) {
-      panel.slideUp();
-    } else {
-      panel.slideDown();
-    }
-  });
-
-  // (NEW) mini-pill => load that use case
-  $(document).on("click", ".mini-pill", function() {
-    const useCaseId = $(this).data("usecaseId");
-    logSessionEvent("mini_pill_clicked", { useCaseId });
-
-    $(this).siblings(".mini-pill").removeClass("active");
-    $(this).addClass("active");
-
-    if (!useCaseId) return;
-    const uc = realWorldUseCases[useCaseId];
-    if (!uc) return;
-
-    const container = $(this).closest(".usecases-panel");
-    container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
-    container.find(".uc-body").text(uc["Use Case Body"] || "");
-    container.find("img").attr("src", uc["Use Case URL"] || "");
-  });
-});
-
-$(document).on("click", "#clear-all-btn", function() {
-  logSessionEvent("clear_all_clicked");
-  clearAllPrograms();
-});
-
-
-/*******************************************************
  * U) buildOutputRows => Show "Total Value"
  *******************************************************/
 function buildOutputRows(viewType) {
@@ -1264,6 +888,7 @@ function buildOutputRows(viewType) {
         </div>
       </div>
     `;
+    // If travel, add a hidden accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion" style="display:none;">
@@ -1289,97 +914,358 @@ function buildOutputRows(viewType) {
 }
 
 /*******************************************************
- * [UPDATED SCROLL LOGIC] .calc-footer stops above .custom-footer
+ * MAIN DOCUMENT READY BLOCK
  *******************************************************/
+$(document).ready(async function() {
+  // Log session load right at the start
+  logSessionEvent("session_load");
 
-<script>
-/*
-  This script makes .calc-footer "un-stick" and rest above the footer
-  whenever the viewport reaches #customFooter, only on mobile (<= 767px).
-*/
-document.addEventListener("DOMContentLoaded", function() {
-  const stickyFooter = document.querySelector(".calc-footer");
-  const customFooter = document.querySelector("#customFooter");
-  if (!stickyFooter || !customFooter) return;
+  // 1) Optionally fetch IP
+  await fetchClientIP();
+  await fetchApproxLocationFromIP();
 
-  function handleScroll() {
-    // Only apply logic on mobile
-    if (window.innerWidth <= 767) {
-      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-      const viewportBottom = scrollY + window.innerHeight;
+  // 2) Initialize
+  await initializeApp().catch(err => console.error("initializeApp error =>", err));
+  initNavyShowcase();
 
-      const footerRect = customFooter.getBoundingClientRect();
-      const footerTop = footerRect.top + scrollY;
+  // 3) Default view
+  hideAllStates();
+  $("#default-hero").show();
+  updateStageGraphic("default");
+  showCTAsForState("default");
 
-      const stickyRect = stickyFooter.getBoundingClientRect();
-      const ctaHeight = stickyRect.height;
+  /********************************************
+   * TRANSITIONS: BACK & NEXT
+   ********************************************/
+  // (A) "Get Started" => Input
+  $("#get-started-btn").on("click", function() {
+    logSessionEvent("get_started_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
 
-      // If viewport extends into the actual footer,
-      // position .calc-footer absolutely above it
-      if (viewportBottom >= footerTop) {
-        const finalStop = footerTop - ctaHeight;
-        stickyFooter.style.position = "absolute";
-        stickyFooter.style.top = finalStop + "px";
-        stickyFooter.style.bottom = "auto";
+    hideAllStates();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
+    updateStageGraphic("input");
+  });
+
+  // (B) "Input -> Back" => default hero
+  $("#input-back-btn").on("click", function() {
+    logSessionEvent("input_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#default-hero").fadeIn(() => {
+      showCTAsForState("default");
+      isTransitioning = false;
+    });
+    updateStageGraphic("default");
+  });
+
+  // (C) "Input -> Next" => Calculator
+  $("#input-next-btn").on("click", function() {
+    logSessionEvent("input_next_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#calculator-state").fadeIn(() => {
+      showCTAsForState("calculator");
+      isTransitioning = false;
+    });
+    updateStageGraphic("calc");
+
+    // Build rows from chosenPrograms
+    $("#program-container").empty();
+    chosenPrograms.forEach(rid => addProgramRow(rid));
+  });
+
+  // (D) "Calculator -> Back" => Input
+  $("#calc-back-btn").on("click", function() {
+    logSessionEvent("calculator_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
+    updateStageGraphic("input");
+  });
+
+  // (E) "Calculator -> Next" => Output
+  $("#to-output-btn").on("click", function() {
+    logSessionEvent("calculator_next_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
+    updateStageGraphic("output");
+
+    // Default to Travel
+    $(".toggle-btn").removeClass("active");
+    $(".toggle-btn[data-view='travel']").addClass("active");
+    buildOutputRows("travel");
+  });
+
+  // (F) "Output -> Back" => Calculator
+  $("#output-back-btn").on("click", function() {
+    logSessionEvent("output_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#calculator-state").fadeIn(() => {
+      showCTAsForState("calculator");
+      isTransitioning = false;
+    });
+    updateStageGraphic("calc");
+  });
+
+  // (G) "Unlock" => open modal
+  $("#unlock-report-btn").on("click", function() {
+    logSessionEvent("unlock_report_clicked");
+    showReportModal();
+  });
+
+  // (H) "Usecase -> Back" => Output
+  $("#usecase-back-btn").on("click", function() {
+    logSessionEvent("usecase_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
+    updateStageGraphic("output");
+  });
+
+  // (I) "Usecase -> Next" => Send-Report
+  $("#usecase-next-btn").on("click", function() {
+    logSessionEvent("usecase_next_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#send-report-state").fadeIn(() => {
+      showCTAsForState("send-report");
+      isTransitioning = false;
+    });
+    updateStageGraphic("sendReport");
+  });
+
+  // (J) "Send-Report -> Back" => Usecase
+  $("#send-report-back-btn").on("click", function() {
+    logSessionEvent("send_report_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#usecase-state").fadeIn(() => {
+      showCTAsForState("usecase");
+      isTransitioning = false;
+    });
+    updateStageGraphic("usecase");
+  });
+
+  // (K) "Send-Report -> Next" => Submission
+  $("#send-report-next-btn").on("click", function() {
+    logSessionEvent("send_report_next_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#submission-takeover").fadeIn(() => {
+      isTransitioning = false;
+    });
+  });
+
+  // (L) "Go Back" in Submission => Output
+  $("#go-back-btn").on("click", function() {
+    logSessionEvent("submission_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+
+    hideAllStates();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
+    updateStageGraphic("output");
+  });
+
+  // (M) Explore Concierge => external link
+  $("#explore-concierge-btn, #explore-concierge-lower").on("click", function() {
+    logSessionEvent("explore_concierge_clicked");
+    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
+  });
+
+  // (N) Modal close (X)
+  $("#modal-close-btn").on("click", function() {
+    logSessionEvent("modal_close_clicked");
+    hideReportModal();
+  });
+
+  // (O) Modal send => gather & send
+  $("#modal-send-btn").on("click", async function() {
+    const emailInput = $("#modal-email-input").val().trim();
+    logSessionEvent("modal_send_clicked", { email: emailInput });
+    await sendReportFromModal();
+  });
+
+  /*******************************************************
+   * 4) OTHER LISTENERS (Search, Program Toggling, etc.)
+   *******************************************************/
+  // Program search => filter
+  $("#program-search").on("input", filterPrograms);
+
+  // Press Enter to auto-add if only one result
+  $(document).on("keypress", "#program-search", function(e) {
+    if (e.key === "Enter" && $(".preview-item").length === 1) {
+      logSessionEvent("program_search_enter");
+      $(".preview-item").click();
+    }
+  });
+
+  // Preview item => toggle
+  $(document).on("click", ".preview-item", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+    logSessionEvent("program_preview_item_clicked", { recordId: rid, programName });
+    toggleSearchItemSelection($(this));
+    $("#program-preview").hide().empty();
+  });
+
+  // Top Program Box => toggle
+  $(document).on("click", ".top-program-box", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+    logSessionEvent("top_program_box_clicked", { recordId: rid, programName });
+    toggleProgramSelection($(this));
+  });
+
+  // Remove row => recalc
+  $(document).on("click", ".remove-btn", function() {
+    const rowEl = $(this).closest(".program-row");
+    const rid = rowEl.data("record-id");
+    logSessionEvent("program_remove_clicked", { recordId: rid });
+    rowEl.remove();
+    calculateTotal();
+  });
+
+  // Toggle Travel vs Cash
+  $(document).on("click", ".toggle-btn", function() {
+    logSessionEvent("toggle_view_clicked", { newView: $(this).data("view") });
+    $(".toggle-btn").removeClass("active");
+    $(this).addClass("active");
+    const viewType = $(this).data("view");
+    buildOutputRows(viewType);
+  });
+
+  // Click output-row => expand/collapse usecase (only if travel)
+  $(document).on("click", ".output-row", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+    logSessionEvent("output_row_clicked", { recordId: rid, programName });
+
+    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
+      return;
+    }
+    $(".usecase-accordion:visible").slideUp();
+    const panel = $(this).next(".usecase-accordion");
+    if (panel.is(":visible")) {
+      panel.slideUp();
+    } else {
+      panel.slideDown();
+    }
+  });
+
+  // Use case mini-pill => switch scenario
+  $(document).on("click", ".mini-pill", function() {
+    const useCaseId = $(this).data("usecaseId");
+    logSessionEvent("mini_pill_clicked", { useCaseId });
+    $(this).siblings(".mini-pill").removeClass("active");
+    $(this).addClass("active");
+
+    if (!useCaseId) return;
+    const uc = realWorldUseCases[useCaseId];
+    if (!uc) return;
+    const container = $(this).closest(".usecases-panel");
+    container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
+    container.find(".uc-body").text(uc["Use Case Body"] || "");
+    container.find("img").attr("src", uc["Use Case URL"] || "");
+  });
+
+  // Clear All
+  $(document).on("click", "#clear-all-btn", function() {
+    logSessionEvent("clear_all_clicked");
+    clearAllPrograms();
+  });
+});
+
+/*******************************************************
+ * [UPDATED SCROLL LOGIC] .calc-footer stops above #customFooter
+ *******************************************************/
+(function() {
+  // This IIFE ensures we only define handleScroll once
+  document.addEventListener("DOMContentLoaded", function() {
+    // Make sure you have <div id="customFooter"> in your HTML
+    const stickyFooter = document.querySelector(".calc-footer");
+    const customFooter = document.querySelector("#customFooter");
+    if (!stickyFooter || !customFooter) {
+      console.warn("Could not find .calc-footer or #customFooter in the DOM.");
+      return;
+    }
+
+    function handleScroll() {
+      // Only apply logic on mobile
+      if (window.innerWidth <= 767) {
+        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+        const viewportBottom = scrollY + window.innerHeight;
+
+        const footerRect = customFooter.getBoundingClientRect();
+        const footerTop = footerRect.top + scrollY;
+
+        const stickyRect = stickyFooter.getBoundingClientRect();
+        const ctaHeight = stickyRect.height;
+
+        // If viewport extends into the actual footer,
+        // position .calc-footer absolutely above it
+        if (viewportBottom >= footerTop) {
+          const finalStop = footerTop - ctaHeight;
+          stickyFooter.style.position = "absolute";
+          stickyFooter.style.top = finalStop + "px";
+          stickyFooter.style.bottom = "auto";
+        } else {
+          // Otherwise, keep it fixed at bottom of screen
+          stickyFooter.style.position = "fixed";
+          stickyFooter.style.bottom = "0";
+          stickyFooter.style.top = "auto";
+        }
       } else {
-        // Otherwise, keep it fixed at bottom of screen
-        stickyFooter.style.position = "fixed";
-        stickyFooter.style.bottom = "0";
+        // On larger screens => normal flow
+        stickyFooter.style.position = "static";
         stickyFooter.style.top = "auto";
+        stickyFooter.style.bottom = "auto";
       }
-    } else {
-      // On larger screens => normal flow
-      stickyFooter.style.position = "static";
-      stickyFooter.style.top = "auto";
-      stickyFooter.style.bottom = "auto";
     }
-  }
 
-  window.addEventListener("scroll", handleScroll);
-  window.addEventListener("resize", handleScroll);
-  handleScroll(); // initial run
-});
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", handleScroll);
+    handleScroll(); // initial run
+  });
+})();
 </script>
-$(document).ready(function() {
-  const stickyFooter = document.querySelector('.calc-footer');
-  const customFooter = document.querySelector('#customFooter');
-  if (!stickyFooter || !customFooter) return;
-
-  function handleScroll() {
-    // Only apply logic on mobile
-    if (window.innerWidth <= 767) {
-      const stickyRect = stickyFooter.getBoundingClientRect();
-      const footerRect = customFooter.getBoundingClientRect();
-
-      // distance from top of document to bottom of viewport
-      const scrollY         = window.pageYOffset || document.documentElement.scrollTop;
-      const viewportBottom  = scrollY + window.innerHeight;
-
-      // distance from top of document to top of the .custom-footer
-      const footerTop       = footerRect.top + scrollY;
-
-      // If the bottom of the viewport >= top of the footer,
-      // anchor the .calc-footer just above the footer
-      if (viewportBottom >= footerTop) {
-        const finalStop = footerTop - stickyRect.height;
-        stickyFooter.style.position = 'absolute';
-        stickyFooter.style.top      = finalStop + 'px';
-        stickyFooter.style.bottom   = 'auto';
-      } else {
-        // keep it fixed at the bottom
-        stickyFooter.style.position = 'fixed';
-        stickyFooter.style.bottom   = '0';
-        stickyFooter.style.top      = 'auto';
-      }
-    } else {
-      // On larger screens => normal
-      stickyFooter.style.position = 'static';
-      stickyFooter.style.top      = 'auto';
-      stickyFooter.style.bottom   = 'auto';
-    }
-  }
-
-  window.addEventListener('scroll', handleScroll);
-  window.addEventListener('resize', handleScroll);
-  handleScroll();
-});
