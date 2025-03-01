@@ -89,12 +89,12 @@ function logSessionEvent(eventName, payload = {}) {
     sessionId,
     clientIP,
     eventName,
-     approximateLocation,
+    approximateLocation,
     timestamp: Date.now(),
     ...payload
   };
 
-   // If we have a global userEmail, include it
+  // If we have a global userEmail, include it
   if (userEmail) {
     eventData.email = userEmail;
   }
@@ -122,7 +122,6 @@ window.addEventListener('beforeunload', () => {
 });
 
 
-
 /*******************************************************
  * A) GLOBAL VARIABLES & DATA
  *******************************************************/
@@ -131,7 +130,6 @@ let realWorldUseCases = [];
 let chosenPrograms = []; 
 let userEmail = null; // Will store the user's email once they submit
 let approximateLocation = null;
-
 
 
 // Prevent double-click transitions
@@ -720,7 +718,6 @@ async function sendReportFromModal() {
     await sendReport(emailInput);
     sentMsgEl.show();
     hasSentReport = true;
-
     
     // 1) Store email in the global variable
     userEmail = emailInput;
@@ -890,13 +887,13 @@ function showReportModal() {
  *******************************************************/
 $(document).ready(async function() {
 
-      // Log session load right at the start
+  // Log session load right at the start
   logSessionEvent("session_load");
 
   // [NEW] Fetch IP before initialization (optional)
   await fetchClientIP();
 
-    // If you want to immediately fetch approximate location after IP:
+  // If you want to immediately fetch approximate location after IP:
   await fetchApproxLocationFromIP();
 
   // Continue with your other initialization code...
@@ -1108,11 +1105,12 @@ $(document).ready(async function() {
 
   // (O) Modal send
   $("#modal-send-btn").on("click", async function() {
-// Suppose emailInput is the user’s typed email
-  const emailInput = $("#modal-email-input").val().trim();
+    // Suppose emailInput is the user’s typed email
+    const emailInput = $("#modal-email-input").val().trim();
 
-  // Log the event with the email
-  logSessionEvent("modal_send_clicked", { email: emailInput });    await sendReportFromModal();
+    // Log the event with the email
+    logSessionEvent("modal_send_clicked", { email: emailInput });
+    await sendReportFromModal();
   });
 
   /*******************************************************
@@ -1289,3 +1287,55 @@ function buildOutputRows(viewType) {
     </div>
   `);
 }
+
+/*******************************************************
+ * [ADDED] SCROLL LOGIC FOR .calc-footer ON MOBILE
+ *******************************************************/
+$(document).ready(function() {
+  // This snippet toggles the .stop class on .calc-footer
+  // so it “stops” above the bottom of the page-wrap.
+
+  const stickyFooter = document.querySelector('.calc-footer');
+  if (!stickyFooter) return;
+
+  function handleScroll() {
+    // Only apply logic on mobile
+    if (window.innerWidth <= 767) {
+      const pageWrap = document.querySelector('.page-wrap');
+      if (!pageWrap) return;
+
+      const footerRect = stickyFooter.getBoundingClientRect();
+      const pageRect   = pageWrap.getBoundingClientRect();
+
+      // Distance from top of doc to bottom of viewport
+      const scrollY         = window.pageYOffset || document.documentElement.scrollTop;
+      const viewportBottom  = scrollY + window.innerHeight;
+      // Bottom boundary of .page-wrap
+      const pageBottom      = pageRect.bottom + scrollY;
+
+      // If the bottom of the viewport crosses the bottom of page-wrap,
+      // anchor the .calc-footer so it won't overlap.
+      if (viewportBottom >= pageBottom) {
+        const finalStop = pageBottom - footerRect.height;
+
+        stickyFooter.classList.add('stop');
+        stickyFooter.style.top    = finalStop + 'px';
+        stickyFooter.style.bottom = 'auto';
+      } else {
+        // keep it fixed at the bottom
+        stickyFooter.classList.remove('stop');
+        stickyFooter.style.top    = 'auto';
+        stickyFooter.style.bottom = '0';
+      }
+    } else {
+      // on larger screens => normal positioning
+      stickyFooter.classList.remove('stop');
+      stickyFooter.style.top    = 'auto';
+      stickyFooter.style.bottom = 'auto';
+    }
+  }
+
+  window.addEventListener('scroll', handleScroll);
+  window.addEventListener('resize', handleScroll);
+  handleScroll();
+});
