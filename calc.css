@@ -180,6 +180,15 @@ button {
     /* Optional: account for iPhone's bottom safe area */
     padding-bottom: env(safe-area-inset-bottom);
   }
+  .calc-footer {
+  position: fixed !important; /* pinned to bottom */
+  bottom: 0; left: 0; right: 0;
+  z-index: 9999;
+}
+.scrollable-content {
+  padding-bottom: 80px; /* or however tall your CTA bar is */
+}
+
 }
 
 /* For larger screens (tablet/desktop), keep it positioned normally: */
