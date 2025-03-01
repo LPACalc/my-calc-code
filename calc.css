@@ -346,6 +346,22 @@ button {
   gap: 2rem; 
 }
 
+@media (max-width: 767px) {
+  .sticky-next-button-container {
+    position: -webkit-sticky; /* Safari support */
+    position: sticky;
+    bottom: 0; 
+    z-index: 9999;
+    background: #fff; /* or match your page’s background */
+    padding: 8px;     /* optional spacing around the button */
+  }
+
+  .next-button {
+    /* your button styling (width, height, etc.) */
+  }
+}
+
+
 /*
   Footer is now NOT sticky => we remove position:sticky,
   so user can scroll all content + CTA, then see the page footer below.
