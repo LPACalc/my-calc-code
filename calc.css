@@ -245,6 +245,14 @@ a {
   color: #1D3A5F;
 }
 
+#input-next-btn,
+#to-output-btn {
+  display: block;         /* Ensures margin:0 auto can center it */
+  margin: 4rem auto;         /* Centers horizontally */
+  padding: 0.9rem 3rem;   /* Wider button if desired */
+}
+
+
 /*******************************************************
  * CLEAR ALL
  *******************************************************/
