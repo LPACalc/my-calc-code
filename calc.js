@@ -102,14 +102,14 @@ window.addEventListener('beforeunload', () => {
 });
 
 /*******************************************************
- * HIDE ALL STATES
+ * HELPER => hideAllStates
  *******************************************************/
 function hideAllStates() {
   $("#default-hero, #how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
 
 /*******************************************************
- * showLeftColumnBanner
+ * Show left column + banner
  *******************************************************/
 function showLeftColumnBanner() {
   $(".left-column").css({
@@ -126,7 +126,7 @@ function isValidEmail(str) {
 }
 
 /*******************************************************
- * FETCH UTILS
+ * FETCH with Timeout
  *******************************************************/
 async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   let attempt=0;
@@ -164,6 +164,9 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   throw new Error("Failed fetch after maxRetries");
 }
 
+/*******************************************************
+ * fetchAirtableTable
+ *******************************************************/
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
@@ -220,7 +223,7 @@ async function initializeApp(){
 }
 
 /*******************************************************
- * buildTopProgramsSection
+ * buildTopProgramsSection => “Popular Programs”
  *******************************************************/
 function buildTopProgramsSection(){
   const container=document.getElementById("top-programs-grid");
@@ -247,7 +250,7 @@ function buildTopProgramsSection(){
 }
 
 /*******************************************************
- * filterPrograms => search preview
+ * filterPrograms => revert old style
  *******************************************************/
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
@@ -265,7 +268,7 @@ function filterPrograms(){
     const prog=loyaltyPrograms[id];
     if(!prog["Program Name"])return false;
     const inCalc=$(`#program-container .program-row[data-record-id='${id}']`).length>0;
-    return prog["Program Name"].toLowerCase().includes(val) && !inCalc;
+    return prog["Program Name"].toLowerCase().includes(val)&&!inCalc;
   });
   const limited=results.slice(0,5);
   if(!limited.length){
@@ -284,7 +287,7 @@ function filterPrograms(){
           <span class="program-name">${name}</span>
           <span class="program-type">(${prog.Type||"Unknown"})</span>
         </div>
-        ${logo? `<img src="${logo}" alt="logo" style="height:35px;">`: ""}
+        ${logo? `<img src="${logo}" alt="logo" style="height:35px;">`:""}
       </div>
     `;
   });
@@ -292,7 +295,7 @@ function filterPrograms(){
 }
 
 /*******************************************************
- * addProgramRow
+ * addProgramRow => for calculator input
  *******************************************************/
 function addProgramRow(recordId){
   const prog=loyaltyPrograms[recordId];
@@ -319,12 +322,12 @@ function addProgramRow(recordId){
     </div>
   `;
   $("#program-container").append(rowHTML);
-  updateClearAllVisibility();
   calculateTotal();
+  updateClearAllVisibility();
 }
 
 /*******************************************************
- * toggleSearchItemSelection / toggleProgramSelection
+ * toggleSearchItemSelection, toggleProgramSelection
  *******************************************************/
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
@@ -401,12 +404,14 @@ function updateChosenProgramsDisplay(){
 }
 
 /*******************************************************
- * CTA visibility
+ * CTA Visibility => show “Next” if chosenPrograms>0
  *******************************************************/
 function updateNextCTAVisibility(){
-  // We might no longer have a CTA in the footer, 
-  // but if you had a “Next” button in Input, you can show/hide it:
   if(chosenPrograms.length>0){
+    // If you have a “Next” button for input => calc
+    // or a cta in the footer, show it. 
+    // For example:
+    // $("#input-next-btn").show();
     $("#input-next-btn").show();
   } else {
     $("#input-next-btn").hide();
@@ -414,7 +419,7 @@ function updateNextCTAVisibility(){
 }
 
 /*******************************************************
- * CLEAR ALL
+ * CLEAR ALL => shows/hides
  *******************************************************/
 function updateClearAllVisibility(){
   if($("#input-state").is(":visible")){
@@ -448,7 +453,7 @@ function formatNumberInput(el){
   el.value=num.toLocaleString();
 }
 function calculateTotal(){
-  // optional
+  // purely optional logic
 }
 
 /*******************************************************
@@ -472,7 +477,7 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * buildOutputRows => travel vs cash
+ * buildOutputRows => Travel vs Cash
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -509,7 +514,7 @@ function buildOutputRows(viewType){
 }
 
 /*******************************************************
- * showReportModal, hideReportModal
+ * showReportModal / hideReportModal
  *******************************************************/
 function hideReportModal(){
   $("#report-modal").fadeOut(300);
@@ -521,7 +526,7 @@ function showReportModal(){
 }
 
 /*******************************************************
- * sendReport, sendReportFromModal
+ * sendReport / sendReportFromModal
  *******************************************************/
 async function sendReport(email){
   if(!email)return;
@@ -597,10 +602,10 @@ $(document).ready(async function(){
   await fetchApproxLocationFromIP();
   await initializeApp();
 
+  // Hide all states, show hero
   hideAllStates();
-  // Show hero with bigger text & circle
   $("#default-hero").show();
-  $("#program-preview").hide().empty(); // ensure hidden
+  $("#program-preview").hide().empty();
 
   /****************************************************
    * Hero => Get Started
@@ -610,9 +615,18 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
+    // 1) Show left column w/ banner
     showLeftColumnBanner();
+    // 2) Show small stage graphic in right col
+    $("#stage-graphic-right").fadeIn(200);
+
+    // 3) hide hero, show input
     hideAllStates();
-    $("#input-state").fadeIn(()=>{ isTransitioning=false; });
+    $("#input-state").fadeIn(()=>{ 
+      isTransitioning=false;
+      updateNextCTAVisibility(); 
+      updateClearAllVisibility();
+    });
   });
 
   /****************************************************
@@ -624,6 +638,8 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     showLeftColumnBanner();
+    $("#stage-graphic-right").fadeIn(200);
+
     hideAllStates();
     $("#how-it-works-state").fadeIn(()=>{ isTransitioning=false; });
     showHowItWorksStep(1);
@@ -644,7 +660,11 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    $("#input-state").fadeIn(()=>{ isTransitioning=false; });
+    $("#input-state").fadeIn(()=>{
+      isTransitioning=false; 
+      updateNextCTAVisibility(); 
+      updateClearAllVisibility();
+    });
   });
 
   /****************************************************
@@ -656,12 +676,14 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    $(".left-column").css("display","none"); // hide banner again
+    // Hide left col + stage graphic again
+    $(".left-column").css("display","none");
+    $("#stage-graphic-right").hide();
     $("#default-hero").fadeIn(()=>{ isTransitioning=false; });
   });
 
   /****************************************************
-   * Input -> Next => calculator
+   * Input -> Next => Calculator
    ****************************************************/
   $("#input-next-btn").on("click",function(){
     logSessionEvent("input_next_clicked");
@@ -670,6 +692,7 @@ $(document).ready(async function(){
 
     hideAllStates();
     $("#calculator-state").fadeIn(()=>{ isTransitioning=false; });
+    // Build program rows
     $("#program-container").empty();
     chosenPrograms.forEach(rid=>addProgramRow(rid));
   });
@@ -714,7 +737,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Clear All, Search, Program Toggles
+   * Clear All, Program search, remove row
    ****************************************************/
   $("#clear-all-btn").on("click",function(){
     logSessionEvent("clear_all_clicked");
@@ -757,7 +780,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Output => row => expand/collapse if travel
+   * Expanding Usecase if travel
    ****************************************************/
   $(document).on("click",".output-row",function(){
     if($(".toggle-btn[data-view='cash']").hasClass("active"))return;
