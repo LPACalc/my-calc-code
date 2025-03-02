@@ -23,21 +23,21 @@ button {
 }
 
 /*******************************************************
- * SECTION B: PAGE LAYOUT (Flex Approach)
+ * FLEX LAYOUT => PAGE WRAP + COLUMNS
  *******************************************************/
-/* 1) .page-wrap => flex container filling 100vh if short */
+/* 1) .page-wrap => fill screen if short */
 .page-wrap {
   display: flex;
-  flex-direction: row; /* left column + right column side-by-side */
-  min-height: 100vh;   /* ensures we fill the screen if content is short */
+  flex-direction: row; /* left & right columns side-by-side */
+  min-height: 100vh;   /* ensures short pages fill the screen */
   width: 100%;
-  position: relative;  
+  position: relative;
 }
 
-/* LEFT COLUMN => no forced min-height, so it only stretches as needed */
+/* LEFT COLUMN => no forced height, just a portion of width. */
 .left-column {
-  width: 25%;        /* or your preference */
-  min-width: 250px;  /* keep from your code */
+  width: 25%;
+  min-width: 250px;
   background-color: #F8FAFD;
   position: relative;
   display: flex;
@@ -45,7 +45,7 @@ button {
   justify-content: center;
 }
 
-/* Stage graphic absolute positioning */
+/* Stage & banner */
 .stage-graphic {
   position: absolute;
   top: 50%;
@@ -68,18 +68,18 @@ button {
   display: none !important;
 }
 
-/* RIGHT COLUMN => flex-column. We'll make it flex:1 to fill leftover space */
+/* RIGHT COLUMN => fill leftover flex space */
 .right-column {
   display: flex;
   flex-direction: column;
-  flex: 1; /* fill remaining space not used by left column */
+  flex: 1; 
   position: relative;
   background: #fff;
 }
 
-/* MAIN .container => also flex, so we can push .calc-footer to bottom if short */
+/* .container => also flex => grows or shrinks. */
 .container {
-  flex: 1; 
+  flex: 1;
   position: relative; 
   display: flex;
   flex-direction: column;
@@ -88,10 +88,10 @@ button {
 }
 
 /*******************************************************
- * .calc-footer => STICKY
+ * STICKY .calc-footer => pinned at bottom
  *******************************************************/
 .calc-footer {
-  position: sticky;      /* pinned at the bottom of the viewport if short */
+  position: sticky;
   bottom: 0;
   z-index: 9999;
   background-color: #fff;
@@ -103,7 +103,7 @@ button {
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
 }
 
-/* Default CTA button sizes (desktop) */
+/* Desktop CTA size */
 .calc-footer .next-btn {
   border: none;
   border-radius: 9999px;
@@ -121,7 +121,7 @@ button {
 }
 
 /*******************************************************
- * MEDIA QUERIES FOR FOOTER ON MOBILE
+ * MEDIA QUERIES => FOOTER ON MOBILE
  *******************************************************/
 @media (max-width: 576px) {
   .calc-footer {
@@ -137,7 +137,7 @@ button {
     font-size: 16px !important;
     border-radius: 6px !important;
   }
-  /* Ensure enough bottom-padding so content isn't hidden behind sticky footer */
+  /* Ensure enough bottom-padding if content is short */
   .container {
     padding-bottom: 80px !important;
   }
@@ -179,7 +179,7 @@ button {
   text-align: center;
   max-width: 50rem;
   margin: auto;
-  padding: 80px 20px 0px 20px; /* can reduce on mobile below */
+  padding: 80px 20px 0px 20px;
 }
 #input-state h1,
 #calculator-state h1,
@@ -252,7 +252,7 @@ h2 {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
 
-/* Program preview => absolutely positioned => no extra space if hidden */
+/* Program Preview => absolutely positioned => no extra space if hidden */
 #program-preview {
   display: none;
   position: absolute; 
@@ -363,14 +363,14 @@ h2 {
 }
 
 /*******************************************************
- * CALCULATOR STATE => same approach as input-state
+ * CALCULATOR STATE
  *******************************************************/
 .calculator-state {
   display: none;
-  text-align: center;
+  text-align: center; 
   max-width: 50rem;
   margin: auto;
-  padding: 80px 20px 0px 20px; 
+  padding: 80px 20px 0px 20px;
 }
 .calc-header {
   margin-bottom: 20px;
@@ -430,7 +430,6 @@ h2 {
   object-fit: contain;
   margin-right: 1rem;
 }
-/* X Remove button => red text */
 #calculator-state .remove-btn {
   background: none !important;
   color: #dc3545 !important; 
@@ -663,7 +662,6 @@ h2 {
 #usecase-state {
   background-color: #1a2732;
   color: #fff;
-  /* remove min-height if it caused white space */
   padding: 40px 20px;
   height: 100%;
 }
@@ -959,7 +957,7 @@ h2 {
 }
 
 /*******************************************************
- * Extra squarespace overrides (if needed)
+ * Extra squarespace overrides
  *******************************************************/
 .sqs-block-spacer {
   display: none !important;
