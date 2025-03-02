@@ -30,42 +30,10 @@ button {
   position: relative;
   flex-wrap: nowrap;
   width: 100%;
-  min-height: 100vh; /* ensure it fills the full height */
+  min-height: 100vh; /* Let content grow to fill full height if short */
 }
 
-@media (max-width: 576px) {
-  /* 1) Footer side-by-side */
-  .calc-footer {
-    position: fixed !important; /* pinned to bottom */
-    bottom: 0; left: 0; right: 0;
-    z-index: 9999;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center; /* or flex-start if you want them left-aligned */
-    gap: 8px; /* space between buttons */
-    padding: 1rem 0 !important; /* Adjust top/bottom padding */
-    margin: 0 !important;
-    max-width: 100% !important; /* full bleed horizontally */
-    background-color: #fff; 
-  }
-
-  /* Ensure content above has enough bottom padding so it doesn’t hide under CTA */
-  .scrollable-content {
-    padding-bottom: 80px !important; 
-  }
-
-  /* 2) Buttons => auto-width (shrink to fit text), smaller font/padding */
-  .calc-footer .next-btn {
-    flex: 0 0 auto !important; 
-    width: auto !important;     /* no forced width */
-    margin: 0 !important;
-    padding: 0.75rem 1rem !important; /* smaller padding */
-    font-size: 16px !important;       
-    border-radius: 6px !important;
-  }
-}
-
+/* LEFT COLUMN */
 .left-column {
   width: 25%;
   min-width: 250px;
@@ -74,7 +42,7 @@ button {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 100vh;
+  min-height: 100vh; 
 }
 .stage-graphic {
   position: absolute;
@@ -92,142 +60,13 @@ button {
   object-fit: cover;
   display: block;
 }
+
 /* Hide empty squarespace blocks if any remain */
 .sqs-block:empty {
   display: none !important;
 }
-@media (max-width: 576px) {
-  .right-column {
-    height: auto !important;
-    /* Or min-height: 100vh if you want it to fill the screen but still scroll beyond */
-  }
-}
-@media (max-width: 576px) {
-  .calc-footer {
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999;
-  }
-  .container {
-    padding-bottom: 80px !important; /* same or slightly larger than .calc-footer’s height */
-  }
-}
 
-/* The parent container that will scroll on mobile. */
-.scrollable-content {
-  /* On desktop, let it flow normally. On mobile, make it scroll. */
-  height: auto;
-  overflow: visible;
-}
-
-/* On mobile (<= 576px), fix the height so we can scroll. */
-@media (max-width: 576px) {
-  .scrollable-content {
-    /* fill the screen height minus any top nav, etc. */
-    max-height: 100vh; 
-    overflow-y: auto;  /* scroller on mobile */
-  }
-}
-
-/* The CTA bar at bottom. 
-   “Sticky” means it stays pinned until the 
-   parent’s bottom is reached, then it scrolls away. 
-*/
-.calc-footer {
-  position: -webkit-sticky; /* for Safari iOS */
-  position: sticky;
-  bottom: 0;
-  z-index: 9999;
-  background-color: #fff; /* or your color */
-  padding: 1rem;
-  /* Any other styling you want */
-}
-
-@media (max-width: 576px) {
-  /* 
-    1) If Squarespace is applying something like:
-       cell-max-width: calc((var(--sqs-site-max-width, 1500px) ... ) / 8)
-       We force it to 100% instead. 
-  */
-  [style*="cell-max-width"] {
-    max-width: 100% !important;
-    width: 100% !important;
-    cell-max-width: 100% !important; /* In case it's an inline style */
-  }
-
-  /* 
-    2) If you want your CTAs themselves to be nearly full-width,
-       override their width/padding:
-  */
-  .calc-footer .next-btn {
-   width: 90% !important;
-    margin: 0 auto !important;
-    padding: 0.75rem 1rem !important; 
-    font-size: 16px !important;
-    border-radius: 6px !important;
-  }
-}
-
-/* For screens up to 767px wide (typical "mobile" breakpoint): */
-@media screen and (max-width: 767px) {
-  .next-button {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    z-index: 9999;
-    /* Optional: account for iPhone's bottom safe area */
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  .calc-footer {
-  position: fixed !important; /* pinned to bottom */
-  bottom: 0; left: 0; right: 0;
-  z-index: 9999;
-}
-.scrollable-content {
-  padding-bottom: 80px; /* or however tall your CTA bar is */
-}
-
-}
-
-/* For larger screens (tablet/desktop), keep it positioned normally: */
-@media screen and (min-width: 768px) {
-  .next-button {
-    position: static; /* Or whatever styling you want on desktop */
-    margin: 1rem auto; /* Example: center it in a container */
-  }
-}
-
-@media (max-width: 576px) {
-  /* 
-    1) If Squarespace is applying something like:
-       cell-max-width: calc((var(--sqs-site-max-width, 1500px) ... ) / 8)
-       We force it to 100% instead. 
-  */
-  [style*="cell-max-width"] {
-    max-width: 100% !important;
-    width: 100% !important;
-    cell-max-width: 100% !important; /* In case it's an inline style */
-  }
-
-  /* 
-    2) If you want your CTAs themselves to be nearly full-width,
-       override their width/padding:
-  */
-  .calc-footer .next-btn {
-    width: 90% !important; /* or 95%, your preference */
-    max-width: 500px;      /* optional cap */
-    margin: 0 auto;        /* center horizontally */
-    padding: 0.75rem 1rem !important; /* smaller padding if needed */
-    font-size: 16px !important;       /* smaller text if needed */
-  }
-}
-
-/*
-   RIGHT COLUMN 
-   - 75% width on desktop
-   - flex-col => content + (non-sticky) footer
-*/
+/* RIGHT COLUMN: let it flow, no forced scroll/height */
 .right-column {
   width: 75%;
   display: flex;
@@ -235,190 +74,89 @@ button {
   position: relative; 
 }
 
-/* Increase program name font size in output rows on desktop */
-@media (min-width: 992px) {
-  #output-state .output-row .program-name {
-    font-size: 1rem !important; /* or whatever size you prefer */
-  }
-}
-
+/* MAIN CONTAINER */
 .container {
   flex: 1 1 auto;
-padding: 0;
+  padding: 0;
   margin: 0;
   position: relative; 
 }
-/* =========================================
-   DESKTOP (DEFAULT) => Horizontal Buttons
-   Keep your existing sizes if you like
-========================================= */
-.calc-footer .next-btn {
-  /* Example default sizes for desktop */
-  font-size: 20px;
-  padding: 1.25rem 7rem;
-  margin: 0 0.5rem;
-  /* etc. */
-}
 
-/* =========================================
-   MOBILE OVERRIDES => Smaller, Stacked
-========================================= */
-@media (max-width: 576px) {
-  /* Make the footer a row with two equally sized columns */
-  .calc-footer {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: stretch;  /* force buttons to be the same height */
-    gap: 8px;             /* small space between CTAs */
+/* Responsive: stack columns under 992px */
+@media (max-width: 992px) {
+  .page-wrap {
+    flex-direction: column;
   }
-  .calc-footer .next-btn {
-    flex: 1;             /* each button takes up half the width */
-    display: flex;       /* so we can vertically center text if you want */
-    align-items: center; 
-    justify-content: center;
-    font-size: 16px;
-    padding: 0.75rem 1rem;
+  .left-column {
+    display: none;
   }
-}
-
-@media (max-width: 576px) {
-  /* A) Make the footer fixed at bottom */
-  .calc-footer {
-    position: fixed !important;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    z-index: 9999; /* stays on top of content */
-  }
-
-  /* B) Let .right-column auto-height instead of 100vh */
   .right-column {
-    height: auto !important;
+    width: 100%;
   }
-
-  /* C) Ensure we have enough bottom padding so scrolling content
-     isn't hidden behind the fixed footer */
-  .container {
-    padding-bottom: 80px !important; /* match the .calc-footer’s height */
-  }
-}
-
-/*
-   Main states => fill available space, 
-   now each has top padding we can adjust for mobile
-*/
-#input-state,
-#calculator-state,
-#output-state,
-#usecase-state,
-#send-report-state {
-  min-height: 100%;
-  box-sizing: border-box;
-}
-
-/* 1) Make program names bigger on desktop in the calculator (input) rows */
-@media (min-width: 992px) {
-  #calculator-state .program-row .program-name {
-    font-size: 1rem !important; /* or whatever size you prefer */
-  }
-}
-
-/* 2) Remove the background from the "X" button, color it red */
-#calculator-state .remove-btn {
-  background: none !important;
-  color: #dc3545 !important;  /* classic "danger red" */
-  border: none !important;
-  font-size: 1.25rem;         /* slightly bigger X */
-  cursor: pointer;
-  line-height: 1;
-}
-#calculator-state .remove-btn:hover {
-  opacity: 0.7;
-}
-
-/* Example card container usage */
-.card-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 2rem; 
-}
-
-@media (max-width: 767px) {
-  .sticky-next-button-container {
-    position: -webkit-sticky; /* Safari support */
-    position: sticky;
-    bottom: 0; 
-    z-index: 9999;
-    background: #fff; /* or match your page’s background */
-    padding: 8px;     /* optional spacing around the button */
-  }
-
-  .next-button {
-    /* your button styling (width, height, etc.) */
-  }
-}
-
-/*
-  Footer is now NOT sticky => we remove position:sticky,
-  so user can scroll all content + CTA, then see the page footer below.
-*/
-.calc-footer {
-  /* Removed position: sticky => now normal static flow */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #fff;
-  text-align: center;
-  padding: 2rem 1rem; 
-  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-  z-index: 9999;
-}
-
-/* Outer + content-limiter from earlier usage */
-.outer-scroll-wrapper {
-  position: relative;
-  overflow: hidden;
-  width: 100%;
-  flex: 1 1 auto;
-  height: 100%;
-}
-.content-limiter {
-  padding-bottom: 40px;
-  margin: 0 auto;
 }
 
 /*******************************************************
- * CTA STYLES => OUTPUT
+ * SECTION: .calc-footer => STICKY
  *******************************************************/
-.output-cta {
-  font-size: 16px;
-  font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  margin: 0 0.5rem;
-  transition: background-color 0.2s ease, color 0.2s ease;
+.calc-footer {
+  position: -webkit-sticky; /* Safari iOS support */
+  position: sticky;
+  bottom: 0;
+  z-index: 9999;
+  background-color: #fff;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
 }
 
-#unlock-report-btn.default-colors {
+/* Default button sizes (desktop) */
+.calc-footer .next-btn {
+  border: none;
+  border-radius: 9999px;
   background-color: #1a2732;
   color: #fff;
-  border: none;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 1.25rem 7rem;
+  margin: 0 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
 }
-#explore-concierge-lower.default-colors {
-  background-color: #fff;
-  color: #1a2732;
-  border: 2px solid #1a2732;
+.calc-footer .next-btn:hover {
+  background-color: #141d28;
 }
-#unlock-report-btn.swapped-colors {
-  background-color: #fff;
-  color: #1a2732;
-  border: 2px solid #1a2732;
+
+/* Mobile overrides for .calc-footer & buttons */
+@media (max-width: 576px) {
+  .calc-footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 1rem 0 !important; 
+  }
+  .calc-footer .next-btn {
+    width: 90% !important;
+    max-width: 500px;
+    margin: 0 auto !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 16px !important;
+    border-radius: 6px !important;
+  }
+  /* Ensure enough padding so content isn't hidden behind sticky footer */
+  .container,
+  .scrollable-content {
+    padding-bottom: 80px !important;
+  }
 }
-#explore-concierge-lower.swapped-colors {
-  background-color: #1a2732;
-  color: #fff;
-  border: none;
+
+/*******************************************************
+ * SECTION: SCROLLABLE CONTENT (Optional)
+ *******************************************************/
+.scrollable-content {
+  height: auto;
+  overflow: visible;
 }
 
 /*******************************************************
@@ -428,7 +166,6 @@ padding: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* For smaller top padding at mobile, we’ll override in media query */
   padding: 60px 20px;
   text-align: center;
   background: linear-gradient(160deg, #FFFFFF 0%, #F8FAFD 100%);
@@ -449,17 +186,6 @@ padding: 0;
   max-width: 800px;
   margin: 0 auto 32px;
 }
-.cta-btn {
-  background-color: #007ACC;
-  color: #fff;
-  font-size: 18px;
-  padding: 14px 28px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
-}
-.cta-btn:hover {
-  background-color: #005fa3;
-}
 
 /*******************************************************
  * SECTION D: INPUT STATE
@@ -469,8 +195,7 @@ padding: 0;
   text-align: center;
   max-width: 50rem;
   margin: auto;
-  /* changed top padding => for desktop, still 80px, we’ll reduce for mobile */
-  padding: 80px 20px 0px 20px;
+  padding: 80px 20px 0px 20px; /* can reduce on mobile below */
 }
 #input-state h1,
 #calculator-state h1,
@@ -531,22 +256,19 @@ h2 {
 .points-input,
 .email-input {
   background: #fff;
-  background-size: 10px 20px;
   padding: .75rem;
   max-width: 8rem;
   border-radius: 0.5rem;
   border: 1px solid rgb(223, 229, 235);
   outline: none;
 }
-#program-search:focus {
-  box-shadow: 0 0 4px rgba(0,0,0,0.15);
-}
+#program-search:focus,
 .points-input:focus,
 .email-input:focus {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
-  outline: none !important;
-  box-shadow: none !important;
 }
+
+/* Program preview dropdown in input-state */
 #program-preview {
   position: absolute;
   width: 100%;
@@ -575,6 +297,10 @@ h2 {
 .preview-item.chosen-state {
   background-color: #daf0ff;
 }
+
+/*******************************************************
+ * SECTION: POPULAR / SELECTED PROGRAMS
+ *******************************************************/
 .top-programs-section {
   max-width: 800px;
   margin: 0 auto;
@@ -632,10 +358,7 @@ h2 {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 0.5rem;
-  margin: 0;
   cursor: pointer;
-  outline: none;
 }
 .add-btn:hover {
   background-color: #ddd;
@@ -656,22 +379,14 @@ h2 {
   text-align: left;
 }
 
-@media (max-width: 576px) {
-  .dollar-input-container {
-    width: 60% !important;       /* container is 60% wide */
-    margin-left: auto !important;
-    margin-right: 0 !important;  /* ensures it's anchored to the right */
-  }
-}
-
 /*******************************************************
  * SECTION E: CALCULATOR STATE
  *******************************************************/
 .calculator-state {
   display: none;
-  padding: 80px 20px 0px 20px;  /* Will override for mobile => 20px */
-  max-height: 70vh;
-  overflow-y: auto;
+  padding: 80px 20px 0px 20px; 
+  max-height: 70vh;  /* if you want internal scroll, otherwise remove */
+  overflow-y: auto;  /* if you want internal scroll, otherwise remove */
   max-width: 50rem;
   margin: auto;
   text-align: left;
@@ -708,13 +423,50 @@ h2 {
   gap: 16px;
   margin-top: 20px;
 }
+.program-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #fff;
+}
+.program-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.program-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.program-logo {
+  width: 32px;
+  height: auto;
+  object-fit: contain;
+  margin-right: 1rem;
+}
+/* X Remove button => red text */
+#calculator-state .remove-btn {
+  background: none !important;
+  color: #dc3545 !important; 
+  font-size: 1.25rem;
+  cursor: pointer;
+  line-height: 1;
+}
+#calculator-state .remove-btn:hover {
+  opacity: 0.7;
+}
 
 /*******************************************************
  * SECTION F: OUTPUT STATE
  *******************************************************/
 .output-state {
   display: none;
-  padding: 80px 20px 0px 20px; /* again, will be 20px top on mobile */
+  padding: 80px 20px 0px 20px;
   max-width: 50rem;
   margin: 0 auto;
   text-align: left;
@@ -726,51 +478,45 @@ h2 {
   gap: 8px;
   margin-bottom: 16px;
 }
-.output-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin: 0;
-}
-.toggle-container {
-  display: inline-flex;
-  background-color: rgb(245 245 247);
-  border: 1px solid #dce3eb;
-  border-radius: 0.5rem;
-  /* make it thinner + center => margin auto if needed */
-  margin: 0 auto;
-  padding: 2px 8px; /* "center thinner and wider" => so we have more horizontal space inside */
-}
-.toggle-btn {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 18px;
-  color: #666;
-  padding: 0.75rem 1rem; /* narrower => see if that helps? */
+.output-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #e5e9ef;
   border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-.toggle-btn:not(.active):hover {
-  background-color: #eaeaea;
-}
-.toggle-btn.active {
+  margin-bottom: 8px;
+  padding: 12px 16px;
   background-color: #fff;
-  color: #333;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  font-weight: 700;
+  transition: background-color 0.2s ease;
+  cursor: pointer;
+}
+.output-row:hover {
+  background-color: #f8faff;
+}
+.output-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.output-logo {
+  width: 32px;
+  height: auto;
+  object-fit: contain;
+}
+.program-name {
+  font-size: 0.75rem; /* smaller on output if desired */
+  font-weight: 600;
+  color: #1D3A5F;
+}
+.output-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a2732;
 }
 
 /*******************************************************
- * SECTION G: NEXT & BACK BUTTONS (Shared Footer)
+ * SECTION G: NEXT & BACK BUTTONS (within calc-footer)
  *******************************************************/
-.calc-footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 9999; 
-  background-color: #fff;
-  text-align: center;
-}
 .next-btn {
   border: none;
   border-radius: 9999px;
@@ -788,7 +534,6 @@ h2 {
 }
 .back-btn {
   border: none;
-  border-radius: 0;
   background: none;
   color: #1a2732;
   cursor: pointer;
@@ -831,106 +576,13 @@ h2 {
 }
 
 /*******************************************************
- * SECTION H: ROWS, FIELDS, ETC.
+ * CLEAR ALL, ETC.
  *******************************************************/
-.output-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #DFE5EB;
-  padding: 1rem 0;
-  background-color: #fff;
-  cursor: pointer;
-  border: 1px solid #e5e9ef;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  transition: background-color 0.2s ease;
-}
-.output-row:hover {
-  background-color: #f8faff;
-}
-.output-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.output-logo {
-  width: 32px;
-  height: auto;
-  object-fit: contain;
-}
-/* (7) Program name font => .75rem as requested */
-.program-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #1D3A5F;
-}
-.output-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a2732;
-}
-.program-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid #DFE5EB;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background-color: #fff;
-}
-.program-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.program-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.program-logo {
-  width: 32px;
-  height: auto;
-  object-fit: contain;
-  margin-right: 1rem;
-}
-.dollar-input-container {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #DFE5EB;
-  border-radius: 0.5rem;
-  background-color: #fff;
-  height: 2.75rem;
-  padding: 0 1rem;
-  border: none;
-  background-color: transparent;
-}
-.program-values {
-  margin-top: 0.5rem;
-  padding: 0.5rem;
-  background-color: #f9f9f9;
-  border-radius: 4px;
-  display: none;
-  gap: 1rem;
-}
-.value-card .label {
-  display: block;
-  font-size: 14px;
-  color: #555;
-}
-.value-card .amount {
-  font-size: 16px;
-  color: #007bff;
-  font-weight: 700;
-}
-/* (9) the “Clear All” button => shorter => reduce padding */
 .clear-all-btn {
   background-color: #dc3545;
   color: #fff;
   border: none;
-  padding: 4px 10px; /* shorter now */
+  padding: 4px 10px;
   border-radius: 4px;
   transition: background-color 0.2s ease;
   cursor: pointer;
@@ -945,7 +597,7 @@ h2 {
 .module-container {
   width: 100%;
   background-color: #1a2732;
-  padding: 0px 0px 0px 0px;
+  padding: 0;
   margin: 0 auto;
 }
 .inner-content {
@@ -983,7 +635,6 @@ h2 {
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 20px;
-  position: relative;
   margin: 10px 0;
   transition: background-color 0.2s;
 }
@@ -1027,16 +678,13 @@ h2 {
   max-width: 400px;
 }
 
-/*******************************************************
- * SECTION K: USECASE STATE
- *******************************************************/
+/* #usecase-state container, etc. */
 #usecase-state {
   background-color: #1a2732;
   color: #fff;
   min-height: 100vh;
   padding: 40px 20px;
   height: 100%;
-  object-fit: cover;
 }
 #usecase-state .module-title h1 {
   font-size: 24px;
@@ -1052,12 +700,6 @@ h2 {
   font-size: 14px;
   padding: 6px 12px;
 }
-/* (11) Title at top, copy, then image => center everything 
-   => we reorder or just center them? 
-   We can do: 
-   #usecase-state .usecase-details => flex-direction: column; 
-   align-items: center; text-align: center 
-*/
 .usecase-details {
   display: flex;
   gap: 1rem;
@@ -1080,37 +722,15 @@ h2 {
  *******************************************************/
 .three-cards-section .card-container {
   display: grid;
-  /* Constrain the overall card width by using minmax() */
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 2rem;
-  max-width: 900px; /* This keeps them from getting too wide */
-  margin: 0 auto;   /* Center the grid horizontally */
+  max-width: 900px;
+  margin: 0 auto;
 }
-
 @media (max-width: 576px) {
   .three-cards-section .card-container {
-    /* Force a single column on smaller screens */
     grid-template-columns: 1fr !important;
   }
-}
-.section-title {
-  text-align: center;
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  color: #333;
-}
-.section-intro {
-  text-align: center;
-  max-width: 800px;
-  margin: 0 auto 3rem;
-  color: #555;
-  line-height: 1.6;
-  font-size: 1rem;
-}
-.card-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 2rem;
 }
 .offer-card {
   background-color: #ffffff;
@@ -1141,27 +761,8 @@ h2 {
 }
 
 /*******************************************************
- * SECTION M: MEDIA QUERIES FOR TABLET/DESKTOP
+ * SECTION M: MEDIA QUERIES FOR HEADINGS & MOBILE TWEAKS
  *******************************************************/
-@media (max-width: 992px) {
-  .page-wrap {
-    flex-direction: column;
-  }
-  .left-column {
-    display: none;
-  }
-  .right-column {
-    width: 100%;
-  }
-}
-@media (max-width: 768px) {
-  .top-program-box {
-    width: 100%;
-  }
-}
-
-/* (2) & (4) => h1 => 1.25rem, subheaders => 1rem 
-   So hero h1, state h1, etc. */
 @media (max-width: 576px) {
   .hero-section h1,
   #input-state h1,
@@ -1179,7 +780,7 @@ h2 {
     font-size: 1rem !important;
   }
 
-  /* (3) top padding => 20px for these states */
+  /* Reduce top padding in states for small screens */
   #input-state,
   #calculator-state,
   #output-state,
@@ -1187,55 +788,29 @@ h2 {
     padding: 20px !important;
   }
 
-  /* (5) For "Popular Programs" h2 => 1.25rem => done above in .popular-program-title h2 */
-
-  /* (6) CTA bar => normal flow => already done by removing sticky 
-     => no extra changes needed here. 
-     The user can scroll content, then CTA, then footer. */
-
-  /* (7) Program name => .75rem => we set that above permanently in .program-name. */
-
-  /* (8) The total cash toggle => center, thinner, wider => 
-     we made .toggle-container margin:0 auto & bigger horizontal padding. 
-     So it’s already done above. (We can tweak further if needed.) */
-
-  /* (9) Clear All => shorter => done above with padding:4px 10px. */
-
-  /* (10) Pill ratio => smaller => let’s reduce the .mini-pill:
-     We keep them small enough to fit 4 across. */
-  .mini-pill {
-    font-size: 0.7rem;
-    padding: 4px 8px;
-    border-radius: 9999px;
+  /* Slightly larger than 0.75rem if you prefer */
+  .program-name {
+    font-size: 0.85rem !important;
+    line-height: 1.2;
   }
 
-  /* (11) Use case => we forced .usecase-details to flex-dir:col & center 
-     => done above in #usecase-state .usecase-details override. */
+  /* Remove gap between program logo & name if you want them close */
+  .program-left {
+    gap: 0 !important;
+  }
 
-  /* Ensure minimal side padding, but still center the container => margin: auto */
-  .container,
-  .outer-scroll-wrapper,
-  .content-limiter {
-    padding: 0 0rem !important;
-    margin: 0 auto !important;
+  /* Let .dollar-input-container be full width on small screens */
+  .dollar-input-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    padding-left: 5px;
   }
 }
 
 /*******************************************************
- * SECTION N: ADDITIONAL OUTPUT-STATE ACCORDION & PILLS
+ * SECTION N: OUTPUT-STATE ACCORDION & PILLS
  *******************************************************/
-.output-row {
-  cursor: pointer; 
-  background-color: #fff;
-  border: 1px solid #e5e9ef;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  padding: 12px 16px;
-  transition: background-color 0.2s ease;
-}
-.output-row:hover {
-  background-color: #f8faff;
-}
 .usecase-accordion {
   border: 1px solid #dce3eb;
   border-radius: 6px;
@@ -1252,14 +827,13 @@ h2 {
   padding: 6px 12px;
   transition: background-color 0.2s ease, color 0.2s;
 }
-/* Example: Using #1a2732 as the dark blue */
-.point-option:hover,
-.point-option.active {
+.mini-pill:hover,
+.mini-pill.active {
   background-color: #1a2732 !important;
   color: #fff !important;
 }
-.mini-pill:hover,
-.mini-pill.active {
+.point-option:hover,
+.point-option.active {
   background-color: #1a2732 !important;
   color: #fff !important;
 }
@@ -1337,7 +911,7 @@ h2 {
   margin: 0;
 }
 #email-error {
-  color: red; 
+  color: red;
   display: none;
 }
 
@@ -1382,12 +956,11 @@ h2 {
 }
 
 /*******************************************************
- * REPORT MODAL => position: fixed => center on screen
+ * REPORT MODAL => position: absolute => center within .right-column
  *******************************************************/
-/* Overlay that fills only the right-column’s area */
 #report-modal {
   display: none;
-  position: absolute; /* changed from fixed */
+  position: absolute; /* so it stays within the right-column */
   top: 0;
   left: 0;
   width: 100%; 
@@ -1395,22 +968,18 @@ h2 {
   background: rgba(0,0,0,0.5);
   z-index: 9999;
 }
-
-/* Center the modal content box inside the right column */
 #report-modal-content {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 35rem;           /* set a max or fixed width that suits your design */
-  max-width: 90%;         /* make it responsive */
+  width: 35rem;
+  max-width: 90%;
   background: #fff;
   border-radius: 8px;
   padding: 20px;
   box-sizing: border-box;
 }
-
-/* X close button in top-right corner of modal */
 #modal-close-btn {
   float: right;
   background: none;
@@ -1419,16 +988,14 @@ h2 {
   cursor: pointer;
   line-height: 1;
 }
-/* Smaller CTA in modal */
 #modal-send-btn {
   font-size: 16px;
   font-weight: 600;
   padding: 0.5rem 1.25rem;
   border-radius: 6px;
   margin: 0 auto;
-  display: block; /* center horizontally */
+  display: block;
 }
-/* “Email Sent” message in modal */
 #email-sent-message {
   display: none;
   color: green;
@@ -1436,7 +1003,6 @@ h2 {
   font-weight: 600;
   text-align: center;
 }
-/* Subheader in modal */
 .modal-subheader {
   font-size: 14px;
   color: #555;
@@ -1460,12 +1026,10 @@ h2 {
 }
 
 /*******************************************************
- * FINAL MOBILE OVERRIDES => PLACE AT END OF STYLES
+ * FINAL MOBILE EDGE-TO-EDGE OVERRIDES
  *******************************************************/
 @media (max-width: 576px) {
-  /****************************************
-   * 1) FORCE EDGE-TO-EDGE LAYOUT
-   ****************************************/
+  /* Force full width on smaller screens */
   html, body,
   .page-wrap,
   .right-column,
@@ -1482,8 +1046,6 @@ h2 {
     margin: 0 !important;
     padding: 0 !important;
   }
-
-  /* If Squarespace inlines "max-width" or "cell-max-width" styles: */
   [style*="max-width"],
   [style*="cell-max-width"],
   [style*="width"] {
@@ -1491,81 +1053,5 @@ h2 {
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-  }
-
-  /****************************************
-   * 2) FIX THE FOOTER AT BOTTOM ON MOBILE
-   ****************************************/
-.calc-footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 9999; 
-  background-color: #fff;
-  text-align: center;
-    padding: 1rem 0 !important;
- 
-  }
-
-  /* Ensure enough bottom padding for content above the fixed footer */
-  .scrollable-content {
-    padding-bottom: 80px !important; /* or however tall the .calc-footer is */
-  }
-
-  /****************************************
-   * 3) OPTIONAL: CTAS & BUTTONS NEARLY FULL WIDTH
-   ****************************************/
-  .calc-footer .next-btn {
-    width: 90% !important; /* 95% or 100%, your preference */
-    max-width: 500px;      /* optional cap if you want a limit */
-    margin: 0 auto !important; /* center horizontally */
-    padding: 0.75rem 1rem !important; /* smaller padding */
-    font-size: 16px !important;       /* smaller text */
-    border-radius: 6px !important;    /* or 0 for square corners */
-  }
-}
-
-@media (max-width: 576px) {
-  /* 1) Program name => .85rem, width = 8rem */
-  .program-name {
-    font-size: 0.85rem !important;
-     line-height: 18px;
-  }
-
-  /* 2) Remove gap in .program-left */
-  .program-left {
-    gap: 0 !important;
-  }
-
-  /* 3) .dollar-input-container => remove padding & margin, expand to 100% */
-  .dollar-input-container {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    padding-left:5px;
-  }
-}
-
-@media (max-width: 576px) {
-  .calc-footer {
-    /* Stack buttons vertically */
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;  /* center horizontally */
-    gap: 8px !important;            /* space between stacked buttons */
-  }
-
-  /* Let each button stretch nearly full width if you like */
-  .calc-footer .next-btn {
-    width: 90% !important;  /* or 100%, your preference */
-    max-width: 500px;       /* optional cap */
-    margin: 0 auto !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 16px !important;
-    border-radius: 6px !important;
-
-    position: fixed;     /* or sticky if you only want it to “stick” at a certain scroll position */
-    bottom: 20px;        /* adjust for spacing from the bottom */
-    right: 20px;         /* adjust for spacing from the right */
-    z-index: 9999;  
   }
 }
