@@ -172,7 +172,6 @@ a {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: center;
   margin-bottom: 1rem;
 }
 .state-title {
@@ -216,16 +215,14 @@ a {
   justify-content: space-between;
   border: 1px solid #DFE5EB;
   border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1rem;
   background-color: #fff;
+  margin-bottom: 1rem;
 }
 .program-logo, 
 .output-logo {
   width: 60px;
   height: auto;
   object-fit: contain;
-  margin-right: 1rem;
 }
 .program-name {
   font-size: 0.9rem;
@@ -252,7 +249,7 @@ a {
 }
 
 /*******************************************************
- * POINTS INFO BOX => #points-info-box
+ * POINTS INFO BOX => #points-info-box => icon + text center
  *******************************************************/
 .points-info-box {
   background-color: #f5f5f7;
@@ -320,13 +317,13 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: calc(33.333% - 15px);
   background-color: #fff;
   border: 1px solid #dce3eb;
   border-radius: 8px;
   padding: 15px 10px;
   box-sizing: border-box;
   transition: box-shadow 0.2s ease;
+  width: calc(33.333% - 15px);
 }
 .top-program-box:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
@@ -623,6 +620,24 @@ a {
   margin-bottom: 8px;
   text-align: center;
   display: none;
+}
+
+/*******************************************************
+ * “TOGGLE SWITCH” => #travelCashSwitch
+ *******************************************************/
+.toggle-switch-wrapper {
+  margin-bottom:1rem;
+}
+.toggle-switch input {
+  opacity:0;
+  width:0;
+  height:0;
+}
+.slider.round {
+  border-radius:34px;
+}
+.slider.round:before {
+  border-radius:50%;
 }
 
 /*******************************************************
