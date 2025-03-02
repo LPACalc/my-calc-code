@@ -1,6 +1,6 @@
-/*******************************************************
+/********************************************
  * GLOBAL RESETS & BASE
- *******************************************************/
+ ********************************************/
 * {
   margin: 0;
   padding: 0;
@@ -21,10 +21,15 @@ button {
 a {
   text-decoration: none;
 }
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
 
-/*******************************************************
- * PAGE LAYOUT => .page-wrap => left + right columns
- *******************************************************/
+/********************************************
+ * LAYOUT => .page-wrap => left + right columns
+ ********************************************/
 .page-wrap {
   display: flex;
   flex-direction: row;
@@ -32,21 +37,22 @@ a {
   width: 100%;
   position: relative;
 }
+/* Hide left column by default */
 .left-column {
+  display: none;
   width: 25%;
   min-width: 250px;
   position: relative;
-  display: flex; /* Desktop visible */
   align-items: center;
   justify-content: center;
   overflow: hidden;
 }
 #left-col-logo {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 50%; 
+  left: 50%;
   transform: translate(-50%, -50%);
   width: 120px;
-  height: auto;
 }
 .right-column {
   flex: 1;
@@ -57,31 +63,24 @@ a {
 }
 .container {
   flex: 1;
-  position: relative;
   display: flex;
   flex-direction: column;
-  margin: 0; 
-  padding: 0;
 }
 
-/*******************************************************
- * RESPONSIVE => <=992px => stack columns
- *******************************************************/
-@media (max-width: 992px) {
-  .page-wrap {
-    flex-direction: column;
-  }
+/********************************************
+ * DESKTOP => show the left column after user clicks
+   We do it in JS by setting .left-column {display: flex;}
+   That’s the approach used in your script.
+ ********************************************/
+@media (min-width: 992px) {
   .left-column {
-    display: none; /* Hide the left column on tablet/mobile */
-  }
-  .right-column {
-    width: 100%;
+    /* Initially hidden until user clicks "Get Started" or "How It Works" in JS */
   }
 }
 
-/*******************************************************
+/********************************************
  * HERO => #default-hero
- *******************************************************/
+ ********************************************/
 .hero-section {
   position: relative;
   width: 100%;
@@ -90,8 +89,6 @@ a {
     center center / cover no-repeat;
 }
 .hero-inner {
-  position: relative;
-  z-index: 2; 
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -103,10 +100,8 @@ a {
 }
 .hero-cta-container {
   display: inline-flex;
-  gap: 1rem;
   flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
+  gap: 1rem;
 }
 .cta-btn {
   font-size: 1rem;
@@ -127,7 +122,6 @@ a {
 }
 .cta-no-border:hover {
   background-color: #e0e0e0;
-  color: #111;
 }
 .cta-light-border {
   background-color: #fff;
@@ -142,22 +136,9 @@ a {
   border-radius: 9999px;
 }
 
-/* Ensure the hero CTAs can fit side by side on smaller widths */
-@media (max-width: 576px) {
-  .hero-cta-container {
-    flex-direction: row;
-    flex-wrap: nowrap;
-    justify-content: center;
-  }
-  .hero-cta-container button {
-    font-size: 0.9rem;
-    padding: 0.6rem 1rem; /* Slightly smaller */
-  }
-}
-
-/*******************************************************
+/********************************************
  * “HOW IT WORKS” => lines & images
- *******************************************************/
+ ********************************************/
 .hiw-line {
   width: 60px;
   height: 4px;
@@ -168,33 +149,38 @@ a {
 .hiw-line.active-line {
   background-color: #1a2732;
 }
-/* The main image in each step => limit to 80% on mobile */
+.hiw-desktop-margin {
+  /* Desktop => 10rem top margin, mobile => smaller */
+  margin-top: 10rem;
+}
+@media (max-width: 992px) {
+  .hiw-desktop-margin {
+    margin-top: 4rem; /* A smaller margin on tablets/mobile */
+  }
+}
 .hiw-main-image {
   width: 100%;
   height: auto;
 }
+
+/* Let’s handle mobile “How It Works” layout => stacking */
 @media (max-width: 576px) {
-  .hiw-image-container {
-    width: 100%;
-  }
-  .hiw-main-image {
-    width: 80%;  /* 80% centered on smaller screens */
-    margin: 0 auto;
-    display: block;
-  }
-  .hiw-step {
-    margin-bottom: 1rem;
-  }
-  /* Steps stack: image on top, text below */
-  .hiw-step > div {
+  .hiw-flex-row {
     flex-direction: column;
     text-align: center;
   }
+  .hiw-img-col {
+    width: 100%;
+  }
+  .hiw-main-image {
+    width: 80%; /* 80% on mobile */
+    margin: 0 auto;
+  }
 }
 
-/*******************************************************
- * SCROLL WRAPPERS & .content-limiter => set widths
- *******************************************************/
+/********************************************
+ * SCROLL WRAPPERS
+ ********************************************/
 .outer-scroll-wrapper {
   position: relative;
   overflow: hidden;
@@ -210,18 +196,18 @@ a {
   padding: 0 1rem;
 }
 
-/*******************************************************
- * BACK ARROW => flush left => position:absolute
- *******************************************************/
+/********************************************
+ * BACK ARROW
+ ********************************************/
 .back-btn {
-  border: none;
   background: none;
+  border: none;
   cursor: pointer;
-  padding: 0;
-  font-size: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  margin-left: 0;
+  /* Remove the default outline or focus ring if needed */
 }
 .back-btn::before {
   content: "";
@@ -230,46 +216,63 @@ a {
   height: 24px;
   background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
     no-repeat center center;
-  background-size: 24px 24px;
+  background-size: contain;
   transition: opacity 0.2s ease;
 }
 .back-btn:hover::before {
   opacity: 0.7;
 }
 
-/*******************************************************
- * STATES => input/calculator/output => consistent widths
- *******************************************************/
-#input-state,
-#calculator-state,
-#output-state,
-#usecase-state,
-#send-report-state {
-  margin-top: 10px; 
-  text-align: left; 
-  display: none;
+/********************************************
+ * STATE HEADERS => Desktop vs Mobile
+ * On mobile => we want the back button on a separate line (above the H1)
+ ********************************************/
+.state-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4.5rem;
+  position: relative;
 }
-#output-state .content-limiter {
-  max-width: 60rem !important;
-  margin: 0 auto !important;
+.state-header .state-title {
+  margin: 0 auto;
+  text-align: center;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+@media (max-width: 576px) {
+  .state-header {
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 3rem; /* #7 request => 3rem on mobile */
+  }
+  .state-header .back-btn {
+    align-self: flex-start; /* so it sits on top */
+    margin-left: 1rem;
+  }
+  .state-header .state-title {
+    font-size: 1.25rem;
+    text-align: center;
+  }
 }
 
-/*******************************************************
+/********************************************
  * CLEAR ALL
- *******************************************************/
+ ********************************************/
 .clear-all-btn {
   background-color: #dc3545;
   color: #fff;
   padding: 4px 10px;
   border-radius: 4px;
+  transition: background-color 0.2s;
 }
 .clear-all-btn:hover {
   background-color: #b32431;
 }
 
-/*******************************************************
+/********************************************
  * INFO BOX
- *******************************************************/
+ ********************************************/
 .points-info-box {
   background-color: #f5f5f7;
   border-radius: 8px;
@@ -281,10 +284,22 @@ a {
   height: 24px;
   object-fit: contain;
 }
+.input-points-info {
+  margin-top: 15px; /* #13 on mobile => we do via media query */
+}
+@media (max-width: 576px) {
+  .input-points-info {
+    margin-top: 15px !important;
+  }
+  .info-icon {
+    margin-left: 10px;
+    margin-right: 10px; /* #14 */
+  }
+}
 
-/*******************************************************
+/********************************************
  * SEARCH PREVIEW => #program-preview
- *******************************************************/
+ ********************************************/
 #program-preview {
   display: none;
   position: absolute;
@@ -307,12 +322,14 @@ a {
   background-color: #f8fafd;
 }
 
-/*******************************************************
- * POPULAR PROGRAMS => 2 columns on mobile
- *******************************************************/
+/********************************************
+ * TOP PROGRAMS => Desktop vs Mobile
+   - Desktop => show plus/check
+   - Mobile => entire box goes dark blue
+ ********************************************/
 .top-programs-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr); /* default 3 columns (desktop) */
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 .top-program-box {
@@ -323,23 +340,17 @@ a {
   border: 1px solid #dce3eb;
   border-radius: 8px;
   padding: 8px 10px;
-  transition: box-shadow 0.2s ease;
-  cursor: pointer; /* entire box clickable */
+  transition: box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
 }
 .top-program-box:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
-.top-program-box.selected-state {
-  background-color: #007bff; /* entire box goes blue if selected */
-  border-color: #007bff;
-}
-.top-program-box.selected-state .top-program-label,
-.top-program-box.selected-state .add-btn {
-  color: #fff;
-}
 .add-btn {
-  display: none; /* We are removing the plus/check from the design on mobile */
-  /* If you still want it on desktop, set display: block in a media query */
+  display: block; /* Desktop => check circle or plus sign */
+}
+.top-program-box.selected-state .add-btn {
+  content: "✓";
 }
 .top-program-label {
   font-size: 0.85rem;
@@ -347,41 +358,57 @@ a {
   color: #1a2732;
 }
 
-/* Switch to 2 columns on narrower screens (~mobile) */
+/* MOBILE => 2 columns, entire box => dark blue if selected (#4) */
 @media (max-width: 576px) {
   .top-programs-grid {
-    grid-template-columns: repeat(2, 1fr); /* 2 columns instead of 3 */
+    grid-template-columns: repeat(2, 1fr);
   }
   .top-program-box {
     padding: 6px 8px;
   }
+  .top-program-box .add-btn {
+    display: none; /* hide plus/check on mobile */
+  }
   .top-program-label {
-    font-size: 0.8rem;
+    font-size: 1rem;    /* #3 => 1rem */
+    line-height: 1.2rem;/* #3 => line-height:1.2rem */
+  }
+  .top-program-box.selected-state {
+    background-color: #1a2732 !important; /* #4 => dark blue */
+    border-color: #1a2732;
+  }
+  .top-program-box.selected-state .top-program-label {
+    color: #fff;
   }
 }
 
-/*******************************************************
- * SELECTED PROGRAMS (tiny logos)
- *******************************************************/
+/********************************************
+ * SELECTED PROGRAMS
+ ********************************************/
 .seleted-program-title {
   font-size: 16px;
   font-weight: 700;
   color: #333;
   text-transform: uppercase;
   display: none;
-  text-align: left;
+  margin-bottom: 0;
+}
+.selected-programs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
 }
 
-/*******************************************************
+/********************************************
  * PROGRAM & OUTPUT ROWS
- *******************************************************/
+ ********************************************/
 .program-row,
 .output-row {
   border: 1px solid #DFE5EB;
   border-radius: 6px;
   background-color: #fff;
   margin-bottom: 1rem;
-  padding: 0.75rem 1.5rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -390,6 +417,7 @@ a {
   font-size: 0.9rem;
   font-weight: 600;
   color: #1D3A5F;
+  margin: 0;
 }
 .output-value {
   font-size: 0.9rem;
@@ -397,10 +425,23 @@ a {
   color: #1D3A5F;
 }
 
-/*******************************************************
- * CALCULATOR ROW => single line on mobile:
- * [Logo + Name] ... [Input] ... [X]
- *******************************************************/
+/* On mobile => smaller text, smaller logos => #9, #10, #11  */
+@media (max-width: 576px) {
+  .program-row {
+    padding: 0.75rem 1rem !important; /* #11 => narrower padding */
+  }
+  .program-name {
+    font-size: 0.8rem !important;  /* #9 => .8rem */
+    line-height: 1.2rem !important;
+  }
+  .program-row .program-left img {
+    width: 40px !important; /* #10 => 40px logo */
+  }
+}
+
+/********************************************
+ * CALCULATOR ROW => Points Input
+ ********************************************/
 .dollar-input-container {
   display: inline-flex;
   align-items: center;
@@ -413,21 +454,24 @@ a {
   border: none;
   outline: none;
   font-size: 1rem;
-  width: 7rem;
   background-color: transparent;
   padding: 0.75rem 0;
+  width: 7rem;
+  /* #12 => number keyboard on mobile */
+  inputmode: numeric;
+  -webkit-textfield-decimal: none;
 }
-.remove-btn {
-  background: none;
-  color: #dc3545;
-  font-size: 1.25rem;
+.points-input:focus {
+  outline: none; /* #15 => remove black border */
+  border: none;
 }
 
-/*******************************************************
- * NEXT BUTTON => pinned at bottom on mobile
- *******************************************************/
+/********************************************
+ * NEXT BUTTON => pinned at bottom on mobile,
+   not pinned on desktop
+ ********************************************/
 .sticky-next-btn {
-  display: none; /* default hidden, shown via JS if needed */
+  display: none; /* show via JS if needed */
   position: static;
   margin: 2rem auto;
   left: 0;
@@ -439,7 +483,7 @@ a {
 @media (max-width: 768px) {
   .sticky-next-btn {
     position: fixed;
-    bottom: 0;
+    bottom: 80px; /* some offset so it doesn’t overlap footer (#6 => some padding) */
     margin: 0 auto;
     left: 0;
     right: 0;
@@ -449,9 +493,9 @@ a {
   }
 }
 
-/*******************************************************
+/********************************************
  * TRAVEL/CASH SWITCH
- *******************************************************/
+ ********************************************/
 .tc-switch-btn {
   padding: 8px 16px;
   border-radius: 9999px;
@@ -472,9 +516,23 @@ a {
   color: #fff;
 }
 
-/*******************************************************
+/********************************************
+ * OUTPUT CTAs => smaller font on mobile (#18)
+ ********************************************/
+.out-cta {
+  font-size: 1rem;
+  padding: 0.65rem 1rem;
+}
+@media (max-width: 576px) {
+  .out-cta {
+    font-size: 0.9rem; 
+    padding: 0.5rem 0.75rem; 
+  }
+}
+
+/********************************************
  * USECASE => expansions
- *******************************************************/
+ ********************************************/
 .module-container {
   width: 100%;
   background-color: transparent; 
@@ -542,12 +600,10 @@ a {
   max-height:300px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  display: block;
 }
 .points-view-content {
   flex: 1 1 300px;
   text-align: left;
-  color: #fff;
 }
 .points-state-title {
   font-size: 20px;
@@ -559,17 +615,28 @@ a {
   line-height: 1.4;
   max-width: 400px;
 }
+/* #16 => mini-pill dynamic sizing => handled in JS or we can do a max-width. */
+.mini-pill {
+  max-width: 100px; /* #16 => clamp the max */
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
 
-/*******************************************************
+/* #17 => horizontal swipe => simplest approach is setting overflow-x. */
+.usecase-details {
+  overflow-x: auto; /* allows horizontal swipe if content is wide */
+  -webkit-overflow-scrolling: touch;
+}
+
+/********************************************
  * SEND-REPORT => #send-report-state
- *******************************************************/
+ ********************************************/
 .save-results-container {
   margin-top: 20px;
   display: flex;
   align-items: center;
   gap: 8px;
-  border: none;
-  box-shadow: none;
 }
 .save-results-right {
   display: flex;
@@ -581,6 +648,11 @@ a {
   border: 1px solid #dce3eb;
   border-radius: 4px;
   padding: 10px;
+  outline: none;
+}
+#email-input:focus {
+  border: 1px solid #999;
+  outline: none;
 }
 #send-results-btn {
   font-size: 16px;
@@ -603,9 +675,9 @@ a {
   display: none;
 }
 
-/*******************************************************
+/********************************************
  * SUBMISSION TAKEOVER => #submission-takeover
- *******************************************************/
+ ********************************************/
 #submission-takeover {
   position: absolute;
   top: 50%;
@@ -617,49 +689,19 @@ a {
   padding: 20px;
   max-width: 50rem;
 }
-#submission-takeover h2 {
-  font-size: 24px;
-  color: #2b2d42;
-  margin-bottom: 16px;
-}
-#submission-takeover p {
-  font-size: 16px;
-  color: #2b2d42;
-  margin-bottom: 20px;
-}
 #submission-takeover img {
   width: 200px;
   margin-bottom: 20px;
 }
-#go-back-btn {
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: #fff;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-#go-back-btn:hover {
-  background-color: #0056b3;
-}
-#explore-concierge-btn {
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #495057;
-  color: #fff;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-#explore-concierge-btn:hover {
-  background-color: #2a2f33;
-}
 
-/*******************************************************
- * REPORT MODAL => bottom sheet on mobile
- *******************************************************/
+/********************************************
+ * REPORT MODAL => center in the right column 
+   (We’ll do absolute on entire page for simplicity)
+   #20 => more padding under CTA etc.
+ ********************************************/
 #report-modal {
   display: none;
-  position: fixed; /* So it can slide from bottom on mobile */
+  position: fixed;
   top: 0; 
   left: 0;
   width: 100%;
@@ -669,14 +711,14 @@ a {
 }
 #report-modal-content {
   position: absolute;
-  top: 50%; 
+  top: 50%;
   left: 50%;
   transform: translate(-50%,-50%);
   width: 35rem;
   max-width: 90%;
   background: #fff;
   border-radius: 8px;
-  padding: 20px;
+  padding: 30px; /* #20 => more generous padding */
   box-sizing: border-box;
 }
 #modal-close-btn {
@@ -687,6 +729,19 @@ a {
   cursor: pointer;
   line-height: 1;
 }
+#modal-close-btn:hover {
+  opacity: 0.7;
+}
+#modal-email-input {
+  outline: none;
+}
+#modal-email-input:focus {
+  outline: none;
+  border-color: #999;
+}
+.modal-btn-container {
+  margin-bottom: 20px; /* extra space below CTA #20 */
+}
 #email-sent-message {
   display: none;
   color: green;
@@ -695,7 +750,7 @@ a {
   text-align: center;
 }
 
-/* On mobile, we can shift the modal to the bottom if you prefer a bottom sheet approach */
+/* On mobile => bottom sheet style if desired */
 @media (max-width: 576px) {
   #report-modal-content {
     top: auto;
@@ -715,18 +770,3 @@ a {
     text-align: left !important;
   }
 }
-
-/*******************************************************
- * TRAVEL/CASH => 2 pill buttons => keep them on one line
- *******************************************************/
-.tip-text {
-  margin: 1rem 0;
-  text-align: left;
-}
-
-/*******************************************************
- * MEDIA QUERIES => MOBILE 
- *******************************************************/
-/* Already integrated above in each relevant section. 
-   Add any additional specific overrides below if needed. */
-
