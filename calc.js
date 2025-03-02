@@ -244,7 +244,7 @@ function buildTopProgramsSection(){
           <img 
             src="${logo}" 
             alt="${name} logo" 
-            style="width:40px; height:auto; object-fit:contain;"
+            style="width:60px; height:auto; object-fit:contain;"
           />
           <span class="top-program-label" style="font-size:0.85rem; font-weight:600;">
             ${name}
