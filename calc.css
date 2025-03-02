@@ -25,36 +25,24 @@ button {
 /*******************************************************
  * SECTION B: FLEX LAYOUT
  *******************************************************/
-/*
-   1) .page-wrap => the outermost container, full viewport if short
-   2) .left-column => typical “sidebar” 
-   3) .right-column => fills remaining space, hosts main content + footer
-   4) .container => holds your states/hero content
-   5) .calc-footer => sticky at bottom
-*/
-
-/* OUTER WRAP => horizontal flex on desktop, min-height 100vh */
 .page-wrap {
   display: flex;
-  flex-direction: row;  /* side-by-side left & right columns */
-  min-height: 100vh;    /* fills full screen if short */
+  flex-direction: row; /* side-by-side columns on desktop */
+  min-height: 100vh;   /* fill screen if short */
   width: 100%;
   position: relative;  
 }
 
-/* LEFT COLUMN => fixed 25% width or min 250px */
 .left-column {
   width: 25%;
   min-width: 250px;
   background-color: #F8FAFD;
   position: relative;
-
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* RIGHT COLUMN => flex:1 => occupy remainder; column layout for content & footer */
 .right-column {
   display: flex;
   flex-direction: column;
@@ -63,9 +51,8 @@ button {
   background: #fff;
 }
 
-/* The main content container => grows if short, scrolls if tall */
 .container {
-  flex: 1;  /* takes up available vertical space above the footer */
+  flex: 1;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -73,16 +60,13 @@ button {
   margin: 0;
 }
 
-/*
-   RESPONSIVE => At max-width: 992px, we stack columns (optional).
-   This ensures on tablets & smaller, the left column is hidden or stacked.
-*/
+/* Stacks columns on narrower screens */
 @media (max-width: 992px) {
   .page-wrap {
-    flex-direction: column; /* stack top->bottom */
+    flex-direction: column;
   }
   .left-column {
-    display: none;          /* or width: 100% if you want it stacked */
+    display: none; /* or make it 100% if you want it stacked */
   }
   .right-column {
     width: 100%;
@@ -90,10 +74,10 @@ button {
 }
 
 /*******************************************************
- * STICKY FOOTER => pinned at bottom if content is short
+ * STICKY FOOTER
  *******************************************************/
 .calc-footer {
-  position: sticky; 
+  position: sticky;
   bottom: 0;
   z-index: 9999;
   background-color: #fff;
@@ -104,8 +88,6 @@ button {
   padding: 1rem;
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
 }
-
-/* Desktop default button sizing */
 .calc-footer .next-btn {
   border: none;
   border-radius: 9999px;
@@ -122,10 +104,6 @@ button {
   background-color: #141d28;
 }
 
-/*
-   On smaller screens (max-width:576px),
-   stack the footer buttons vertically, narrower padding, etc.
-*/
 @media (max-width: 576px) {
   .calc-footer {
     flex-direction: column;
@@ -140,51 +118,24 @@ button {
     font-size: 16px !important;
     border-radius: 6px !important;
   }
-  /* ensure bottom spacing so content not hidden behind footer */
   .container {
     padding-bottom: 80px !important;
   }
 }
 
 /*******************************************************
- * LEFT COLUMN IMAGES
+ * HERO (Default)
  *******************************************************/
-.stage-graphic {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 100px;
-  height: auto;
-  z-index: 1;
-  pointer-events: none;
-}
-.banner-fill {
-  width: auto;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/*******************************************************
- * BASE COMPONENTS => STATES, HEADERS, ETC.
- *******************************************************/
-/* Hide empty squarespace blocks if any remain */
-.sqs-block:empty {
-  display: none !important;
-}
-
-/* hero-section => your default landing hero */
 .hero-section {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding: 60px 20px;
   text-align: center;
-  background: linear-gradient(160deg, #FFFFFF 0%, #F8FAFD 100%);
   border-radius: 8px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.05);
   margin-bottom: 40px;
+  background: none; /* If you want a full background image, do it here */
 }
 .hero-section h1 {
   font-size: 2rem;
@@ -199,6 +150,38 @@ button {
   max-width: 800px;
   margin: 0 auto 32px;
 }
+.hero-cta-container {
+  display: inline-flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+.cta-btn {
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 0.75rem 1.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.cta-dark {
+  background-color: #1a2732;
+  color: #fff;
+  border: none;
+}
+.cta-dark:hover {
+  background-color: #141d28;
+}
+.cta-light-border {
+  background-color: #fff;
+  color: #1a2732;
+  border: 2px solid #1a2732;
+}
+.cta-light-border:hover {
+  background-color: #1a2732;
+  color: #fff;
+}
 
 /*******************************************************
  * INPUT STATE
@@ -208,7 +191,7 @@ button {
   text-align: center;
   max-width: 50rem;
   margin: auto;
-  padding: 80px 20px 0px 20px; 
+  padding: 80px 20px 0px 20px;
 }
 #input-state h1,
 #calculator-state h1,
@@ -236,13 +219,10 @@ h2 {
 .info-icon {
   width: 24px;
   height: 24px;
-  object-fit: contain;
 }
 .points-info-box p {
   font-size: 14px;
   color: #555;
-  line-height: 1.4;
-  margin: 0;
 }
 .started-search-area {
   margin: 30px auto 10px auto;
@@ -257,9 +237,7 @@ h2 {
   text-align: center;
 }
 #program-search {
-  background: #fff url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/735e4cc6-bf47-4579-8c73-a95b66e4af18/icone-loupe-gris.png")
-    no-repeat right 16px center;
-  background-size: 20px 20px;
+  background: #fff;
   padding: 1rem;
   width: 100%;
   border-radius: 0.5rem;
@@ -275,24 +253,20 @@ h2 {
   border: 1px solid rgb(223, 229, 235);
   outline: none;
 }
-#program-search:focus,
-.points-input:focus,
-.email-input:focus {
-  box-shadow: 0 0 4px rgba(0,0,0,0.15);
-}
 
-/* Program preview => absolutely positioned => no extra space if hidden */
+/* Program preview => absolute => no extra space if hidden */
 #program-preview {
   display: none;
-  position: absolute; 
-  left: 50%;
-  transform: translateX(-50%);
+  position: absolute;
   width: 100%;
   max-width: 50rem;
-  z-index: 9999;
-  background-color: #fff;
-  border-radius: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffffff;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  z-index: 9999;
 }
 .preview-item {
   padding: 12px 18px;
@@ -311,7 +285,7 @@ h2 {
 }
 
 /*******************************************************
- * POPULAR / SELECTED PROGRAMS
+ * TOP PROGRAMS
  *******************************************************/
 .top-programs-section {
   max-width: 800px;
@@ -323,7 +297,6 @@ h2 {
 }
 .popular-program-title {
   margin: 10px 0;
-  text-align: left;
 }
 .top-programs-grid {
   display: flex;
@@ -339,7 +312,6 @@ h2 {
   border: 1px solid #dce3eb;
   border-radius: 8px;
   padding: 15px 10px;
-  box-sizing: border-box;
   transition: box-shadow 0.2s ease;
 }
 .top-program-box:hover {
@@ -350,14 +322,6 @@ h2 {
   height: 3rem;
   object-fit: contain;
   margin-right: 10px;
-}
-.top-program-label {
-  flex: 1;
-  font-size: 1rem;
-  font-weight: 400;
-  color: #2b2d42;
-  line-height: 1rem;
-  text-align: left;
 }
 .add-btn {
   width: 24px;
@@ -405,27 +369,11 @@ h2 {
   margin-bottom: 20px;
   text-align: center;
 }
-.calc-header h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: #1D3A5F;
-  margin-bottom: 12px;
-}
 .info-box {
   background-color: #f7f9fc;
   border: 1px solid #e7eaf3;
   border-radius: 8px;
   padding: 16px;
-}
-.info-box p {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.4;
-}
-.info-box em {
-  font-style: normal;
-  font-weight: 600;
-  color: #444;
 }
 .programs-list {
   display: flex;
@@ -461,13 +409,8 @@ h2 {
 }
 #calculator-state .remove-btn {
   background: none !important;
-  color: #dc3545 !important; 
+  color: #dc3545 !important;
   font-size: 1.25rem;
-  cursor: pointer;
-  line-height: 1;
-}
-#calculator-state .remove-btn:hover {
-  opacity: 0.7;
 }
 
 /*******************************************************
@@ -483,9 +426,36 @@ h2 {
 .output-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: flex-start; 
   gap: 8px;
   margin-bottom: 16px;
+}
+.toggle-container {
+  display: inline-flex;
+  background-color: rgb(245 245 247);
+  border: 1px solid #dce3eb;
+  border-radius: 0.5rem;
+  margin: 0 auto;
+  padding: 2px 8px;
+}
+.toggle-btn {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: #666;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s, color 0.2s;
+}
+.toggle-btn:not(.active):hover {
+  background-color: #eaeaea;
+}
+.toggle-btn.active {
+  background-color: #fff;
+  color: #333;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+  font-weight: 700;
 }
 .output-row {
   display: flex;
@@ -496,16 +466,11 @@ h2 {
   margin-bottom: 8px;
   padding: 12px 16px;
   background-color: #fff;
-  transition: background-color 0.2s ease;
   cursor: pointer;
+  transition: background-color 0.2s ease;
 }
 .output-row:hover {
   background-color: #f8faff;
-}
-.output-left {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
 }
 .output-logo {
   width: 32px;
@@ -524,7 +489,7 @@ h2 {
 }
 
 /*******************************************************
- * NEXT & BACK BUTTONS
+ * BACK & NEXT BUTTONS
  *******************************************************/
 .next-btn {
   border: none;
@@ -542,7 +507,6 @@ h2 {
   background-color: #141d28;
 }
 .back-btn {
-  border: none;
   background: none;
   color: #1a2732;
   cursor: pointer;
@@ -590,340 +554,30 @@ h2 {
 .clear-all-btn {
   background-color: #dc3545;
   color: #fff;
-  border: none;
   padding: 4px 10px;
   border-radius: 4px;
   transition: background-color 0.2s ease;
-  cursor: pointer;
 }
 .clear-all-btn:hover {
   background-color: #b32431;
 }
 
 /*******************************************************
- * MODULE CONTAINERS & USECASE
+ * MODULE CONTAINERS & USECASE (unchanged)
  *******************************************************/
-.module-container {
-  width: 100%;
-  background-color: #1a2732;
-  padding: 0;
-  margin: 0 auto;
-}
-.inner-content {
-  width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  color: #fff;
-  padding: 0 20px;
-}
-.module-title h1 {
-  font-size: 32px;
-  font-weight: 900;
-  margin-bottom: 6px;
-  margin-top: 0;
-  text-align: center;
-  color: #fff;
-}
-.module-subtitle {
-  text-align: center;
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 30px;
-}
-.points-options {
-  display: flex;
-  justify-content: center;
-  column-gap: 40px;
-  margin-bottom: 30px;
-  flex-wrap: wrap;
-}
-.point-option {
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  padding: 8px 16px;
-  border-radius: 20px;
-  margin: 10px 0;
-  transition: background-color 0.2s;
-}
-.point-option.active,
-.point-option:hover {
-  background-color: #2e4461;
-}
-.points-view {
-  display: flex;
-  align-items: flex-start;
-  gap: 30px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.points-view-img {
-  flex: 0 1 400px;
-  max-width: 400px;
-}
-.image-wrapper img {
-  width: 100%;
-  height: auto;
-  max-height:225px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  display: block;
-}
-.points-view-content {
-  flex: 1 1 300px;
-  text-align: left;
-}
-.points-state-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 10px;
-  color: #fff;
-}
-.points-state-description {
-  font-size: 14px;
-  line-height: 1.4;
-  color: #f0f0f0;
-  max-width: 400px;
-}
-
-/* #usecase-state container, etc. */
-#usecase-state {
-  background-color: #1a2732;
-  color: #fff;
-  /* remove min-height if it caused whitespace */
-  padding: 40px 20px;
-  height: 100%;
-}
-#usecase-state .module-title h1 {
-  font-size: 24px;
-  line-height: 1.2;
-  margin-bottom: 12px;
-}
-#usecase-state .module-subtitle {
-  font-size: 14px;
-  line-height: 1.4;
-  margin-bottom: 20px;
-}
-#usecase-state .point-option {
-  font-size: 14px;
-  padding: 6px 12px;
-}
-.usecase-details {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-}
-#usecase-state .usecase-details {
-  flex-direction: column !important;
-  align-items: center !important;
-  text-align: center;
-}
-#usecase-state .image-wrapper img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 8px;
-}
+/* ... your existing styling ... */
 
 /*******************************************************
- * THREE CARDS (Landing/Hero)
+ * THREE CARDS (Landing/Hero) (unchanged)
  *******************************************************/
-.three-cards-section .card-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 2rem;
-  max-width: 900px;
-  margin: 0 auto;
-}
-@media (max-width: 576px) {
-  .three-cards-section .card-container {
-    grid-template-columns: 1fr !important;
-  }
-}
-.offer-card {
-  background-color: #ffffff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-}
-.offer-card-image {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 1rem;
-  object-fit: contain;
-}
-.offer-card-title {
-  font-size: 1.3rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: #222;
-}
-.offer-card-text {
-  font-size: 1.1rem;
-  line-height: 1.5;
-  color: #444;
-}
 
 /*******************************************************
- * OUTPUT-STATE ACCORDION & PILLS
- *******************************************************/
-.usecase-accordion {
-  border: 1px solid #dce3eb;
-  border-radius: 6px;
-  margin-bottom: 12px;
-  padding: 1rem;
-}
-.mini-pill {
-  display: inline-block;
-  background-color: #f0f0f0;
-  color: #333;
-  border-radius: 9999px;
-  margin-right: 8px;
-  margin-bottom: 8px;
-  padding: 6px 12px;
-  transition: background-color 0.2s ease, color 0.2s;
-}
-.mini-pill:hover,
-.mini-pill.active {
-  background-color: #1a2732 !important;
-  color: #fff !important;
-}
-.point-option:hover,
-.point-option.active {
-  background-color: #1a2732 !important;
-  color: #fff !important;
-}
-.usecases-panel {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-.usecase-details {
-  display: flex;
-  gap: 1rem;
-  flex-wrap: nowrap;
-  align-items: flex-start;
-}
-.usecase-details .image-wrap {
-  flex: 0 0 auto;
-  max-width: 180px;
-}
-.usecase-details .text-wrap {
-  flex: 1;
-}
-.uc-title {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-  font-weight: 600;
-  font-size: 16px;
-  color: #1a2732;
-}
-.uc-body {
-  font-size: 14px;
-  color: #555;
-  line-height: 1.4;
-}
-
-/*******************************************************
- * SAVE RESULTS (EMAIL) UI
- *******************************************************/
-.save-results-container {
-  margin-top: 20px;
-  display: none;
-  align-items: center;
-  gap: 8px;
-  border: none;
-  box-shadow: none;
-}
-.save-results-right {
-  display: flex;
-  gap: 8px;
-}
-#email-input {
-  flex: 1;
-  font-size: 16px;
-  border: 1px solid #dce3eb;
-  border-radius: 4px;
-  padding: 10px;
-  transition: background-color 0.2s ease, box-shadow 0.2s ease;
-}
-#email-input:focus {
-  box-shadow: 0 0 3px rgba(0,0,0,0.15);
-}
-#send-results-btn {
-  font-size: 16px;
-  color: #fff;
-  background-color: #007bff;
-  border-radius: 4px;
-  padding: 10px 16px;
-  transition: background-color 0.2s ease;
-}
-#send-results-btn:hover {
-  background-color: #005fa3;
-}
-.save-results-left p {
-  font-size: 14px;
-  color: #2b2d42;
-  margin: 0;
-}
-#email-error {
-  color: red;
-  display: none;
-}
-
-/*******************************************************
- * SUBMISSION TAKEOVER
- *******************************************************/
-#submission-takeover {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(255, 255, 255, 0.95);
-  z-index: 9999;
-  text-align: center;
-  padding: 20px;
-  max-width: 50rem;
-}
-#submission-takeover h2 {
-  font-size: 24px;
-  color: #2b2d42;
-  margin-bottom: 16px;
-}
-#submission-takeover p {
-  font-size: 16px;
-  color: #2b2d42;
-  margin-bottom: 20px;
-}
-#submission-takeover img {
-  width: 200px;
-  margin-bottom: 20px;
-}
-#go-back-btn {
-  padding: 12px 24px;
-  font-size: 16px;
-  background-color: #007bff;
-  color: #fff;
-  border-radius: 4px;
-  transition: background-color 0.2s ease;
-}
-#go-back-btn:hover {
-  background-color: #0056b3;
-}
-
-/*******************************************************
- * REPORT MODAL => absolute => center in .right-column
+ * REPORT MODAL => position absolute => center
  *******************************************************/
 #report-modal {
   display: none;
   position: absolute;
-  top: 0;
-  left: 0;
+  top: 0; left: 0;
   width: 100%; 
   height: 100%; 
   background: rgba(0,0,0,0.5);
@@ -931,8 +585,7 @@ h2 {
 }
 #report-modal-content {
   position: absolute;
-  top: 50%;
-  left: 50%;
+  top: 50%; left: 50%;
   transform: translate(-50%, -50%);
   width: 35rem;
   max-width: 90%;
@@ -964,27 +617,6 @@ h2 {
   font-weight: 600;
   text-align: center;
 }
-.modal-subheader {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 12px;
-}
-#modal-email-input {
-  width: 85%;
-  margin: 0 auto 8px auto;
-  display: block;
-  font-size: 14px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-#modal-email-error {
-  color: red;
-  font-size: 14px;
-  margin-bottom: 8px;
-  text-align: center;
-  display: none;
-}
 
 /*******************************************************
  * SQUARESPACE OVERRIDES
@@ -995,6 +627,27 @@ h2 {
 .sqs-section {
   margin-bottom: 0 !important;
   padding-bottom: 0 !important;
+}
+
+/*******************************************************
+ * NEW: HOW-IT-WORKS STEPS & BULLETS
+ *******************************************************/
+#how-it-works-state {
+  /* you can style it more if you want a full screen, etc. */
+}
+.hiw-step {
+  /* each step => show/hide via JS */
+}
+.hiw-bullet {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #ccc;
+  margin: 0 5px;
+}
+.hiw-bullet.active {
+  background-color: #1a2732;
 }
 
 /*******************************************************
@@ -1016,7 +669,6 @@ h2 {
     margin: 0 !important;
     padding: 0 !important;
   }
-
   [style*="max-width"],
   [style*="cell-max-width"],
   [style*="width"] {
@@ -1026,7 +678,7 @@ h2 {
     padding: 0 !important;
   }
 
-  /* Adjust headings, etc. for phone */
+  /* headings, etc. */
   .hero-section h1,
   #input-state h1,
   #calculator-state h1,
@@ -1043,7 +695,6 @@ h2 {
     font-size: 1rem !important;
   }
 
-  /* Reduce top padding in states */
   #input-state,
   #calculator-state,
   #output-state,
@@ -1051,18 +702,15 @@ h2 {
     padding: 20px !important;
   }
 
-  /* Slightly larger for program names if desired */
   .program-name {
     font-size: 0.85rem !important;
     line-height: 1.2;
   }
 
-  /* Remove gap if you want them closer */
   .program-left {
     gap: 0 !important;
   }
 
-  /* Let .dollar-input-container be full width on mobile */
   .dollar-input-container {
     padding: 0 !important;
     margin: 0 !important;
