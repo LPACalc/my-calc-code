@@ -20,7 +20,7 @@ const sessionId = getOrCreateSessionId();
 console.log("Session ID:", sessionId);
 
 /*******************************************************
- * GLOBALS & LOG EVENTS
+ * GLOBALS & LOGGING
  *******************************************************/
 let clientIP = null;
 let approximateLocation = null;
@@ -102,14 +102,14 @@ window.addEventListener('beforeunload', () => {
 });
 
 /*******************************************************
- * hideAllStates => common
+ * hideAllStates => used to switch screens
  *******************************************************/
 function hideAllStates() {
   $("#default-hero, #how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
 
 /*******************************************************
- * Show left column => background
+ * showLeftColumnBanner => reveals left column
  *******************************************************/
 function showLeftColumnBanner() {
   $(".left-column").css({
@@ -119,14 +119,14 @@ function showLeftColumnBanner() {
 }
 
 /*******************************************************
- * isValidEmail
+ * isValidEmail => quick check
  *******************************************************/
 function isValidEmail(str) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
 /*******************************************************
- * fetchWithTimeout
+ * fetchWithTimeout => avoid hanging
  *******************************************************/
 async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   let attempt=0;
@@ -165,7 +165,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
 }
 
 /*******************************************************
- * fetchAirtableTable
+ * fetchAirtableTable => read Real-World Use Cases
  *******************************************************/
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
@@ -181,11 +181,12 @@ async function fetchAirtableTable(tableName){
 }
 
 /*******************************************************
- * initializeApp => loads data
+ * initializeApp => load data
  *******************************************************/
 async function initializeApp(){
   console.log("=== initializeApp() ===");
   try {
+    // Fetch loyaltyPrograms
     const resp=await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
@@ -209,6 +210,7 @@ async function initializeApp(){
   }
 
   try{
+    // Fetch Real-World Use Cases
     const useCasesData=await fetchAirtableTable("Real-World Use Cases");
     realWorldUseCases=useCasesData.reduce((acc, record)=>{
       acc[record.id]={ id:record.id, ...record.fields };
@@ -239,7 +241,7 @@ function buildTopProgramsSection(){
     html+=`
       <div class="top-program-box" data-record-id="${rid}">
         <div style="display:flex; align-items:center;">
-          <img src="${logo}" alt="${name}" class="top-program-logo"/>
+          <img src="${logo}" alt="${name} logo" class="top-program-logo"/>
           <span class="top-program-label">${name}</span>
         </div>
         <button class="add-btn">+</button>
@@ -250,7 +252,7 @@ function buildTopProgramsSection(){
 }
 
 /*******************************************************
- * filterPrograms => revert older style
+ * filterPrograms => search
  *******************************************************/
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
@@ -267,7 +269,7 @@ function filterPrograms(){
   const results=Object.keys(loyaltyPrograms).filter(id=>{
     const prog=loyaltyPrograms[id];
     if(!prog["Program Name"])return false;
-    // check if in calc
+    // exclude if already in calc
     const inCalc=$(`#program-container .program-row[data-record-id='${id}']`).length>0;
     return prog["Program Name"].toLowerCase().includes(val)&&!inCalc;
   });
@@ -296,7 +298,7 @@ function filterPrograms(){
 }
 
 /*******************************************************
- * addProgramRow => for calculator input
+ * addProgramRow => for CALCULATOR
  *******************************************************/
 function addProgramRow(recordId){
   const prog=loyaltyPrograms[recordId];
@@ -306,16 +308,34 @@ function addProgramRow(recordId){
   const rowHTML=`
     <div class="program-row" data-record-id="${recordId}">
       <div class="program-left">
-        ${logo? `<img src="${logo}" alt="${name}" class="program-logo">`:""}
+        ${logo? `<img src="${logo}" alt="${name} logo" class="program-logo">`:""}
         <span class="program-name">${name}</span>
       </div>
       <div class="program-right">
-        <div class="dollar-input-container">
+        <!-- Rounded container for the input field -->
+        <div 
+          class="dollar-input-container"
+          style="
+            display:inline-flex;
+            align-items:center;
+            border:1px solid #DFE5EB;
+            border-radius:0.5rem;
+            background-color:#fff;
+            padding:0 1rem;
+          "
+        >
           <input
             type="text"
             class="points-input"
             placeholder="Enter Total"
             oninput="formatNumberInput(this); calculateTotal()"
+            style="
+              border:none;
+              outline:none;
+              font-size:1rem;
+              width:5rem;
+              background-color:transparent;
+            "
           />
         </div>
         <button class="remove-btn">×</button>
@@ -381,7 +401,7 @@ function toggleProgramSelection(boxEl){
 }
 
 /*******************************************************
- * updateChosenProgramsDisplay
+ * updateChosenProgramsDisplay => show logos
  *******************************************************/
 function updateChosenProgramsDisplay(){
   const container=$("#chosen-programs-row");
@@ -405,7 +425,7 @@ function updateChosenProgramsDisplay(){
 }
 
 /*******************************************************
- * CTA Visibility => show/hide #input-next-btn
+ * updateNextCTAVisibility => show/hide #input-next-btn
  *******************************************************/
 function updateNextCTAVisibility(){
   if(chosenPrograms.length>0){
@@ -416,7 +436,7 @@ function updateNextCTAVisibility(){
 }
 
 /*******************************************************
- * CLEAR ALL => shows/hides
+ * updateClearAllVisibility => show Clear All if >=3
  *******************************************************/
 function updateClearAllVisibility(){
   if($("#input-state").is(":visible")){
@@ -446,7 +466,7 @@ function formatNumberInput(el){
   let raw=el.value.replace(/,/g,"").replace(/[^0-9]/g,"");
   if(!raw){el.value="";return;}
   let num=parseInt(raw,10);
-  if(num>1e7) num=1e7;
+  if(num>10000000) num=10000000;
   el.value=num.toLocaleString();
 }
 function calculateTotal(){
@@ -454,7 +474,7 @@ function calculateTotal(){
 }
 
 /*******************************************************
- * gatherProgramData
+ * gatherProgramData => used in buildOutputRows
  *******************************************************/
 function gatherProgramData(){
   const data=[];
@@ -474,12 +494,80 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * buildOutputRows => Travel vs Cash => plus usecase expansions
+ * buildUseCaseAccordionContent => for real-world use cases
+ *******************************************************/
+function buildUseCaseAccordionContent(recordId, userPoints){
+  const program=loyaltyPrograms[recordId];
+  if(!program){
+    return `<div style="padding:1rem;">No data found for program.</div>`;
+  }
+  // Filter realWorldUseCases => recommended for this recordId
+  let matching=Object.values(realWorldUseCases).filter(uc=>{
+    if(!uc.Recommended) return false;
+    if(!uc["Points Required"]) return false;
+    if(!uc["Use Case Title"]) return false;
+    if(!uc["Use Case Body"])  return false;
+    const linked=uc["Program Name"]||[];
+    const userHasEnough = uc["Points Required"] <= userPoints;
+    return linked.includes(recordId) && userHasEnough;
+  });
+  matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
+  matching=matching.slice(0,3);
+
+  if(!matching.length){
+    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
+  }
+
+  // Build a small pill + content approach
+  let pillsHTML="";
+  matching.forEach((uc,i)=>{
+    const pts=uc["Points Required"]||0;
+    pillsHTML += `
+      <div class="mini-pill ${i===0?"active":""}" data-usecase-id="${uc.id}">
+        ${pts.toLocaleString()} pts
+      </div>
+    `;
+  });
+
+  const first=matching[0];
+  const imageURL=first["Use Case URL"]||"";
+  const title=first["Use Case Title"]||"Untitled";
+  const body=first["Use Case Body"]||"No description";
+
+  return `
+    <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
+      <div class="pills-container" style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
+        ${pillsHTML}
+      </div>
+      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
+        <div class="image-wrap" style="max-width:180px;">
+          <img
+            src="${imageURL}"
+            alt="Use Case"
+            style="width:100%; height:auto; border-radius:4px;"
+          />
+        </div>
+        <div class="text-wrap" style="flex:1;">
+          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;">
+            ${title}
+          </h4>
+          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
+            ${body}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/*******************************************************
+ * buildOutputRows => Travel vs Cash => usecases
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
   $("#output-programs-list").empty();
   let totalValue=0;
+
   data.forEach(item=>{
     const prog=loyaltyPrograms[item.recordId];
     const logoUrl=prog?.["Brand Logo URL"]||"";
@@ -490,28 +578,33 @@ function buildOutputRows(viewType){
       rowVal=item.points*(prog?.["Cash Value"]||0);
     }
     totalValue+=rowVal;
-    const strVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
+    const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
-    // Output row
     let rowHtml=`
       <div class="output-row" data-record-id="${item.recordId}">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" class="output-logo" style="width:80px; height:auto;"/>
+          <img 
+            src="${logoUrl}" 
+            alt="logo" 
+            class="output-logo" 
+            style="width:60px; height:auto;"
+          />
           <span class="program-name">${item.programName}</span>
         </div>
-        <div class="output-value" style="font-weight:600;">${strVal}</div>
+        <div class="output-value" style="font-weight:600;">
+          ${formattedVal}
+        </div>
       </div>
     `;
-
-    // If Travel => show a hidden usecase-accordion
     if(viewType==="travel"){
-      rowHtml += `
+      // Real-world use cases => show an accordion
+      const userPoints=item.points||0;
+      rowHtml+=`
         <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem;">
-          <p style="font-size:14px;">Placeholder expansions or recommended use-cases could appear here if you implement them.</p>
+          ${buildUseCaseAccordionContent(item.recordId, userPoints)}
         </div>
       `;
     }
-
     $("#output-programs-list").append(rowHtml);
   });
 
@@ -547,6 +640,8 @@ async function sendReport(email){
     programName:x.programName,
     points:x.points
   }));
+  console.log("Sending report =>", { email, programs:programsToSend });
+
   const response=await fetch("https://young-cute-neptune.glitch.me/submitData",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -566,10 +661,12 @@ async function sendReportFromModal(){
 
   errorEl.hide().text("");
   sentMsgEl.hide();
+
   if(!isValidEmail(emailInput)){
     errorEl.text("Invalid email.").show();
     return;
   }
+
   sendBtn.prop("disabled",true).text("Sending...");
   try{
     await sendReport(emailInput);
@@ -577,13 +674,24 @@ async function sendReportFromModal(){
     hasSentReport=true;
     userEmail=emailInput;
     logSessionEvent("email_submitted",{ email:userEmail });
+
+    // After short delay => hide modal + “swap ctas”
     setTimeout(()=>{
       hideReportModal();
       sentMsgEl.hide();
+
+      // Swap CTAs => “Unlock Full Report” => white, “Explore Services” => blue
+      $("#unlock-report-btn")
+        .removeClass("cta-dark").removeClass("cta-light-border")
+        .addClass("cta-light-border");
+      $("#explore-concierge-lower")
+        .removeClass("cta-dark").removeClass("cta-light-border")
+        .addClass("cta-dark");
+
     },700);
   }catch(err){
     console.error("Failed to send =>",err);
-    errorEl.text(err.message||"Error sending").show();
+    errorEl.text(err.message||"Error sending report.").show();
   }finally{
     sendBtn.prop("disabled",false).text("Send Report");
   }
@@ -604,33 +712,32 @@ function showHowItWorksStep(stepNum){
 }
 
 /*******************************************************
- * DOC READY => main flow
+ * DOC READY => main transitions
  *******************************************************/
 $(document).ready(async function(){
+  // Log session load
   logSessionEvent("session_load");
 
-  // 1) fetch IP + data
+  // fetch IP, location, data
   await fetchClientIP();
   await fetchApproxLocationFromIP();
   await initializeApp();
 
-  // 2) hide all but hero
+  // Start => hero
   hideAllStates();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
 
   /****************************************************
-   * Hero => Get Started
+   * Hero => “Get Started”
    ****************************************************/
   $("#hero-get-started-btn").on("click",function(){
     logSessionEvent("hero_get_started_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
 
-    // Show left column w/ background
     showLeftColumnBanner();
 
-    // Hide hero, show input
     hideAllStates();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
@@ -640,7 +747,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Hero => How It Works
+   * Hero => “How It Works”
    ****************************************************/
   $("#hero-how-it-works-btn").on("click",function(){
     logSessionEvent("hero_how_it_works_clicked");
@@ -650,13 +757,13 @@ $(document).ready(async function(){
     showLeftColumnBanner();
 
     hideAllStates();
-    $("#how-it-works-state").fadeIn(()=>{ 
-      isTransitioning=false; 
+    $("#how-it-works-state").fadeIn(()=>{
+      isTransitioning=false;
       showHowItWorksStep(1);
     });
   });
 
-  // Steps transitions
+  // Step transitions
   $("#hiw-continue-1").on("click",()=> showHowItWorksStep(2));
   $("#hiw-continue-2").on("click",()=> showHowItWorksStep(3));
   $("#hiw-final-start-btn").on("click",function(){
@@ -673,7 +780,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Input -> back => hero
+   * Input => Back => hero
    ****************************************************/
   $("#input-back-btn").on("click",function(){
     logSessionEvent("input_back_clicked");
@@ -681,13 +788,12 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    // Hide left col again
-    $(".left-column").css("display","none");
+    $(".left-column").css("display","none"); // hide left col
     $("#default-hero").fadeIn(()=>{ isTransitioning=false; });
   });
 
   /****************************************************
-   * Input -> Next => Calculator
+   * Input => Next => calculator
    ****************************************************/
   $("#input-next-btn").on("click",function(){
     logSessionEvent("input_next_clicked");
@@ -695,9 +801,8 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    $("#calculator-state").fadeIn(()=>{ 
+    $("#calculator-state").fadeIn(()=>{
       isTransitioning=false;
-      // Show “Next” for calculator => output
       $("#to-output-btn").show();
     });
     $("#program-container").empty();
@@ -705,7 +810,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Calc -> back => input
+   * Calc => Back => Input
    ****************************************************/
   $("#calc-back-btn").on("click",function(){
     logSessionEvent("calc_back_clicked");
@@ -717,7 +822,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Calc -> Next => output
+   * Calc => Next => Output
    ****************************************************/
   $("#to-output-btn").on("click",function(){
     logSessionEvent("calc_next_clicked");
@@ -725,10 +830,11 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    $("#output-state").fadeIn(()=>{ 
+    $("#output-state").fadeIn(()=>{
       isTransitioning=false;
-      // Possibly show the “Unlock Full Report” CTA
+      // show the 2 ctas
       $("#unlock-report-btn").show();
+      $("#explore-concierge-lower").show();
     });
     // Default => Travel
     $(".toggle-btn").removeClass("active");
@@ -737,7 +843,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Output -> back => calc
+   * Output => Back => Calc
    ****************************************************/
   $("#output-back-btn").on("click",function(){
     logSessionEvent("output_back_clicked");
@@ -749,7 +855,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Clear All, Program search, remove row
+   * Clear All, Search, Program Remove
    ****************************************************/
   $("#clear-all-btn").on("click",function(){
     logSessionEvent("clear_all_clicked");
@@ -782,7 +888,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Toggle Travel vs Cash
+   * Toggle Travel / Cash => buildOutputRows
    ****************************************************/
   $(document).on("click",".toggle-btn",function(){
     logSessionEvent("toggle_view_clicked",{ newView:$(this).data("view")});
@@ -791,7 +897,7 @@ $(document).ready(async function(){
     buildOutputRows($(this).data("view"));
   });
 
-  // Expand/collapse “usecase-accordion” on .output-row click
+  // Expand/collapse usecase if Travel
   $(document).on("click",".output-row",function(){
     if($(".toggle-btn[data-view='cash']").hasClass("active")) return;
     $(".usecase-accordion:visible").slideUp();
@@ -801,7 +907,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Unlock => show modal
+   * “Unlock Full Report” => show modal
    ****************************************************/
   $("#unlock-report-btn").on("click",function(){
     logSessionEvent("unlock_report_clicked");
@@ -815,5 +921,35 @@ $(document).ready(async function(){
     const emailInput=$("#modal-email-input").val().trim();
     logSessionEvent("modal_send_clicked",{ email:emailInput });
     await sendReportFromModal();
+  });
+
+  /****************************************************
+   * Explore Services => external link or “services” page
+   ****************************************************/
+  $("#explore-concierge-lower").on("click",function(){
+    logSessionEvent("explore_concierge_clicked");
+    // example: open link
+    window.open("https://www.legacypointsadvisors.com/pricing","_blank");
+  });
+
+  /****************************************************
+   * If you have further states => usecase-back => etc.
+   ****************************************************/
+  $("#usecase-back-btn").on("click",function(){
+    hideAllStates();
+    $("#output-state").fadeIn();
+  });
+
+  $("#send-report-back-btn").on("click",function(){
+    hideAllStates();
+    $("#output-state").fadeIn();
+  });
+
+  $("#go-back-btn").on("click",function(){
+    hideAllStates();
+    $("#output-state").fadeIn();
+  });
+  $("#explore-concierge-btn").on("click",function(){
+    window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 });
