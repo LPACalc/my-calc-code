@@ -30,7 +30,7 @@ button {
   position: relative;
   flex-wrap: nowrap;
   width: 100%;
-  /* min-height: 100vh;  Let content grow to fill full height if short */
+  /* min-height: 100vh;  <-- Removed to prevent extra whitespace */
 }
 
 /* LEFT COLUMN */
@@ -42,7 +42,7 @@ button {
   align-items: center;
   justify-content: center;
   position: relative;
-  min-height: 100vh; 
+  /* min-height: 100vh; <-- If you want only the left column tall, uncomment here */
 }
 .stage-graphic {
   position: absolute;
@@ -66,12 +66,12 @@ button {
   display: none !important;
 }
 
-/* RIGHT COLUMN: let it flow, no forced scroll/height */
+/* RIGHT COLUMN => normal flow */
 .right-column {
   width: 75%;
   display: flex;
   flex-direction: column;
-  position: relative; 
+  position: relative;
 }
 
 /* MAIN CONTAINER */
@@ -79,10 +79,10 @@ button {
   flex: 1 1 auto;
   padding: 0;
   margin: 0;
-  position: relative; 
+  position: relative;
 }
 
-/* Responsive: stack columns under 992px */
+/* Responsive: stack under 992px */
 @media (max-width: 992px) {
   .page-wrap {
     flex-direction: column;
@@ -96,7 +96,7 @@ button {
 }
 
 /*******************************************************
- * SECTION: .calc-footer => STICKY
+ * STICKY .calc-footer
  *******************************************************/
 .calc-footer {
   position: -webkit-sticky; /* Safari iOS support */
@@ -129,12 +129,12 @@ button {
   background-color: #141d28;
 }
 
-/* Mobile overrides for .calc-footer & buttons */
+/* Mobile .calc-footer overrides */
 @media (max-width: 576px) {
   .calc-footer {
     flex-direction: column;
     gap: 8px;
-    padding: 1rem 0 !important; 
+    padding: 1rem 0 !important;
   }
   .calc-footer .next-btn {
     width: 90% !important;
@@ -144,7 +144,7 @@ button {
     font-size: 16px !important;
     border-radius: 6px !important;
   }
-  /* Ensure enough padding so content isn't hidden behind sticky footer */
+  /* Ensure enough bottom-padding so content isn't hidden behind sticky footer */
   .container,
   .scrollable-content {
     padding-bottom: 80px !important;
@@ -152,15 +152,16 @@ button {
 }
 
 /*******************************************************
- * SECTION: SCROLLABLE CONTENT (Optional)
+ * OPTIONAL .scrollable-content
  *******************************************************/
 .scrollable-content {
+  /* Remove forced overflow/height so the full page can scroll naturally */
   height: auto;
   overflow: visible;
 }
 
 /*******************************************************
- * SECTION C: HERO (Default)
+ * HERO (Default)
  *******************************************************/
 .hero-section {
   display: flex;
@@ -188,14 +189,14 @@ button {
 }
 
 /*******************************************************
- * SECTION D: INPUT STATE
+ * INPUT STATE
  *******************************************************/
 #input-state {
   display: none;
   text-align: center;
   max-width: 50rem;
   margin: auto;
-  padding: 80px 20px 0px 20px; /* can reduce on mobile below */
+  padding: 80px 20px 0px 20px; /* reduced on mobile below */
 }
 #input-state h1,
 #calculator-state h1,
@@ -299,7 +300,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION: POPULAR / SELECTED PROGRAMS
+ * POPULAR / SELECTED PROGRAMS
  *******************************************************/
 .top-programs-section {
   max-width: 800px;
@@ -380,16 +381,14 @@ h2 {
 }
 
 /*******************************************************
- * SECTION E: CALCULATOR STATE
+ * CALCULATOR STATE (UPDATED TO MATCH INPUT STATE)
  *******************************************************/
 .calculator-state {
   display: none;
-  padding: 80px 20px 0px 20px; 
-  max-height: 70vh;  /* if you want internal scroll, otherwise remove */
-  overflow-y: auto;  /* if you want internal scroll, otherwise remove */
+  text-align: center;        /* match #input-state text-align */
   max-width: 50rem;
   margin: auto;
-  text-align: left;
+  padding: 80px 20px 0px 20px; /* no max-height or overflow so it scrolls naturally */
 }
 .calc-header {
   margin-bottom: 20px;
@@ -462,7 +461,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION F: OUTPUT STATE
+ * OUTPUT STATE
  *******************************************************/
 .output-state {
   display: none;
@@ -474,7 +473,7 @@ h2 {
 .output-header {
   display: flex;
   align-items: center;
-  justify-content: flex-start; 
+  justify-content: flex-start;
   gap: 8px;
   margin-bottom: 16px;
 }
@@ -504,7 +503,7 @@ h2 {
   object-fit: contain;
 }
 .program-name {
-  font-size: 0.75rem; /* smaller on output if desired */
+  font-size: 0.75rem;
   font-weight: 600;
   color: #1D3A5F;
 }
@@ -515,7 +514,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION G: NEXT & BACK BUTTONS (within calc-footer)
+ * NEXT & BACK BUTTONS
  *******************************************************/
 .next-btn {
   border: none;
@@ -576,7 +575,7 @@ h2 {
 }
 
 /*******************************************************
- * CLEAR ALL, ETC.
+ * CLEAR ALL
  *******************************************************/
 .clear-all-btn {
   background-color: #dc3545;
@@ -592,7 +591,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION J: MODULE CONTAINERS & USECASE
+ * MODULE CONTAINERS & USECASE
  *******************************************************/
 .module-container {
   width: 100%;
@@ -682,7 +681,7 @@ h2 {
 #usecase-state {
   background-color: #1a2732;
   color: #fff;
-  min-height: 100vh;
+  /* min-height: 100vh; <-- remove if it causes extra white space */
   padding: 40px 20px;
   height: 100%;
 }
@@ -718,7 +717,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION L: THREE CARDS LAYOUT (Landing/Hero)
+ * THREE CARDS (Landing/Hero)
  *******************************************************/
 .three-cards-section .card-container {
   display: grid;
@@ -761,55 +760,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION M: MEDIA QUERIES FOR HEADINGS & MOBILE TWEAKS
- *******************************************************/
-@media (max-width: 576px) {
-  .hero-section h1,
-  #input-state h1,
-  #calculator-state h1,
-  #output-state h1,
-  .state-title {
-    font-size: 1.25rem !important;
-  }
-  h2,
-  .hero-section h2,
-  .module-title h1,
-  .module-subtitle,
-  .section-title,
-  .popular-program-title h2 {
-    font-size: 1rem !important;
-  }
-
-  /* Reduce top padding in states for small screens */
-  #input-state,
-  #calculator-state,
-  #output-state,
-  #usecase-state {
-    padding: 20px !important;
-  }
-
-  /* Slightly larger than 0.75rem if you prefer */
-  .program-name {
-    font-size: 0.85rem !important;
-    line-height: 1.2;
-  }
-
-  /* Remove gap between program logo & name if you want them close */
-  .program-left {
-    gap: 0 !important;
-  }
-
-  /* Let .dollar-input-container be full width on small screens */
-  .dollar-input-container {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    padding-left: 5px;
-  }
-}
-
-/*******************************************************
- * SECTION N: OUTPUT-STATE ACCORDION & PILLS
+ * OUTPUT-STATE ACCORDION & PILLS
  *******************************************************/
 .usecase-accordion {
   border: 1px solid #dce3eb;
@@ -869,7 +820,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION O: SAVE RESULTS (EMAIL) UI
+ * SAVE RESULTS (EMAIL) UI
  *******************************************************/
 .save-results-container {
   margin-top: 20px;
@@ -916,7 +867,7 @@ h2 {
 }
 
 /*******************************************************
- * SECTION P: SUBMISSION TAKEOVER
+ * SUBMISSION TAKEOVER
  *******************************************************/
 #submission-takeover {
   position: absolute;
@@ -956,11 +907,11 @@ h2 {
 }
 
 /*******************************************************
- * REPORT MODAL => position: absolute => center within .right-column
+ * REPORT MODAL => absolute => center in .right-column
  *******************************************************/
 #report-modal {
   display: none;
-  position: absolute; /* so it stays within the right-column */
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%; 
@@ -1053,5 +1004,49 @@ h2 {
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+  }
+
+  /* Adjust headings, etc. */
+  .hero-section h1,
+  #input-state h1,
+  #calculator-state h1,
+  #output-state h1,
+  .state-title {
+    font-size: 1.25rem !important;
+  }
+  h2,
+  .hero-section h2,
+  .module-title h1,
+  .module-subtitle,
+  .section-title,
+  .popular-program-title h2 {
+    font-size: 1rem !important;
+  }
+
+  /* Reduce top padding in states */
+  #input-state,
+  #calculator-state,
+  #output-state,
+  #usecase-state {
+    padding: 20px !important;
+  }
+
+  /* Slightly larger for program names if desired */
+  .program-name {
+    font-size: 0.85rem !important;
+    line-height: 1.2;
+  }
+
+  /* Remove gap if you want them tighter */
+  .program-left {
+    gap: 0 !important;
+  }
+
+  /* Let .dollar-input-container be full width on mobile */
+  .dollar-input-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    padding-left: 5px;
   }
 }
