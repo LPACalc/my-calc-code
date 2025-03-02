@@ -23,29 +23,132 @@ button {
 }
 
 /*******************************************************
- * FLEX LAYOUT => PAGE WRAP + COLUMNS
+ * SECTION B: FLEX LAYOUT
  *******************************************************/
-/* 1) .page-wrap => fill screen if short */
+/*
+   1) .page-wrap => the outermost container, full viewport if short
+   2) .left-column => typical “sidebar” 
+   3) .right-column => fills remaining space, hosts main content + footer
+   4) .container => holds your states/hero content
+   5) .calc-footer => sticky at bottom
+*/
+
+/* OUTER WRAP => horizontal flex on desktop, min-height 100vh */
 .page-wrap {
   display: flex;
-  flex-direction: row; /* left & right columns side-by-side */
-  min-height: 100vh;   /* ensures short pages fill the screen */
+  flex-direction: row;  /* side-by-side left & right columns */
+  min-height: 100vh;    /* fills full screen if short */
   width: 100%;
-  position: relative;
+  position: relative;  
 }
 
-/* LEFT COLUMN => no forced height, just a portion of width. */
+/* LEFT COLUMN => fixed 25% width or min 250px */
 .left-column {
   width: 25%;
   min-width: 250px;
   background-color: #F8FAFD;
   position: relative;
+
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Stage & banner */
+/* RIGHT COLUMN => flex:1 => occupy remainder; column layout for content & footer */
+.right-column {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  position: relative;
+  background: #fff;
+}
+
+/* The main content container => grows if short, scrolls if tall */
+.container {
+  flex: 1;  /* takes up available vertical space above the footer */
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  margin: 0;
+}
+
+/*
+   RESPONSIVE => At max-width: 992px, we stack columns (optional).
+   This ensures on tablets & smaller, the left column is hidden or stacked.
+*/
+@media (max-width: 992px) {
+  .page-wrap {
+    flex-direction: column; /* stack top->bottom */
+  }
+  .left-column {
+    display: none;          /* or width: 100% if you want it stacked */
+  }
+  .right-column {
+    width: 100%;
+  }
+}
+
+/*******************************************************
+ * STICKY FOOTER => pinned at bottom if content is short
+ *******************************************************/
+.calc-footer {
+  position: sticky; 
+  bottom: 0;
+  z-index: 9999;
+  background-color: #fff;
+  text-align: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
+}
+
+/* Desktop default button sizing */
+.calc-footer .next-btn {
+  border: none;
+  border-radius: 9999px;
+  background-color: #1a2732;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 600;
+  padding: 1.25rem 7rem;
+  margin: 0 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.calc-footer .next-btn:hover {
+  background-color: #141d28;
+}
+
+/*
+   On smaller screens (max-width:576px),
+   stack the footer buttons vertically, narrower padding, etc.
+*/
+@media (max-width: 576px) {
+  .calc-footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 1rem 0 !important;
+  }
+  .calc-footer .next-btn {
+    width: 90% !important;
+    max-width: 500px;
+    margin: 0 auto !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 16px !important;
+    border-radius: 6px !important;
+  }
+  /* ensure bottom spacing so content not hidden behind footer */
+  .container {
+    padding-bottom: 80px !important;
+  }
+}
+
+/*******************************************************
+ * LEFT COLUMN IMAGES
+ *******************************************************/
 .stage-graphic {
   position: absolute;
   top: 50%;
@@ -63,89 +166,15 @@ button {
   display: block;
 }
 
+/*******************************************************
+ * BASE COMPONENTS => STATES, HEADERS, ETC.
+ *******************************************************/
 /* Hide empty squarespace blocks if any remain */
 .sqs-block:empty {
   display: none !important;
 }
 
-/* RIGHT COLUMN => fill leftover flex space */
-.right-column {
-  display: flex;
-  flex-direction: column;
-  flex: 1; 
-  position: relative;
-  background: #fff;
-}
-
-/* .container => also flex => grows or shrinks. */
-.container {
-  flex: 1;
-  position: relative; 
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  margin: 0;
-}
-
-/*******************************************************
- * STICKY .calc-footer => pinned at bottom
- *******************************************************/
-.calc-footer {
-  position: sticky;
-  bottom: 0;
-  z-index: 9999;
-  background-color: #fff;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1rem;
-  box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
-}
-
-/* Desktop CTA size */
-.calc-footer .next-btn {
-  border: none;
-  border-radius: 9999px;
-  background-color: #1a2732;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 600;
-  padding: 1.25rem 7rem;
-  margin: 0 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.calc-footer .next-btn:hover {
-  background-color: #141d28;
-}
-
-/*******************************************************
- * MEDIA QUERIES => FOOTER ON MOBILE
- *******************************************************/
-@media (max-width: 576px) {
-  .calc-footer {
-    flex-direction: column;
-    gap: 8px;
-    padding: 1rem 0 !important;
-  }
-  .calc-footer .next-btn {
-    width: 90% !important;
-    max-width: 500px;
-    margin: 0 auto !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 16px !important;
-    border-radius: 6px !important;
-  }
-  /* Ensure enough bottom-padding if content is short */
-  .container {
-    padding-bottom: 80px !important;
-  }
-}
-
-/*******************************************************
- * HERO (Default)
- *******************************************************/
+/* hero-section => your default landing hero */
 .hero-section {
   display: flex;
   flex-direction: column;
@@ -179,7 +208,7 @@ button {
   text-align: center;
   max-width: 50rem;
   margin: auto;
-  padding: 80px 20px 0px 20px;
+  padding: 80px 20px 0px 20px; 
 }
 #input-state h1,
 #calculator-state h1,
@@ -252,7 +281,7 @@ h2 {
   box-shadow: 0 0 4px rgba(0,0,0,0.15);
 }
 
-/* Program Preview => absolutely positioned => no extra space if hidden */
+/* Program preview => absolutely positioned => no extra space if hidden */
 #program-preview {
   display: none;
   position: absolute; 
@@ -367,7 +396,7 @@ h2 {
  *******************************************************/
 .calculator-state {
   display: none;
-  text-align: center; 
+  text-align: center;
   max-width: 50rem;
   margin: auto;
   padding: 80px 20px 0px 20px;
@@ -662,6 +691,7 @@ h2 {
 #usecase-state {
   background-color: #1a2732;
   color: #fff;
+  /* remove min-height if it caused whitespace */
   padding: 40px 20px;
   height: 100%;
 }
@@ -957,7 +987,7 @@ h2 {
 }
 
 /*******************************************************
- * Extra squarespace overrides
+ * SQUARESPACE OVERRIDES
  *******************************************************/
 .sqs-block-spacer {
   display: none !important;
@@ -968,10 +998,9 @@ h2 {
 }
 
 /*******************************************************
- * FINAL MOBILE EDGE-TO-EDGE OVERRIDES
+ * MOBILE EDGE-TO-EDGE OVERRIDES
  *******************************************************/
 @media (max-width: 576px) {
-  /* Force full width on smaller screens */
   html, body,
   .page-wrap,
   .right-column,
@@ -987,6 +1016,7 @@ h2 {
     margin: 0 !important;
     padding: 0 !important;
   }
+
   [style*="max-width"],
   [style*="cell-max-width"],
   [style*="width"] {
@@ -996,7 +1026,7 @@ h2 {
     padding: 0 !important;
   }
 
-  /* Adjust headings, etc. */
+  /* Adjust headings, etc. for phone */
   .hero-section h1,
   #input-state h1,
   #calculator-state h1,
@@ -1027,7 +1057,7 @@ h2 {
     line-height: 1.2;
   }
 
-  /* Remove gap if you want them tighter */
+  /* Remove gap if you want them closer */
   .program-left {
     gap: 0 !important;
   }
