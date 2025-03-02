@@ -240,14 +240,16 @@ function buildTopProgramsSection(){
     const logo=prog["Brand Logo URL"]||"";
     html+=`
       <div class="top-program-box" data-record-id="${rid}">
-        <div style="display:flex; align-items:center;">
+        <div style="display:flex; align-items:center; flex-wrap:wrap;">
           <!-- Make these logos smaller => 60px wide -->
           <img 
             src="${logo}" 
             alt="${name} logo" 
             style="width:60px; height:auto; object-fit:contain; margin-right:0.5rem;"
           />
-          <span class="top-program-label">${name}</span>
+          <span class="top-program-label" style="white-space:normal;">
+            ${name}
+          </span>
         </div>
         <button class="add-btn">+</button>
       </div>
@@ -257,7 +259,7 @@ function buildTopProgramsSection(){
 }
 
 /*******************************************************
- * filterPrograms => search
+ * filterPrograms => exclude already-chosen
  *******************************************************/
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
@@ -274,7 +276,9 @@ function filterPrograms(){
   const results=Object.keys(loyaltyPrograms).filter(id=>{
     const prog=loyaltyPrograms[id];
     if(!prog["Program Name"])return false;
-    // exclude if already in calc
+    // exclude if already chosen
+    if(chosenPrograms.includes(id)) return false;
+    // exclude if in #program-container
     const inCalc=$(`#program-container .program-row[data-record-id='${id}']`).length>0;
     return prog["Program Name"].toLowerCase().includes(val)&&!inCalc;
   });
@@ -288,9 +292,8 @@ function filterPrograms(){
     const prog=loyaltyPrograms[rid];
     const name=prog["Program Name"];
     const logo=prog["Brand Logo URL"]||"";
-    const chosenClass=chosenPrograms.includes(rid)?"chosen-state":"";
     previewHTML+=`
-      <div class="preview-item ${chosenClass}" data-record-id="${rid}">
+      <div class="preview-item" data-record-id="${rid}">
         <div>
           <span class="program-name">${name}</span>
           <span class="program-type">(${prog.Type||"Unknown"})</span>
@@ -311,15 +314,30 @@ function addProgramRow(recordId){
   const logo=prog["Brand Logo URL"]||"";
   const name=prog["Program Name"]||"Unnamed Program";
   const rowHTML=`
-    <div class="program-row" data-record-id="${recordId}" 
-      style="display:flex; align-items:center; justify-content:space-between;"
+    <div 
+      class="program-row" 
+      data-record-id="${recordId}"
+      style="
+        display:flex; 
+        align-items:center; 
+        justify-content:space-between; 
+        padding:0.75rem 1rem;"
     >
-      <div class="program-left" style="display:flex; align-items:center; gap:0.75rem;">
-        ${logo? `<img src="${logo}" alt="${name} logo" class="program-logo" style="width:60px; height:auto;">`:""}
+      <div 
+        class="program-left" 
+        style="display:flex; align-items:center; gap:0.75rem;"
+      >
+        ${logo? `<img src="${logo}" alt="${name} logo" style="width:60px; height:auto;">`:""}
         <span class="program-name">${name}</span>
       </div>
-      <div class="program-right" style="display:flex; align-items:center; gap:1rem;">
-        <!-- Wider “Enter Total” => more padding -->
+      <div 
+        class="program-right" 
+        style="
+          display:flex; 
+          align-items:center; 
+          gap:1rem;"
+      >
+        <!-- “Enter Total” => bigger input => padding:0.75rem -->
         <div 
           class="dollar-input-container"
           style="
@@ -340,9 +358,9 @@ function addProgramRow(recordId){
               border:none;
               outline:none;
               font-size:1rem;
-              width:8rem; /* wider */
+              width:8rem;
               background-color:transparent;
-              padding:0.5rem 0; /* more vertical padding */
+              padding:0.75rem 0;
             "
           />
         </div>
@@ -352,7 +370,6 @@ function addProgramRow(recordId){
   `;
   $("#program-container").append(rowHTML);
   calculateTotal();
-  updateClearAllVisibility();
 }
 
 /*******************************************************
@@ -361,33 +378,14 @@ function addProgramRow(recordId){
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
   if(!rid)return;
-  const idx=chosenPrograms.indexOf(rid);
-  if(idx===-1){
-    chosenPrograms.push(rid);
-    itemEl.addClass("selected-state");
-    const box=$(`.top-program-box[data-record-id='${rid}']`);
-    if(box.length){
-      box.addClass("selected-state");
-      box.find(".add-btn").text("✓");
-    }
-    itemEl.remove();
-  } else {
-    chosenPrograms.splice(idx,1);
-    itemEl.removeClass("selected-state");
-    const box=$(`.top-program-box[data-record-id='${rid}']`);
-    if(box.length){
-      box.removeClass("selected-state");
-      box.find(".add-btn").text("+");
-    }
-    itemEl.remove();
-  }
+  chosenPrograms.push(rid);
+  itemEl.remove();
   $("#program-search").val("");
   $("#program-preview").hide().empty();
   filterPrograms();
   updateNextCTAVisibility();
-  updateChosenProgramsDisplay();
-  updateClearAllVisibility();
 }
+
 function toggleProgramSelection(boxEl){
   const rid=boxEl.data("record-id");
   const idx=chosenPrograms.indexOf(rid);
@@ -404,36 +402,10 @@ function toggleProgramSelection(boxEl){
   $("#program-preview").hide().empty();
   filterPrograms();
   updateNextCTAVisibility();
-  updateChosenProgramsDisplay();
-  updateClearAllVisibility();
 }
 
 /*******************************************************
- * updateChosenProgramsDisplay => show chosen logos
- *******************************************************/
-function updateChosenProgramsDisplay(){
-  const container=$("#chosen-programs-row");
-  container.empty();
-  if(!chosenPrograms.length){
-    $("#selected-programs-label").hide();
-    return;
-  }
-  $("#selected-programs-label").show();
-  chosenPrograms.forEach(rid=>{
-    const prog=loyaltyPrograms[rid];
-    if(!prog)return;
-    const logoUrl=prog["Brand Logo URL"]||"";
-    const name=prog["Program Name"]||"Unknown";
-    container.append(`
-      <div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
-        <img src="${logoUrl}" alt="${name}" style="width:100%; height:auto; object-fit:contain;">
-      </div>
-    `);
-  });
-}
-
-/*******************************************************
- * updateNextCTAVisibility => show #input-next-btn if chosen
+ * updateNextCTAVisibility => show if chosenPrograms>0
  *******************************************************/
 function updateNextCTAVisibility(){
   if(chosenPrograms.length>0){
@@ -441,30 +413,6 @@ function updateNextCTAVisibility(){
   } else {
     $("#input-next-btn").hide();
   }
-}
-
-/*******************************************************
- * updateClearAllVisibility => show if >=3
- *******************************************************/
-function updateClearAllVisibility(){
-  if($("#input-state").is(":visible")){
-    if(chosenPrograms.length>=3) $("#clear-all-btn").fadeIn();
-    else $("#clear-all-btn").fadeOut();
-  }else if($("#calculator-state").is(":visible")){
-    const rowCount=$("#program-container .program-row").length;
-    if(rowCount>=3) $("#clear-all-btn").fadeIn();
-    else $("#clear-all-btn").fadeOut();
-  }else{
-    $("#clear-all-btn").fadeOut();
-  }
-}
-function clearAllPrograms(){
-  chosenPrograms=[];
-  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
-  $(".preview-item.selected-state").removeClass("selected-state");
-  updateChosenProgramsDisplay();
-  $("#clear-all-btn").hide();
-  updateNextCTAVisibility();
 }
 
 /*******************************************************
@@ -477,9 +425,7 @@ function formatNumberInput(el){
   if(num>10000000) num=10000000;
   el.value=num.toLocaleString();
 }
-function calculateTotal(){
-  // purely optional
-}
+function calculateTotal(){}
 
 /*******************************************************
  * gatherProgramData => used in buildOutputRows
@@ -507,16 +453,15 @@ function gatherProgramData(){
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
   if(!program){
-    return `<div style="padding:1rem;">No data found for this program.</div>`;
+    return `<div style="padding:1rem;">No data found.</div>`;
   }
-  // Filter realWorldUseCases
   let matching=Object.values(realWorldUseCases).filter(uc=>{
     if(!uc.Recommended) return false;
     if(!uc["Points Required"]) return false;
     if(!uc["Use Case Title"]) return false;
     if(!uc["Use Case Body"])  return false;
     const linked=uc["Program Name"]||[];
-    const userHasEnough = uc["Points Required"]<=userPoints;
+    const userHasEnough= uc["Points Required"]<=userPoints;
     return linked.includes(recordId)&&userHasEnough;
   });
   matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
@@ -526,22 +471,23 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // Build pill approach
   let pillsHTML="";
   matching.forEach((uc,i)=>{
     const pts=uc["Points Required"]||0;
     pillsHTML+=`
-      <div class="mini-pill ${i===0?"active":""}" data-usecase-id="${uc.id}" 
+      <div 
+        class="mini-pill ${i===0?"active":""}" 
+        data-usecase-id="${uc.id}"
         style="
-          display:inline-block; 
-          background-color:#f0f0f0; 
-          color:#333; 
-          border-radius:9999px;
+          display:inline-block;
           margin-right:8px; 
           margin-bottom:8px;
           padding:6px 12px;
+          border-radius:9999px;
+          background-color:${i===0?"#1a2732":"#f0f0f0"};
+          color:${i===0?"#fff":"#333"};
           cursor:pointer;
-        "
+          transition:all 0.2s;"
       >
         ${pts.toLocaleString()} pts
       </div>
@@ -553,8 +499,16 @@ function buildUseCaseAccordionContent(recordId, userPoints){
   const title=first["Use Case Title"]||"Untitled";
   const body=first["Use Case Body"]||"No description";
 
+  // fixed min-height so no jump
   return `
-    <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
+    <div 
+      class="usecases-panel" 
+      style="
+        display:flex; 
+        flex-direction:column; 
+        gap:1rem; 
+        min-height:200px;"
+    >
       <div class="pills-container" style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
         ${pillsHTML}
       </div>
@@ -563,7 +517,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
         style="
           display:flex; 
           gap:1rem; 
-          flex-wrap:nowrap; 
+          flex-wrap:nowrap;
           align-items:flex-start;"
       >
         <div class="image-wrap" style="max-width:180px;">
@@ -587,7 +541,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * buildOutputRows => Travel vs Cash => use-case expansions
+ * buildOutputRows => Travel vs Cash => toggle
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -607,12 +561,18 @@ function buildOutputRows(viewType){
     const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
     let rowHtml=`
-      <div class="output-row" data-record-id="${item.recordId}" style="display:flex; justify-content:space-between; align-items:center;">
+      <div 
+        class="output-row" 
+        data-record-id="${item.recordId}"
+        style="
+          display:flex; 
+          justify-content:space-between; 
+          align-items:center;"
+      >
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
           <img 
             src="${logoUrl}" 
             alt="logo" 
-            class="output-logo" 
             style="width:60px; height:auto;"
           />
           <span class="program-name">${item.programName}</span>
@@ -622,15 +582,22 @@ function buildOutputRows(viewType){
         </div>
       </div>
     `;
-    // If Travel => build use-case accordion
+    // if Travel => use-case expansions
     if(viewType==="travel"){
       rowHtml+=`
-        <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem;">
+        <div 
+          class="usecase-accordion" 
+          style="
+            display:none; 
+            border:1px solid #dce3eb; 
+            border-radius:6px; 
+            margin-bottom:12px; 
+            padding:1rem;"
+        >
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
     }
-
     $("#output-programs-list").append(rowHtml);
   });
 
@@ -738,7 +705,7 @@ function showHowItWorksStep(stepNum){
 }
 
 /*******************************************************
- * DOC READY => main transitions
+ * Document Ready => main transitions
  *******************************************************/
 $(document).ready(async function(){
 
@@ -769,7 +736,6 @@ $(document).ready(async function(){
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
       updateNextCTAVisibility();
-      updateClearAllVisibility();
     });
   });
 
@@ -802,7 +768,6 @@ $(document).ready(async function(){
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
       updateNextCTAVisibility();
-      updateClearAllVisibility();
     });
   });
 
@@ -863,8 +828,13 @@ $(document).ready(async function(){
       $("#unlock-report-btn").show();
       $("#explore-concierge-lower").show();
     });
-    $(".toggle-btn").removeClass("active");
-    $(".toggle-btn[data-view='travel']").addClass("active");
+
+    // Toggling switch => default to Travel
+    $("#travelCashSwitch").prop("checked",true);
+    $("#switch-knob").css("left","0");
+    $("#travel-label").css("font-weight","600").css("color","#1a2732");
+    $("#cash-label").css("font-weight","400").css("color","#666");
+
     buildOutputRows("travel");
   });
 
@@ -881,33 +851,51 @@ $(document).ready(async function(){
   });
 
   /****************************************************
+   * Toggle Switch => #travelCashSwitch => changes row
+   ****************************************************/
+  $("#travelCashSwitch").on("change", function(){
+    const isChecked=$(this).is(":checked");
+    if(isChecked){
+      // Travel
+      $("#switch-knob").animate({ left:"0" },200);
+      $("#travel-label").css("font-weight","600").css("color","#1a2732");
+      $("#cash-label").css("font-weight","400").css("color","#666");
+      buildOutputRows("travel");
+    } else {
+      // Cash
+      $("#switch-knob").animate({ left:"40px" },200);
+      $("#cash-label").css("font-weight","600").css("color","#1a2732");
+      $("#travel-label").css("font-weight","400").css("color","#666");
+      buildOutputRows("cash");
+    }
+  });
+
+  /****************************************************
    * Clear All, Program search, remove row
    ****************************************************/
   $("#clear-all-btn").on("click",function(){
     logSessionEvent("clear_all_clicked");
-    clearAllPrograms();
+    chosenPrograms=[];
+    $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
+    $("#input-next-btn").hide();
+    $(this).hide();
   });
+
   $("#program-search").on("input", filterPrograms);
+
   $(document).on("keypress","#program-search",function(e){
     if(e.key==="Enter" && $(".preview-item").length===1){
       logSessionEvent("program_search_enter");
       $(".preview-item").click();
     }
   });
-  // preview item => toggle
+
   $(document).on("click",".preview-item",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("program_preview_item_clicked",{ rid });
     toggleSearchItemSelection($(this));
-    $("#program-preview").hide().empty();
   });
-  // popular box => toggle
-  $(document).on("click",".top-program-box",function(){
-    const rid=$(this).data("record-id");
-    logSessionEvent("top_program_box_clicked",{ rid });
-    toggleProgramSelection($(this));
-  });
-  // remove row => recalc
+
   $(document).on("click",".remove-btn",function(){
     const rowEl=$(this).closest(".program-row");
     const rid=rowEl.data("record-id");
@@ -917,35 +905,30 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Toggle Travel/Cash
+   * Usecases => expand/collapse
    ****************************************************/
-  $(document).on("click",".toggle-btn",function(){
-    logSessionEvent("toggle_view_clicked",{ newView:$(this).data("view")});
-    $(".toggle-btn").removeClass("active");
-    $(this).addClass("active");
-    buildOutputRows($(this).data("view"));
-  });
-  // Expand/collapse usecase if Travel
   $(document).on("click",".output-row",function(){
-    if($(".toggle-btn[data-view='cash']").hasClass("active")) return;
+    // if user is in “cash” mode => do nothing
+    if(!$("#travelCashSwitch").is(":checked")) return;
     $(".usecase-accordion:visible").slideUp();
-    const panel=$(this).next(".usecase-accordion");
-    if(panel.is(":visible")) panel.slideUp();
-    else panel.slideDown();
+    const nextAcc=$(this).next(".usecase-accordion");
+    if(nextAcc.is(":visible")) nextAcc.slideUp();
+    else nextAcc.slideDown();
   });
+
   // mini-pill => load that use case
   $(document).on("click",".mini-pill",function(){
     const useCaseId=$(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked",{ useCaseId });
+    const container=$(this).closest(".usecases-panel");
+    $(this).siblings(".mini-pill").each(function(){
+      $(this).css("background-color","#f0f0f0").css("color","#333").removeClass("active");
+    });
+    $(this).css("background-color","#1a2732").css("color","#fff").addClass("active");
 
-    $(this).siblings(".mini-pill").removeClass("active");
-    $(this).addClass("active");
-    
     // find the record
     const uc=Object.values(realWorldUseCases).find(x=>x.id===useCaseId);
-    if(!uc)return;
-    // update the container
-    const container=$(this).closest(".usecases-panel");
+    if(!uc) return;
     container.find(".image-wrap img").attr("src",uc["Use Case URL"]||"");
     container.find("h4").text(uc["Use Case Title"]||"Untitled");
     container.find("p").text(uc["Use Case Body"]||"No description");
