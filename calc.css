@@ -1,5 +1,5 @@
 /*******************************************************
- * BASE RESET
+ * GLOBAL RESETS & BASE
  *******************************************************/
 * {
   margin: 0;
@@ -23,7 +23,7 @@ a {
 }
 
 /*******************************************************
- * LAYOUT => page-wrap => left + right
+ * PAGE LAYOUT => .page-wrap => left + right columns
  *******************************************************/
 .page-wrap {
   display: flex;
@@ -36,7 +36,7 @@ a {
   width: 25%;
   min-width: 250px;
   position: relative;
-  display: none; 
+  display: flex; /* Desktop visible */
   align-items: center;
   justify-content: center;
   overflow: hidden;
@@ -72,7 +72,7 @@ a {
     flex-direction: column;
   }
   .left-column {
-    display: none;
+    display: none; /* Hide the left column on tablet/mobile */
   }
   .right-column {
     width: 100%;
@@ -88,7 +88,6 @@ a {
   min-height: 100vh;
   background: url("http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg")
     center center / cover no-repeat;
-  z-index: 1;
 }
 .hero-inner {
   position: relative;
@@ -109,10 +108,6 @@ a {
   align-items: center;
   justify-content: center;
 }
-
-/*******************************************************
- * CTA => .cta-btn + .cta-no-border
- *******************************************************/
 .cta-btn {
   font-size: 1rem;
   font-weight: 600;
@@ -122,7 +117,6 @@ a {
 .cta-dark {
   background-color: #1a2732;
   color: #fff;
-  border: none;
 }
 .cta-dark:hover {
   background-color: #141d28;
@@ -130,7 +124,6 @@ a {
 .cta-no-border {
   background-color: #fff;
   color: #1a2732;
-  border: none; 
 }
 .cta-no-border:hover {
   background-color: #e0e0e0;
@@ -149,8 +142,21 @@ a {
   border-radius: 9999px;
 }
 
+/* Ensure the hero CTAs can fit side by side on smaller widths */
+@media (max-width: 576px) {
+  .hero-cta-container {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: center;
+  }
+  .hero-cta-container button {
+    font-size: 0.9rem;
+    padding: 0.6rem 1rem; /* Slightly smaller */
+  }
+}
+
 /*******************************************************
- * “HOW IT WORKS” => lines
+ * “HOW IT WORKS” => lines & images
  *******************************************************/
 .hiw-line {
   width: 60px;
@@ -162,23 +168,28 @@ a {
 .hiw-line.active-line {
   background-color: #1a2732;
 }
-
-/*******************************************************
- * STATES => input/calculator/output => consistent widths
- *******************************************************/
-#input-state,
-#calculator-state,
-#output-state,
-#usecase-state,
-#send-report-state {
-  display: none;
-  margin-top: 10px; 
-  text-align: left; 
+/* The main image in each step => limit to 80% on mobile */
+.hiw-main-image {
+  width: 100%;
+  height: auto;
 }
-/* Force the Output State's content-limiter => 60rem */
-#output-state .content-limiter {
-  max-width: 60rem !important;
-  margin: 0 auto !important;
+@media (max-width: 576px) {
+  .hiw-image-container {
+    width: 100%;
+  }
+  .hiw-main-image {
+    width: 80%;  /* 80% centered on smaller screens */
+    margin: 0 auto;
+    display: block;
+  }
+  .hiw-step {
+    margin-bottom: 1rem;
+  }
+  /* Steps stack: image on top, text below */
+  .hiw-step > div {
+    flex-direction: column;
+    text-align: center;
+  }
 }
 
 /*******************************************************
@@ -196,6 +207,7 @@ a {
 }
 .content-limiter {
   margin: 0 auto;
+  padding: 0 1rem;
 }
 
 /*******************************************************
@@ -226,32 +238,21 @@ a {
 }
 
 /*******************************************************
- * PROGRAM & OUTPUT ROWS
+ * STATES => input/calculator/output => consistent widths
  *******************************************************/
-.program-row,
-.output-row {
-  border: 1px solid #DFE5EB;
-  border-radius: 6px;
-  background-color: #fff;
+#input-state,
+#calculator-state,
+#output-state,
+#usecase-state,
+#send-report-state {
+  margin-top: 10px; 
+  text-align: left; 
+  display: none;
 }
-.program-name {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1D3A5F;
+#output-state .content-limiter {
+  max-width: 60rem !important;
+  margin: 0 auto !important;
 }
-.output-value {
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #1D3A5F;
-}
-
-#input-next-btn,
-#to-output-btn {
-  display: block;         /* Ensures margin:0 auto can center it */
-  margin: 4rem auto;         /* Centers horizontally */
-  padding: 0.9rem 3rem;   /* Wider button if desired */
-}
-
 
 /*******************************************************
  * CLEAR ALL
@@ -267,7 +268,7 @@ a {
 }
 
 /*******************************************************
- * POINTS INFO BOX => simpler
+ * INFO BOX
  *******************************************************/
 .points-info-box {
   background-color: #f5f5f7;
@@ -288,8 +289,6 @@ a {
   display: none;
   position: absolute;
   width: 100%;
-  left: 0;
-  transform: none;
   background-color: #fff;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   border-radius: 12px;
@@ -309,11 +308,11 @@ a {
 }
 
 /*******************************************************
- * POPULAR PROGRAMS => single line
+ * POPULAR PROGRAMS => 2 columns on mobile
  *******************************************************/
 .top-programs-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* default 3 columns (desktop) */
   gap: 16px;
 }
 .top-program-box {
@@ -324,56 +323,158 @@ a {
   border: 1px solid #dce3eb;
   border-radius: 8px;
   padding: 8px 10px;
-  width: calc(33.333% - 12px);
   transition: box-shadow 0.2s ease;
+  cursor: pointer; /* entire box clickable */
 }
 .top-program-box:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
-.add-btn {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 1px solid #eee;
-  background-color: #fff;
-  color: #ccc;
-  font-size: 16px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
+.top-program-box.selected-state {
+  background-color: #007bff; /* entire box goes blue if selected */
+  border-color: #007bff;
 }
-.add-btn:hover {
-  background-color: #ddd;
-  border-color: #bbb;
-}
+.top-program-box.selected-state .top-program-label,
 .top-program-box.selected-state .add-btn {
-  background-color: #007bff;
   color: #fff;
-  border: none;
 }
+.add-btn {
+  display: none; /* We are removing the plus/check from the design on mobile */
+  /* If you still want it on desktop, set display: block in a media query */
+}
+.top-program-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a2732;
+}
+
+/* Switch to 2 columns on narrower screens (~mobile) */
+@media (max-width: 576px) {
+  .top-programs-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns instead of 3 */
+  }
+  .top-program-box {
+    padding: 6px 8px;
+  }
+  .top-program-label {
+    font-size: 0.8rem;
+  }
+}
+
+/*******************************************************
+ * SELECTED PROGRAMS (tiny logos)
+ *******************************************************/
 .seleted-program-title {
   font-size: 16px;
   font-weight: 700;
   color: #333;
-  margin-bottom: 16px;
   text-transform: uppercase;
   display: none;
   text-align: left;
 }
 
-.state-header {
-  margin-top:4.5rem;
+/*******************************************************
+ * PROGRAM & OUTPUT ROWS
+ *******************************************************/
+.program-row,
+.output-row {
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  background-color: #fff;
+  margin-bottom: 1rem;
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.program-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1D3A5F;
+}
+.output-value {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1D3A5F;
+}
+
+/*******************************************************
+ * CALCULATOR ROW => single line on mobile:
+ * [Logo + Name] ... [Input] ... [X]
+ *******************************************************/
+.dollar-input-container {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #DFE5EB;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  padding: 0 1rem;
+}
+.points-input {
+  border: none;
+  outline: none;
+  font-size: 1rem;
+  width: 7rem;
+  background-color: transparent;
+  padding: 0.75rem 0;
+}
+.remove-btn {
+  background: none;
+  color: #dc3545;
+  font-size: 1.25rem;
+}
+
+/*******************************************************
+ * NEXT BUTTON => pinned at bottom on mobile
+ *******************************************************/
+.sticky-next-btn {
+  display: none; /* default hidden, shown via JS if needed */
+  position: static;
+  margin: 2rem auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  padding: 0.9rem 3rem;
+  z-index: 999;
+}
+@media (max-width: 768px) {
+  .sticky-next-btn {
+    position: fixed;
+    bottom: 0;
+    margin: 0 auto;
+    left: 0;
+    right: 0;
+    width: 90%;
+    max-width: 600px;
+    text-align: center;
+  }
+}
+
+/*******************************************************
+ * TRAVEL/CASH SWITCH
+ *******************************************************/
+.tc-switch-btn {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  margin: 0;
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.tc-switch-btn:hover {
+  background-color: #2e4461;
+  color: #fff;
+}
+.tc-switch-btn.active-tc {
+  background-color: #1a2732;
+  color: #fff;
 }
 
 /*******************************************************
  * USECASE => expansions
  *******************************************************/
-#usecase-state {
-  display: none;
-  padding: 10px 20px;
-  background-color: #fff; 
-}
 .module-container {
   width: 100%;
   background-color: transparent; 
@@ -462,14 +563,9 @@ a {
 /*******************************************************
  * SEND-REPORT => #send-report-state
  *******************************************************/
-#send-report-state {
-  display: none;
-  margin-top: 10px;
-  padding: 0 20px;
-}
 .save-results-container {
   margin-top: 20px;
-  display: none;
+  display: flex;
   align-items: center;
   gap: 8px;
   border: none;
@@ -559,11 +655,11 @@ a {
 }
 
 /*******************************************************
- * REPORT MODAL => #report-modal => 80% wide input
+ * REPORT MODAL => bottom sheet on mobile
  *******************************************************/
 #report-modal {
   display: none;
-  position: absolute;
+  position: fixed; /* So it can slide from bottom on mobile */
   top: 0; 
   left: 0;
   width: 100%;
@@ -599,62 +695,38 @@ a {
   text-align: center;
 }
 
-/*******************************************************
- * TRAVEL/CASH => 2 pill buttons => mimic “point-option”
- *******************************************************/
-.tc-switch-btn {
-  padding: 8px 16px;
-  border-radius: 9999px;
-  margin: 0;
-  background-color: #f0f0f0;
-  color: #333;
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-.tc-switch-btn:hover {
-  background-color: #2e4461;
-  color: #fff;
-}
-.tc-switch-btn.active-tc {
-  background-color: #1a2732;
-  color: #fff;
+/* On mobile, we can shift the modal to the bottom if you prefer a bottom sheet approach */
+@media (max-width: 576px) {
+  #report-modal-content {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    transform: none;
+    border-radius: 12px 12px 0 0;
+    width: 100%;
+    max-width: 100%;
+  }
+  #modal-close-btn {
+    position: absolute;
+    top: 10px;
+    right: 16px;
+  }
+  .modal-subheader {
+    text-align: left !important;
+  }
 }
 
 /*******************************************************
- * MEDIA QUERIES => MOBILE
+ * TRAVEL/CASH => 2 pill buttons => keep them on one line
  *******************************************************/
-@media (max-width: 576px) {
-  html, body,
-  .page-wrap,
-  .right-column,
-  .container,
-  .hero-section,
-  #input-state,
-  #calculator-state,
-  #output-state,
-  #usecase-state,
-  #send-report-state {
-    max-width: 100%!important;
-    width: 100%!important;
-    margin: 0!important;
-    padding: 0!important;
-  }
-  [style*="max-width"],
-  [style*="width"] {
-    max-width: 100%!important;
-    width: 100%!important;
-    margin: 0!important;
-    padding: 0!important;
-  }
-  .hero-inner h1 {
-    font-size: 2rem!important;
-  }
-  .hero-inner h2 {
-    font-size: 1rem!important;
-  }
-  .container {
-    padding-bottom: 80px!important;
-  }
+.tip-text {
+  margin: 1rem 0;
+  text-align: left;
 }
+
+/*******************************************************
+ * MEDIA QUERIES => MOBILE 
+ *******************************************************/
+/* Already integrated above in each relevant section. 
+   Add any additional specific overrides below if needed. */
+
