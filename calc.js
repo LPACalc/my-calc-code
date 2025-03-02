@@ -31,6 +31,9 @@ let realWorldUseCases = [];
 let chosenPrograms = [];
 let isTransitioning = false;
 
+/*******************************************************
+ * FETCH IP & LOCATION
+ *******************************************************/
 async function fetchClientIP() {
   try {
     const resp = await fetch("https://young-cute-neptune.glitch.me/getClientIP");
@@ -44,10 +47,10 @@ async function fetchClientIP() {
     console.error("Error fetching IP =>", err);
   }
 }
-
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return;
   try {
+    // If IPv6 => skip location
     if (clientIP.includes(":")) {
       approximateLocation = null;
       return;
@@ -73,6 +76,9 @@ async function fetchApproxLocationFromIP() {
   }
 }
 
+/*******************************************************
+ * LOG EVENTS
+ *******************************************************/
 function logSessionEvent(eventName, payload = {}) {
   const eventData = {
     sessionId,
@@ -93,6 +99,7 @@ function logSessionEvent(eventName, payload = {}) {
   }).catch(err => console.error("Failed to log event:", err));
 }
 
+// Track session end
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
@@ -102,23 +109,6 @@ window.addEventListener('beforeunload', () => {
 });
 
 /*******************************************************
- * HIDE ALL STATES
- *******************************************************/
-function hideAllStates() {
-  $("#default-hero, #how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
-}
-
-/*******************************************************
- * SHOW LEFT COLUMN BANNER
- *******************************************************/
-function showLeftColumnBanner() {
-  $(".left-column").css({
-    display: "flex",
-    background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
-  });
-}
-
-/*******************************************************
  * HELPER => EMAIL
  *******************************************************/
 function isValidEmail(str) {
@@ -126,7 +116,7 @@ function isValidEmail(str) {
 }
 
 /*******************************************************
- * FETCH & TIMEOUT
+ * FETCH WITH TIMEOUT
  *******************************************************/
 async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   let attempt=0;
@@ -165,7 +155,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
 }
 
 /*******************************************************
- * FETCH AIRTABLE
+ * FETCH AIRTABLE TABLE
  *******************************************************/
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
@@ -246,10 +236,12 @@ function buildTopProgramsSection(){
             alt="${name} logo" 
             style="width:60px; height:auto; object-fit:contain;"
           />
-          <span class="top-program-label" style="font-size:0.85rem; font-weight:600;">
+          <span class="top-program-label">
             ${name}
           </span>
         </div>
+        <!-- .add-btn is hidden by default in CSS, 
+             but we keep it if you want to show on desktop -->
         <button class="add-btn">+</button>
       </div>
     `;
@@ -314,12 +306,6 @@ function addProgramRow(recordId){
     <div 
       class="program-row" 
       data-record-id="${recordId}"
-      style="
-        display:flex; 
-        align-items:center; 
-        justify-content:space-between; 
-        padding:0.75rem 1.5rem;
-        margin-bottom:1rem;"
     >
       <div 
         class="program-left" 
@@ -330,43 +316,19 @@ function addProgramRow(recordId){
       </div>
       <div 
         class="program-right" 
-        style="
-          display:flex; 
-          align-items:center; 
-          gap:1rem;"
+        style="display:flex; align-items:center; gap:1rem;"
       >
-        <div 
-          class="dollar-input-container"
-          style="
-            display:inline-flex;
-            align-items:center;
-            border:1px solid #DFE5EB;
-            border-radius:0.5rem;
-            background-color:#fff;
-            padding:0 1rem;
-          "
-        >
+        <div class="dollar-input-container">
           <input
             type="text"
             class="points-input"
             placeholder="Enter Total"
             oninput="formatNumberInput(this); calculateTotal()"
-            style="
-              border:none;
-              outline:none;
-              font-size:1rem;
-              width:7rem;
-              background-color:transparent;
-              padding:0.75rem 0;
-            "
           />
         </div>
         <button 
           class="remove-btn" 
-          style="
-            background:none;
-            color:#dc3545;
-            font-size:1.25rem;"
+          style="background:none;"
         >×</button>
       </div>
     </div>
@@ -376,7 +338,7 @@ function addProgramRow(recordId){
 }
 
 /*******************************************************
- * TOGGLE SEARCH ITEM
+ * TOGGLE SEARCH ITEM SELECTION
  *******************************************************/
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
@@ -392,7 +354,7 @@ function toggleSearchItemSelection(itemEl){
 }
 
 /*******************************************************
- * TOGGLE PROGRAM SELECTION (Popular)
+ * TOGGLE PROGRAM SELECTION (for popular boxes)
  *******************************************************/
 function toggleProgramSelection(boxEl){
   const rid=boxEl.data("record-id");
@@ -400,11 +362,9 @@ function toggleProgramSelection(boxEl){
   if(idx===-1){
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
-    boxEl.find(".add-btn").text("✓");
   } else {
     chosenPrograms.splice(idx,1);
     boxEl.removeClass("selected-state");
-    boxEl.find(".add-btn").text("+");
   }
   $("#program-search").val("");
   $("#program-preview").hide().empty();
@@ -434,7 +394,8 @@ function updateChosenProgramsDisplay(){
         <img 
           src="${logoUrl}" 
           alt="${prog["Program Name"]||"N/A"}" 
-          style="width:100%; height:auto; object-fit:contain;">
+          style="width:100%; height:auto; object-fit:contain;"
+        />
       </div>
     `);
   });
@@ -468,10 +429,11 @@ function updateClearAllVisibility(){
 }
 function clearAllPrograms(){
   chosenPrograms=[];
-  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
+  $(".top-program-box.selected-state").removeClass("selected-state");
   updateChosenProgramsDisplay();
   $("#input-next-btn").hide();
   $("#clear-all-btn").hide();
+  $("#program-container").empty();
 }
 
 /*******************************************************
@@ -485,7 +447,7 @@ function formatNumberInput(el){
   el.value=num.toLocaleString();
 }
 function calculateTotal(){
-  // optional
+  // optional summary logic
 }
 
 /*******************************************************
@@ -509,8 +471,7 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * USE CASE => Build accordion => top 5 highest "Value"
- * then sorted from cheapest -> priciest by Points Required
+ * BUILD USE CASE ACCORDION
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
@@ -528,18 +489,15 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     return linked.includes(recordId)&&userHasEnough;
   });
 
-  // 1) Sort by "Redemption Value" descending => for "top 5 high-value"
-  // (Assume the field is "Redemption Value"? If your table uses a different name, adapt.)
+  // Sort by "Redemption Value" descending => take top 5
   matching.sort((a,b)=>{
     const valA=a["Redemption Value"]||0;
     const valB=b["Redemption Value"]||0;
-    return valB - valA; // descending
+    return valB - valA;
   });
-
-  // 2) slice(0,5) => top 5
   matching=matching.slice(0,5);
 
-  // 3) Then reorder them by Points Required ascending => cheapest -> priciest
+  // Then reorder by "Points Required" ascending
   matching.sort((a,b)=>{
     const ptsA=a["Points Required"]||0;
     const ptsB=b["Points Required"]||0;
@@ -553,7 +511,6 @@ function buildUseCaseAccordionContent(recordId, userPoints){
   let pillsHTML="";
   matching.forEach((uc,i)=>{
     const pts=uc["Points Required"]||0;
-    // First pill => active
     pillsHTML+=`
       <div 
         class="mini-pill ${i===0?"active":""}" 
@@ -639,16 +596,11 @@ function buildOutputRows(viewType){
     totalValue+=rowVal;
     const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
+    // Each row
     let rowHtml=`
       <div 
         class="output-row" 
         data-record-id="${item.recordId}"
-        style="
-          display:flex; 
-          justify-content:space-between; 
-          align-items:center;
-          padding:0.75rem 1.5rem;
-          margin-bottom:1rem;"
       >
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
           <img 
@@ -663,6 +615,8 @@ function buildOutputRows(viewType){
         </div>
       </div>
     `;
+
+    // If Travel => use case accordion
     if(viewType==="travel"){
       rowHtml+=`
         <div 
@@ -671,7 +625,8 @@ function buildOutputRows(viewType){
             display:none; 
             border:1px solid #dce3eb; 
             border-radius:6px; 
-            margin-bottom:12px; 
+            margin-top:-0.75rem; 
+            margin-bottom:1rem; 
             padding:1rem;"
         >
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
@@ -754,12 +709,14 @@ async function sendReportFromModal(){
       hideReportModal();
       sentMsgEl.hide();
 
-      // Swap “Unlock Full Report” => white, “Explore Services” => blue
+      // Swap “Unlock Full Report” => white, “Explore Services” => dark
       $("#unlock-report-btn")
-        .removeClass("cta-dark").removeClass("cta-light-border")
+        .removeClass("cta-dark")
+        .removeClass("cta-light-border")
         .addClass("cta-light-border");
       $("#explore-concierge-lower")
-        .removeClass("cta-dark").removeClass("cta-light-border")
+        .removeClass("cta-dark")
+        .removeClass("cta-light-border")
         .addClass("cta-dark");
     },700);
   }catch(err){
@@ -785,7 +742,7 @@ function showHowItWorksStep(stepNum){
 }
 
 /*******************************************************
- * DOCUMENT READY => transitions
+ * DOC READY => transitions, events
  *******************************************************/
 $(document).ready(async function(){
 
@@ -795,7 +752,7 @@ $(document).ready(async function(){
   await fetchApproxLocationFromIP();
   await initializeApp();
 
-  hideAllStates();
+  // Start => hero
   $("#default-hero").show();
   $("#program-preview").hide().empty();
 
@@ -805,8 +762,17 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    showLeftColumnBanner();
-    hideAllStates();
+    $(".left-column").css({
+      display: "flex",
+      background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
+    });
+    $("#default-hero").hide();
+    $("#how-it-works-state").hide();
+    $("#calculator-state").hide();
+    $("#output-state").hide();
+    $("#usecase-state").hide();
+    $("#send-report-state").hide();
+    $("#submission-takeover").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
       updateNextCTAVisibility();
@@ -820,8 +786,17 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    showLeftColumnBanner();
-    hideAllStates();
+    $(".left-column").css({
+      display: "flex",
+      background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
+    });
+    $("#default-hero").hide();
+    $("#input-state").hide();
+    $("#calculator-state").hide();
+    $("#output-state").hide();
+    $("#usecase-state").hide();
+    $("#send-report-state").hide();
+    $("#submission-takeover").hide();
     $("#how-it-works-state").fadeIn(()=>{
       isTransitioning=false;
       showHowItWorksStep(1);
@@ -835,7 +810,9 @@ $(document).ready(async function(){
     logSessionEvent("hiw_final_get_started");
     if(isTransitioning)return;
     isTransitioning=true;
-    hideAllStates();
+
+    $("#how-it-works-state").hide();
+    $("#default-hero").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
       updateNextCTAVisibility();
@@ -849,9 +826,11 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    hideAllStates();
+    $("#input-state").hide();
     $(".left-column").css("display","none");
-    $("#default-hero").fadeIn(()=>{ isTransitioning=false; });
+    $("#default-hero").fadeIn(()=>{ 
+      isTransitioning=false; 
+    });
   });
 
   // Input => next => calc
@@ -860,7 +839,7 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    hideAllStates();
+    $("#input-state").hide();
     $("#calculator-state").fadeIn(()=>{
       isTransitioning=false;
       $("#to-output-btn").show();
@@ -875,8 +854,10 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    hideAllStates();
-    $("#input-state").fadeIn(()=>{ isTransitioning=false; });
+    $("#calculator-state").hide();
+    $("#input-state").fadeIn(()=>{
+      isTransitioning=false;
+    });
   });
 
   // Calc => next => output
@@ -885,7 +866,7 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    hideAllStates();
+    $("#calculator-state").hide();
     $("#output-state").fadeIn(()=>{
       isTransitioning=false;
       $("#unlock-report-btn").show();
@@ -902,8 +883,10 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    hideAllStates();
-    $("#calculator-state").fadeIn(()=>{ isTransitioning=false; });
+    $("#output-state").hide();
+    $("#calculator-state").fadeIn(()=>{
+      isTransitioning=false;
+    });
   });
 
   // Travel/Cash => pill
@@ -954,6 +937,7 @@ $(document).ready(async function(){
   $(document).on("click",".output-row",function(){
     const activeView=$(".tc-switch-btn.active-tc").data("view");
     if(activeView!=="travel")return;
+    // Slide up all open
     $(".usecase-accordion:visible").slideUp();
     const nextAcc=$(this).next(".usecase-accordion");
     if(nextAcc.is(":visible")) nextAcc.slideUp();
@@ -966,9 +950,15 @@ $(document).ready(async function(){
     logSessionEvent("mini_pill_clicked",{ useCaseId });
     const container=$(this).closest(".usecases-panel");
     $(this).siblings(".mini-pill").each(function(){
-      $(this).css("background-color","#f0f0f0").css("color","#333").removeClass("active");
+      $(this)
+        .css("background-color","#f0f0f0")
+        .css("color","#333")
+        .removeClass("active");
     });
-    $(this).css("background-color","#1a2732").css("color","#fff").addClass("active");
+    $(this)
+      .css("background-color","#1a2732")
+      .css("color","#fff")
+      .addClass("active");
     const uc=Object.values(realWorldUseCases).find(x=>x.id===useCaseId);
     if(!uc)return;
     container.find(".image-wrap img").attr("src",uc["Use Case URL"]||"");
@@ -999,15 +989,15 @@ $(document).ready(async function(){
 
   // Usecase => back => output
   $("#usecase-back-btn").on("click",function(){
-    hideAllStates();
+    $("#usecase-state").hide();
     $("#output-state").fadeIn();
   });
   $("#send-report-back-btn").on("click",function(){
-    hideAllStates();
+    $("#send-report-state").hide();
     $("#output-state").fadeIn();
   });
   $("#go-back-btn").on("click",function(){
-    hideAllStates();
+    $("#submission-takeover").hide();
     $("#output-state").fadeIn();
   });
   $("#explore-concierge-btn").on("click",function(){
