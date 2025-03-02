@@ -186,7 +186,7 @@ async function fetchAirtableTable(tableName){
 async function initializeApp(){
   console.log("=== initializeApp() ===");
   try {
-    // Fetch loyaltyPrograms
+    // 1) Fetch loyaltyPrograms
     const resp=await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
@@ -210,7 +210,7 @@ async function initializeApp(){
   }
 
   try{
-    // Fetch Real-World Use Cases
+    // 2) Fetch Real-World Use Cases
     const useCasesData=await fetchAirtableTable("Real-World Use Cases");
     realWorldUseCases=useCasesData.reduce((acc, record)=>{
       acc[record.id]={ id:record.id, ...record.fields };
@@ -509,13 +509,15 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * USE CASE => Build accordion => top 4 recommended
+ * USE CASE => Build accordion => top 5 highest "Value"
+ * then sorted from cheapest -> priciest by Points Required
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
   if(!program){
     return `<div style="padding:1rem;">No data found.</div>`;
   }
+
   let matching=Object.values(realWorldUseCases).filter(uc=>{
     if(!uc.Recommended) return false;
     if(!uc["Points Required"]) return false;
@@ -525,13 +527,24 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     const userHasEnough= uc["Points Required"]<=userPoints;
     return linked.includes(recordId)&&userHasEnough;
   });
-  // sort from smallest pts to largest => or if you want highest value, do it differently
-  matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
 
-  // (6) Show the 4 highest *value* recommended, 
-  // if you want highest points required => sort descending, then slice(0,4)
-  // but let's assume you want smallest => largest. We'll do slice(0,4).
-  matching=matching.slice(0,4);
+  // 1) Sort by "Redemption Value" descending => for "top 5 high-value"
+  // (Assume the field is "Redemption Value"? If your table uses a different name, adapt.)
+  matching.sort((a,b)=>{
+    const valA=a["Redemption Value"]||0;
+    const valB=b["Redemption Value"]||0;
+    return valB - valA; // descending
+  });
+
+  // 2) slice(0,5) => top 5
+  matching=matching.slice(0,5);
+
+  // 3) Then reorder them by Points Required ascending => cheapest -> priciest
+  matching.sort((a,b)=>{
+    const ptsA=a["Points Required"]||0;
+    const ptsB=b["Points Required"]||0;
+    return ptsA - ptsB;
+  });
 
   if(!matching.length){
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
@@ -540,6 +553,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
   let pillsHTML="";
   matching.forEach((uc,i)=>{
     const pts=uc["Points Required"]||0;
+    // First pill => active
     pillsHTML+=`
       <div 
         class="mini-pill ${i===0?"active":""}" 
