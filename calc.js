@@ -50,7 +50,7 @@ async function fetchClientIP() {
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return;
   try {
-    // If IPv6 => skip location
+    // If IPv6 => skip
     if (clientIP.includes(":")) {
       approximateLocation = null;
       return;
@@ -77,7 +77,7 @@ async function fetchApproxLocationFromIP() {
 }
 
 /*******************************************************
- * LOG SESSION EVENT
+ * LOG EVENT
  *******************************************************/
 function logSessionEvent(eventName, payload = {}) {
   const eventData = {
@@ -98,8 +98,6 @@ function logSessionEvent(eventName, payload = {}) {
     keepalive: true
   }).catch(err => console.error("Failed to log event:", err));
 }
-
-// End session
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
@@ -155,7 +153,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
 }
 
 /*******************************************************
- * FETCH AIRTABLE TABLE
+ * FETCH AIRTABLE
  *******************************************************/
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
@@ -171,17 +169,12 @@ async function fetchAirtableTable(tableName){
 }
 
 /*******************************************************
- * INIT APP => load data
+ * INIT APP
  *******************************************************/
 async function initializeApp(){
   console.log("=== initializeApp() ===");
   try {
-    // 1) Fetch loyaltyPrograms
-    const resp=await fetchWithTimeout(
-      "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
-      {},
-      10000
-    );
+    const resp=await fetchWithTimeout("https://young-cute-neptune.glitch.me/fetchPointsCalcData", {}, 10000);
     if(!resp.ok){
       throw new Error("Network not OK => " + resp.statusText);
     }
@@ -200,7 +193,6 @@ async function initializeApp(){
   }
 
   try{
-    // 2) Fetch Real-World Use Cases
     const useCasesData=await fetchAirtableTable("Real-World Use Cases");
     realWorldUseCases=useCasesData.reduce((acc, record)=>{
       acc[record.id]={ id:record.id, ...record.fields };
@@ -233,8 +225,8 @@ function buildTopProgramsSection(){
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <img 
             src="${logo}" 
-            alt="${name} logo" 
-            style="width:60px; height:auto; object-fit:contain;"
+            alt="${name} logo"
+            style="object-fit:contain;"
           />
           <span class="top-program-label">${name}</span>
         </div>
@@ -246,7 +238,7 @@ function buildTopProgramsSection(){
 }
 
 /*******************************************************
- * FILTER PROGRAMS => search
+ * FILTER => program-search
  *******************************************************/
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
@@ -291,7 +283,7 @@ function filterPrograms(){
 }
 
 /*******************************************************
- * ADD PROGRAM ROW => CALCULATOR
+ * ADD PROGRAM ROW => calc
  *******************************************************/
 function addProgramRow(recordId){
   const prog=loyaltyPrograms[recordId];
@@ -301,7 +293,7 @@ function addProgramRow(recordId){
   const rowHTML=`
     <div class="program-row" data-record-id="${recordId}">
       <div style="display:flex; align-items:center; gap:0.75rem;">
-        ${logo? `<img src="${logo}" alt="${name} logo" style="width:50px; height:auto;">`:""}
+        ${logo? `<img src="${logo}" alt="${name} logo" style="width:50px;">`:""}
         <span class="program-name">${name}</span>
       </div>
       <div style="display:flex; align-items:center; gap:1rem;">
@@ -322,7 +314,7 @@ function addProgramRow(recordId){
 }
 
 /*******************************************************
- * TOGGLE SEARCH ITEM => from #program-preview
+ * TOGGLE SEARCH ITEM => from preview
  *******************************************************/
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
@@ -338,19 +330,21 @@ function toggleSearchItemSelection(itemEl){
 }
 
 /*******************************************************
- * TOGGLE PROGRAM SELECTION => popular programs
+ * TOGGLE PROGRAM SELECTION => popular box
  *******************************************************/
 function toggleProgramSelection(boxEl){
   const rid=boxEl.data("record-id");
   const idx=chosenPrograms.indexOf(rid);
   if(idx===-1){
+    // Add
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
+    // Desktop => plus => check
     if(window.innerWidth >= 992){
-      // desktop => change plus to check
       boxEl.find(".add-btn").text("✓");
     }
   } else {
+    // Remove
     chosenPrograms.splice(idx,1);
     boxEl.removeClass("selected-state");
     if(window.innerWidth >= 992){
@@ -404,7 +398,7 @@ function updateNextCTAVisibility(){
 }
 
 /*******************************************************
- * CLEAR ALL => show/hide
+ * CLEAR ALL
  *******************************************************/
 function updateClearAllVisibility(){
   if($("#input-state").is(":visible")){
@@ -433,18 +427,19 @@ function clearAllPrograms(){
 }
 
 /*******************************************************
- * FORMAT => #11 => auto commas
+ * FORMAT NUMBER => #7 (mobile) + #5 (desktop) => remove black border => done in CSS
+   #9 => reduce width => done in CSS
+   #11 => auto commas => done here
  *******************************************************/
 function formatNumberInput(el){
   let raw=el.value.replace(/[^0-9]/g,"");
-  if(!raw) {
+  if(!raw){
     el.value="";
     return;
   }
   let num=parseInt(raw,10);
   if(num>10000000) num=10000000;
-  // Convert to localized string with commas
-  el.value=num.toLocaleString("en-US");
+  el.value=num.toLocaleString(); // commas
 }
 function calculateTotal(){
   // optional
@@ -471,7 +466,7 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * USE CASE => top 5 => reorder => mini-pill
+ * BUILD USE CASE ACCORDION => #12 => single row + swipe
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
@@ -487,16 +482,11 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     const linked=uc["Program Name"]||[];
     return linked.includes(recordId) && uc["Points Required"]<=userPoints;
   });
-
-  matching.sort((a,b)=>{
-    const valA=a["Redemption Value"]||0;
-    const valB=b["Redemption Value"]||0;
-    return valB - valA;
-  });
+  // Sort by redemption value => top 5
+  matching.sort((a,b)=>(b["Redemption Value"]||0)-(a["Redemption Value"]||0));
   matching=matching.slice(0,5);
-  matching.sort((a,b)=>{
-    return (a["Points Required"]||0) - (b["Points Required"]||0);
-  });
+  // reorder by points ascending
+  matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
   if(!matching.length){
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
@@ -506,7 +496,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     const pts=uc["Points Required"]||0;
     pillsHTML+=`
       <div 
-        class="mini-pill ${i===0?"active":""}" 
+        class="mini-pill ${i===0?"active":""}"
         data-usecase-id="${uc.id}"
         style="
           display:inline-block;
@@ -530,23 +520,19 @@ function buildUseCaseAccordionContent(recordId, userPoints){
   const body=first["Use Case Body"]||"No description";
 
   return `
-    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
+    <div class="usecases-accordion-wrap" style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
         ${pillsHTML}
       </div>
       <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
         <div style="max-width:180px; flex:0 0 auto;">
-          <img
-            src="${imageURL}"
-            alt="Use Case"
-            style="width:100%; border-radius:4px;"
-          />
+          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
         </div>
         <div style="flex:1 1 auto;">
-          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold; text-align:left;">
+          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
             ${title}
           </h4>
-          <p style="font-size:14px; line-height:1.4; color:#555; margin:0; text-align:left;">
+          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
             ${body}
           </p>
         </div>
@@ -556,13 +542,12 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * BUILD OUTPUT ROWS => Travel or Cash
+ * BUILD OUTPUT ROWS => travel or cash
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
   $("#output-programs-list").empty();
   let totalValue=0;
-
   data.forEach(item=>{
     const prog=loyaltyPrograms[item.recordId];
     const logoUrl=prog?.["Brand Logo URL"]||"";
@@ -586,10 +571,7 @@ function buildOutputRows(viewType){
     `;
     if(viewType==="travel"){
       rowHtml+=`
-        <div 
-          class="usecase-accordion"
-          style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem;"
-        >
+        <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
@@ -597,7 +579,7 @@ function buildOutputRows(viewType){
     $("#output-programs-list").append(rowHtml);
   });
 
-  const label=(viewType==="travel")?"Travel Value":"Cash Value";
+  const label=viewType==="travel"?"Travel Value":"Cash Value";
   const totalStr=`$${totalValue.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
   $("#output-programs-list").append(`
     <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
@@ -701,7 +683,7 @@ function showHowItWorksStep(stepNum){
 }
 
 /*******************************************************
- * DOCUMENT READY
+ * DOC READY => transitions
  *******************************************************/
 $(document).ready(async function(){
 
@@ -715,19 +697,20 @@ $(document).ready(async function(){
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
-  // Left column hidden by default
-  $(".left-column").css("display","none");
 
-  // Hero => “Get Started”
+  // Left column => hidden by default => only show if desktop once user clicks
+  $(".left-column").hide();
+
+  // HERO => GET STARTED
   $("#hero-get-started-btn").on("click",function(){
     logSessionEvent("hero_get_started_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
 
-    // Show left column only if desktop
     if(window.innerWidth >= 992){
+      // show left col only on desktop
+      $(".left-column").show();
       $(".left-column").css({
-        display: "flex",
         background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
       });
     }
@@ -740,16 +723,15 @@ $(document).ready(async function(){
     });
   });
 
-  // Hero => “How It Works”
+  // HERO => HOW IT WORKS
   $("#hero-how-it-works-btn").on("click",function(){
     logSessionEvent("hero_how_it_works_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
 
-    // Show left column only if desktop
     if(window.innerWidth >= 992){
+      $(".left-column").show();
       $(".left-column").css({
-        display: "flex",
         background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
       });
     }
@@ -784,8 +766,8 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     $("#input-state").hide();
-    // Hide left column again
-    $(".left-column").css("display","none");
+    // hide left column again
+    $(".left-column").hide();
     $("#default-hero").fadeIn(()=>{
       isTransitioning=false;
     });
@@ -815,7 +797,6 @@ $(document).ready(async function(){
     $("#calculator-state").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
-      // hide the next button again
       $("#to-output-btn").hide();
     });
   });
@@ -871,7 +852,6 @@ $(document).ready(async function(){
       $(".preview-item").click();
     }
   });
-  // Search item => toggle
   $(document).on("click",".preview-item",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("program_preview_item_clicked",{ rid });
@@ -904,20 +884,28 @@ $(document).ready(async function(){
     else nextAcc.slideDown();
   });
 
-  // mini-pill => load that usecase
+  // mini-pill => update use case (#13 => fix logic)
   $(document).on("click",".mini-pill",function(){
     const useCaseId=$(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked",{ useCaseId });
-    const container=$(this).closest("div[style*='display:flex']");
+    const container=$(this).closest(".usecases-accordion-wrap");
+    // unselect siblings
     $(this).siblings(".mini-pill").each(function(){
-      $(this).css({backgroundColor:"#f0f0f0",color:"#333"}).removeClass("active");
+      $(this).css("background-color","#f0f0f0").css("color","#333").removeClass("active");
     });
-    $(this).css({backgroundColor:"#1a2732",color:"#fff"}).addClass("active");
+    $(this).css("background-color","#1a2732").css("color","#fff").addClass("active");
+
     const uc=Object.values(realWorldUseCases).find(x=>x.id===useCaseId);
     if(!uc)return;
-    container.find("img").attr("src",uc["Use Case URL"]||"");
-    container.find("h4").text(uc["Use Case Title"]||"Untitled");
-    container.find("p").text(uc["Use Case Body"]||"No description");
+    // Update image, title, body
+    const imageURL=uc["Use Case URL"]||"";
+    const title=uc["Use Case Title"]||"Untitled";
+    const body=uc["Use Case Body"]||"No description";
+
+    const wrapper=$(this).closest(".usecases-accordion-wrap");
+    wrapper.find("img").attr("src", imageURL);
+    wrapper.find("h4").text(title);
+    wrapper.find("p").text(body);
   });
 
   // Unlock => modal
@@ -941,7 +929,7 @@ $(document).ready(async function(){
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 
-  // Usecase => back => output
+  // usecase => back => output
   $("#usecase-back-btn").on("click",function(){
     $("#usecase-state").hide();
     $("#output-state").fadeIn();
