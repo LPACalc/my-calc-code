@@ -271,17 +271,16 @@ h2 {
 
 /* Program preview dropdown in input-state */
 #program-preview {
-  position: absolute;
-  width: 100%;
-  max-width: 50rem;
+  display: none;
+  position: absolute; /* so it never pushes page flow */
   left: 50%;
   transform: translateX(-50%);
-  background-color: #ffffff;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  border-radius: 12px;
-  overflow: hidden;
+  width: 100%;
+  max-width: 50rem;
   z-index: 9999;
-  display: none;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
 }
 .preview-item {
   padding: 12px 18px;
@@ -974,6 +973,15 @@ h2 {
   margin-bottom: 8px;
   text-align: center;
   display: none;
+}
+
+.sqs-block-spacer {
+  display: none !important;
+}
+
+.sqs-section {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
 }
 
 /*******************************************************
