@@ -1,8 +1,6 @@
 "use strict";
 
-/*******************************************************
- * CREATE/RETRIEVE SESSION ID
- *******************************************************/
+// CREATE/RETRIEVE SESSION ID
 function generateSessionId() {
   return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => {
     return (Math.random() * 16 | 0).toString(16);
@@ -19,9 +17,7 @@ function getOrCreateSessionId() {
 const sessionId = getOrCreateSessionId();
 console.log("Session ID:", sessionId);
 
-/*******************************************************
- * GLOBALS & LOGGING
- *******************************************************/
+// GLOBALS & LOGGING
 let clientIP = null;
 let approximateLocation = null;
 let userEmail = null;
@@ -101,16 +97,12 @@ window.addEventListener('beforeunload', () => {
   localStorage.removeItem("pointsLensSessionId");
 });
 
-/*******************************************************
- * hideAllStates => switch screens
- *******************************************************/
+// HIDE ALL STATES
 function hideAllStates() {
   $("#default-hero, #how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
 
-/*******************************************************
- * showLeftColumnBanner => left col
- *******************************************************/
+// LEFT COLUMN BANNER
 function showLeftColumnBanner() {
   $(".left-column").css({
     display: "flex",
@@ -118,16 +110,12 @@ function showLeftColumnBanner() {
   });
 }
 
-/*******************************************************
- * isValidEmail => quick
- *******************************************************/
+// HELPER => validate email
 function isValidEmail(str) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
 }
 
-/*******************************************************
- * fetchWithTimeout => avoid hanging
- *******************************************************/
+// FETCH with TIMEOUT
 async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   let attempt=0;
   while(attempt<=maxRetries){
@@ -164,9 +152,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   throw new Error("Failed fetch after maxRetries");
 }
 
-/*******************************************************
- * fetchAirtableTable => read Real-World Use Cases
- *******************************************************/
+// FETCH AIRTABLE
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
@@ -180,9 +166,7 @@ async function fetchAirtableTable(tableName){
   return await resp.json();
 }
 
-/*******************************************************
- * initializeApp => load data
- *******************************************************/
+// INITIALIZE APP => load data
 async function initializeApp(){
   console.log("=== initializeApp() ===");
   try {
@@ -224,9 +208,7 @@ async function initializeApp(){
   buildTopProgramsSection();
 }
 
-/*******************************************************
- * buildTopProgramsSection => “Popular Programs”
- *******************************************************/
+// BUILD POPULAR PROGRAMS
 function buildTopProgramsSection(){
   const container=document.getElementById("top-programs-grid");
   if(!container)return;
@@ -238,7 +220,7 @@ function buildTopProgramsSection(){
     const prog=loyaltyPrograms[rid];
     const name=prog["Program Name"]||"Unnamed Program";
     const logo=prog["Brand Logo URL"]||"";
-    // Single-line layout => logo | name | + 
+    // Single-line => logo | name | plus
     html+=`
       <div class="top-program-box" data-record-id="${rid}">
         <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -258,9 +240,7 @@ function buildTopProgramsSection(){
   container.innerHTML=html;
 }
 
-/*******************************************************
- * filterPrograms => exclude if chosen
- *******************************************************/
+// FILTER PROGRAMS
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
     $("#program-preview")
@@ -303,9 +283,7 @@ function filterPrograms(){
   $("#program-preview").html(previewHTML).show();
 }
 
-/*******************************************************
- * addProgramRow => for CALCULATOR
- *******************************************************/
+// ADD PROGRAM ROW => CALCULATOR
 function addProgramRow(recordId){
   const prog=loyaltyPrograms[recordId];
   if(!prog)return;
@@ -377,9 +355,7 @@ function addProgramRow(recordId){
   calculateTotal();
 }
 
-/*******************************************************
- * toggleSearchItemSelection / toggleProgramSelection
- *******************************************************/
+// TOGGLE SEARCH ITEM
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
   if(!rid)return;
@@ -394,6 +370,7 @@ function toggleSearchItemSelection(itemEl){
   updateClearAllVisibility();
 }
 
+// TOGGLE POPULAR
 function toggleProgramSelection(boxEl){
   const rid=boxEl.data("record-id");
   const idx=chosenPrograms.indexOf(rid);
@@ -414,9 +391,7 @@ function toggleProgramSelection(boxEl){
   updateClearAllVisibility();
 }
 
-/*******************************************************
- * updateChosenProgramsDisplay => show small logos
- *******************************************************/
+// CHOSEN PROGRAMS DISPLAY
 function updateChosenProgramsDisplay(){
   const container=$("#chosen-programs-row");
   container.empty();
@@ -438,9 +413,7 @@ function updateChosenProgramsDisplay(){
   });
 }
 
-/*******************************************************
- * updateNextCTAVisibility => show if chosen
- *******************************************************/
+// NEXT CTA VIS
 function updateNextCTAVisibility(){
   if(chosenPrograms.length>0){
     $("#input-next-btn").show();
@@ -449,9 +422,7 @@ function updateNextCTAVisibility(){
   }
 }
 
-/*******************************************************
- * updateClearAllVisibility => now show if >= 1 chosen
- *******************************************************/
+// CLEAR ALL VIS => show if >=1
 function updateClearAllVisibility(){
   if($("#input-state").is(":visible")){
     if(chosenPrograms.length>=1) $("#clear-all-btn").fadeIn();
@@ -472,9 +443,7 @@ function clearAllPrograms(){
   $("#clear-all-btn").hide();
 }
 
-/*******************************************************
- * formatNumberInput / calculateTotal => optional
- *******************************************************/
+// FORMAT => remove non-numbers
 function formatNumberInput(el){
   let raw=el.value.replace(/,/g,"").replace(/[^0-9]/g,"");
   if(!raw){el.value="";return;}
@@ -482,11 +451,11 @@ function formatNumberInput(el){
   if(num>10000000) num=10000000;
   el.value=num.toLocaleString();
 }
-function calculateTotal(){}
+function calculateTotal(){
+  // optional
+}
 
-/*******************************************************
- * gatherProgramData => used in buildOutputRows
- *******************************************************/
+// GATHER PROGRAM DATA
 function gatherProgramData(){
   const data=[];
   $(".program-row").each(function(){
@@ -504,9 +473,7 @@ function gatherProgramData(){
   return data;
 }
 
-/*******************************************************
- * buildUseCaseAccordionContent => dynamic pills
- *******************************************************/
+// USE CASE ACCORDION
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
   if(!program){
@@ -596,9 +563,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
   `;
 }
 
-/*******************************************************
- * buildOutputRows => Travel or Cash => replicate “point-option”
- *******************************************************/
+// BUILD OUTPUT ROWS => Travel or Cash
 function buildOutputRows(viewType){
   const data=gatherProgramData();
   $("#output-programs-list").empty();
@@ -667,9 +632,7 @@ function buildOutputRows(viewType){
   `);
 }
 
-/*******************************************************
- * showReportModal / hideReportModal
- *******************************************************/
+// SHOW/HIDE REPORT MODAL
 function hideReportModal(){
   $("#report-modal").fadeOut(300);
 }
@@ -679,9 +642,7 @@ function showReportModal(){
   $("#email-sent-message").hide();
 }
 
-/*******************************************************
- * sendReport / sendReportFromModal
- *******************************************************/
+// SEND REPORT => server
 async function sendReport(email){
   if(!email)return;
   if(!isValidEmail(email))throw new Error("Invalid email format");
@@ -747,9 +708,7 @@ async function sendReportFromModal(){
   }
 }
 
-/*******************************************************
- * showHowItWorksStep => highlight lines
- *******************************************************/
+// “HOW IT WORKS” => lines
 function showHowItWorksStep(stepNum){
   $(".hiw-step").hide();
   $(`.hiw-step[data-step='${stepNum}']`).show();
@@ -761,27 +720,20 @@ function showHowItWorksStep(stepNum){
   });
 }
 
-/*******************************************************
- * Document Ready => main transitions
- *******************************************************/
+// DOM READY
 $(document).ready(async function(){
 
-  // Log session load
   logSessionEvent("session_load");
 
-  // fetch IP, location, data
   await fetchClientIP();
   await fetchApproxLocationFromIP();
   await initializeApp();
 
-  // Start => hero
   hideAllStates();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
 
-  /****************************************************
-   * Hero => “Get Started”
-   ****************************************************/
+  // Hero => “Get Started”
   $("#hero-get-started-btn").on("click",function(){
     logSessionEvent("hero_get_started_clicked");
     if(isTransitioning)return;
@@ -797,9 +749,7 @@ $(document).ready(async function(){
     });
   });
 
-  /****************************************************
-   * Hero => “How It Works”
-   ****************************************************/
+  // Hero => “How It Works”
   $("#hero-how-it-works-btn").on("click",function(){
     logSessionEvent("hero_how_it_works_clicked");
     if(isTransitioning)return;
@@ -813,8 +763,7 @@ $(document).ready(async function(){
       showHowItWorksStep(1);
     });
   });
-
-  // Step transitions
+  // Steps
   $("#hiw-continue-1").on("click",()=> showHowItWorksStep(2));
   $("#hiw-continue-2").on("click",()=> showHowItWorksStep(3));
   $("#hiw-final-start-btn").on("click",function(){
@@ -830,9 +779,7 @@ $(document).ready(async function(){
     });
   });
 
-  /****************************************************
-   * Input => Back => hero
-   ****************************************************/
+  // Input => back => hero
   $("#input-back-btn").on("click",function(){
     logSessionEvent("input_back_clicked");
     if(isTransitioning)return;
@@ -843,9 +790,7 @@ $(document).ready(async function(){
     $("#default-hero").fadeIn(()=>{ isTransitioning=false; });
   });
 
-  /****************************************************
-   * Input => Next => calculator
-   ****************************************************/
+  // Input => next => calc
   $("#input-next-btn").on("click",function(){
     logSessionEvent("input_next_clicked");
     if(isTransitioning)return;
@@ -860,9 +805,7 @@ $(document).ready(async function(){
     chosenPrograms.forEach(rid=>addProgramRow(rid));
   });
 
-  /****************************************************
-   * Calc => Back => input
-   ****************************************************/
+  // Calc => back => input
   $("#calc-back-btn").on("click",function(){
     logSessionEvent("calc_back_clicked");
     if(isTransitioning)return;
@@ -872,9 +815,7 @@ $(document).ready(async function(){
     $("#input-state").fadeIn(()=>{ isTransitioning=false; });
   });
 
-  /****************************************************
-   * Calc => Next => output
-   ****************************************************/
+  // Calc => next => output
   $("#to-output-btn").on("click",function(){
     logSessionEvent("calc_next_clicked");
     if(isTransitioning)return;
@@ -883,20 +824,16 @@ $(document).ready(async function(){
     hideAllStates();
     $("#output-state").fadeIn(()=>{
       isTransitioning=false;
-      // Show the 2 CTAs
       $("#unlock-report-btn").show();
       $("#explore-concierge-lower").show();
     });
 
-    // default => Travel
     buildOutputRows("travel");
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
   });
 
-  /****************************************************
-   * Output => Back => calc
-   ****************************************************/
+  // Output => back => calc
   $("#output-back-btn").on("click",function(){
     logSessionEvent("output_back_clicked");
     if(isTransitioning)return;
@@ -906,9 +843,7 @@ $(document).ready(async function(){
     $("#calculator-state").fadeIn(()=>{ isTransitioning=false; });
   });
 
-  /****************************************************
-   * Travel | Cash => pill-style
-   ****************************************************/
+  // Travel/Cash => “pill” style
   $(document).on("click",".tc-switch-btn",function(){
     $(".tc-switch-btn").removeClass("active-tc");
     $(this).addClass("active-tc");
@@ -916,35 +851,28 @@ $(document).ready(async function(){
     buildOutputRows(viewType);
   });
 
-  /****************************************************
-   * Clear All, Program search, remove row
-   ****************************************************/
+  // Clear All, etc.
   $("#clear-all-btn").on("click",function(){
     logSessionEvent("clear_all_clicked");
     clearAllPrograms();
   });
-
   $("#program-search").on("input", filterPrograms);
-
   $(document).on("keypress","#program-search",function(e){
     if(e.key==="Enter" && $(".preview-item").length===1){
       logSessionEvent("program_search_enter");
       $(".preview-item").click();
     }
   });
-
   $(document).on("click",".preview-item",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("program_preview_item_clicked",{ rid });
     toggleSearchItemSelection($(this));
   });
-
   $(document).on("click",".top-program-box",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("top_program_box_clicked",{ rid });
     toggleProgramSelection($(this));
   });
-
   $(document).on("click",".remove-btn",function(){
     const rowEl=$(this).closest(".program-row");
     const rid=rowEl.data("record-id");
@@ -953,19 +881,16 @@ $(document).ready(async function(){
     calculateTotal();
   });
 
-  /****************************************************
-   * Usecases => expand/collapse if travel
-   ****************************************************/
+  // Output => usecase expansions
   $(document).on("click",".output-row",function(){
     const activeView=$(".tc-switch-btn.active-tc").data("view");
-    if(activeView!=="travel")return; // only in travel mode
+    if(activeView!=="travel")return;
     $(".usecase-accordion:visible").slideUp();
     const nextAcc=$(this).next(".usecase-accordion");
     if(nextAcc.is(":visible")) nextAcc.slideUp();
     else nextAcc.slideDown();
   });
-
-  // mini-pill => load that use case
+  // mini-pill
   $(document).on("click",".mini-pill",function(){
     const useCaseId=$(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked",{ useCaseId });
@@ -975,17 +900,14 @@ $(document).ready(async function(){
     });
     $(this).css("background-color","#1a2732").css("color","#fff").addClass("active");
 
-    // find the record
     const uc=Object.values(realWorldUseCases).find(x=>x.id===useCaseId);
-    if(!uc) return;
+    if(!uc)return;
     container.find(".image-wrap img").attr("src",uc["Use Case URL"]||"");
     container.find("h4").text(uc["Use Case Title"]||"Untitled");
     container.find("p").text(uc["Use Case Body"]||"No description");
   });
 
-  /****************************************************
-   * “Unlock Full Report” => show modal
-   ****************************************************/
+  // Unlock => modal
   $("#unlock-report-btn").on("click",function(){
     logSessionEvent("unlock_report_clicked");
     showReportModal();
@@ -1000,25 +922,23 @@ $(document).ready(async function(){
     await sendReportFromModal();
   });
 
-  /****************************************************
-   * Explore Services => external link
-   ****************************************************/
+  // Explore => external
   $("#explore-concierge-lower").on("click",function(){
     logSessionEvent("explore_concierge_clicked");
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 
-  /****************************************************
-   * Additional => usecase, send-report, submission
-   ****************************************************/
+  // Usecase => back => output
   $("#usecase-back-btn").on("click",function(){
     hideAllStates();
     $("#output-state").fadeIn();
   });
+  // Send-report => back => output
   $("#send-report-back-btn").on("click",function(){
     hideAllStates();
     $("#output-state").fadeIn();
   });
+  // Submission => go back => output
   $("#go-back-btn").on("click",function(){
     hideAllStates();
     $("#output-state").fadeIn();
