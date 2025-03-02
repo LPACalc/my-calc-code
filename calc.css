@@ -23,7 +23,7 @@ a {
 }
 
 /*******************************************************
- * LAYOUT => page-wrap => left + right
+ * PAGE LAYOUT => LEFT/RIGHT
  *******************************************************/
 .page-wrap {
   display: flex;
@@ -36,11 +36,10 @@ a {
   width: 25%;
   min-width: 250px;
   position: relative;
-  display: none; /* hidden by default => show on CTA click */
+  display: none; 
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  /* For absolute centering of #left-col-logo */
 }
 #left-col-logo {
   position: absolute;
@@ -66,7 +65,7 @@ a {
 }
 
 /*******************************************************
- * RESPONSIVE => stack columns at <= 992px
+ * RESPONSIVE => <=992px => stack columns
  *******************************************************/
 @media (max-width: 992px) {
   .page-wrap {
@@ -81,7 +80,7 @@ a {
 }
 
 /*******************************************************
- * FULL-SCREEN HERO => #default-hero
+ * HERO => #default-hero
  *******************************************************/
 .hero-section {
   position: relative;
@@ -142,7 +141,7 @@ a {
 }
 
 /*******************************************************
- * HOW-IT-WORKS => LINES
+ * “HOW IT WORKS” => .hiw-line
  *******************************************************/
 .hiw-line {
   width: 60px;
@@ -156,7 +155,7 @@ a {
 }
 
 /*******************************************************
- * INPUT / CALCULATOR / OUTPUT => Common
+ * INPUT / CALCULATOR / OUTPUT => common
  *******************************************************/
 #input-state,
 #calculator-state,
@@ -174,18 +173,37 @@ a {
   justify-content: center;
   margin-bottom: 1rem;
 }
-.state-header .back-btn {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
 .state-title {
   margin: 0;
 }
+/* REINSTATE BACK ARROWS => .back-btn::before */
+.back-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0 10px;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.back-btn::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
+    no-repeat center center;
+  background-size: 24px 24px;
+  transition: opacity 0.2s ease;
+}
+.back-btn:hover::before {
+  opacity: 0.7;
+}
 
 /*******************************************************
- * ROWS => PROGRAM / OUTPUT
+ * PROGRAM & OUTPUT ROWS => smaller images
  *******************************************************/
 .program-row,
 .output-row {
@@ -197,6 +215,13 @@ a {
   padding: 1rem;
   margin-bottom: 1rem;
   background-color: #fff;
+}
+.program-logo, 
+.output-logo {
+  width: 80px; 
+  height: auto; 
+  object-fit: contain; 
+  margin-right: 1rem;
 }
 .program-name {
   font-size: 0.85rem;
@@ -223,7 +248,7 @@ a {
 }
 
 /*******************************************************
- * INFO BOX => #points-info-box
+ * POINTS INFO BOX
  *******************************************************/
 .points-info-box {
   background-color: #f5f5f7;
@@ -270,7 +295,7 @@ a {
 }
 
 /*******************************************************
- * POPULAR PROGRAMS => .top-programs-grid
+ * POPULAR PROGRAMS
  *******************************************************/
 .top-programs-section {
   max-width: 800px;
@@ -302,12 +327,6 @@ a {
 }
 .top-program-box:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
-}
-.top-program-logo {
-  width: 3rem;
-  height: 3rem;
-  object-fit: contain;
-  margin-right: 10px;
 }
 .add-btn {
   width: 24px;
@@ -342,7 +361,7 @@ a {
 }
 
 /*******************************************************
- * USECASE => #usecase-state
+ * USECASE => expansions
  *******************************************************/
 #usecase-state {
   display: none;
