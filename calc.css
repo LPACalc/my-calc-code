@@ -23,7 +23,7 @@ a {
 }
 
 /*******************************************************
- * PAGE LAYOUT => LEFT/RIGHT
+ * LAYOUT => page-wrap => left + right
  *******************************************************/
 .page-wrap {
   display: flex;
@@ -273,10 +273,9 @@ a {
 #program-preview {
   display: none;
   position: absolute;
-  width: 100%;
-  max-width: 50rem;
-  left: 50%;
-  transform: translateX(-50%);
+  width: 100%; /* Matches search bar width */
+  left: 0;
+  transform: none;
   background-color: #fff;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   border-radius: 12px;
@@ -611,7 +610,7 @@ a {
 }
 #modal-email-input {
   width: 85%;
-  margin: 0 auto 8px auto;
+  margin: 0 auto 1rem auto;
   display: block;
   font-size: 14px;
   padding: 8px;
@@ -665,6 +664,6 @@ a {
     padding: 20px!important;
   }
   .container {
-    padding-bottom: 80px!important; /* or enough to avoid pinned bottom issues */
+    padding-bottom: 80px!important;
   }
 }
