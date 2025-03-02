@@ -352,7 +352,7 @@ a {
 #usecase-state {
   display: none;
   padding: 10px 20px;
-  background-color: #fff; /* or #1a2732 if you want dark? */
+  background-color: #fff; /* or #1a2732 if desired */
 }
 .module-container {
   width: 100%;
