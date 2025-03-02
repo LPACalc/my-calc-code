@@ -89,12 +89,12 @@ function logSessionEvent(eventName, payload = {}) {
     sessionId,
     clientIP,
     eventName,
-     approximateLocation,
+    approximateLocation,
     timestamp: Date.now(),
     ...payload
   };
 
-   // If we have a global userEmail, include it
+  // If we have a global userEmail, include it
   if (userEmail) {
     eventData.email = userEmail;
   }
@@ -121,8 +121,6 @@ window.addEventListener('beforeunload', () => {
   localStorage.removeItem("pointsLensSessionId");
 });
 
-
-
 /*******************************************************
  * A) GLOBAL VARIABLES & DATA
  *******************************************************/
@@ -131,8 +129,6 @@ let realWorldUseCases = [];
 let chosenPrograms = []; 
 let userEmail = null; // Will store the user's email once they submit
 let approximateLocation = null;
-
-
 
 // Prevent double-click transitions
 let isTransitioning = false;
@@ -394,9 +390,8 @@ function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
 
-  // Hide hero, show calc state
-  $("#default-hero").hide();
-  $("#calculator-state").fadeIn();
+  // REMOVED the old lines that forced: $("#default-hero").hide(); $("#calculator-state").fadeIn();
+  // So adding rows no longer auto-switches states.
 
   const logo = prog["Brand Logo URL"] || "";
   const name = prog["Program Name"] || "Unnamed Program";
@@ -721,7 +716,6 @@ async function sendReportFromModal() {
     sentMsgEl.show();
     hasSentReport = true;
 
-    
     // 1) Store email in the global variable
     userEmail = emailInput;
 
@@ -889,14 +883,13 @@ function showReportModal() {
  * DOCUMENT READY
  *******************************************************/
 $(document).ready(async function() {
-
-      // Log session load right at the start
+  // Log session load right at the start
   logSessionEvent("session_load");
 
   // [NEW] Fetch IP before initialization (optional)
   await fetchClientIP();
 
-    // If you want to immediately fetch approximate location after IP:
+  // If you want to immediately fetch approximate location after IP:
   await fetchApproxLocationFromIP();
 
   // Continue with your other initialization code...
@@ -1108,11 +1101,13 @@ $(document).ready(async function() {
 
   // (O) Modal send
   $("#modal-send-btn").on("click", async function() {
-// Suppose emailInput is the user’s typed email
-  const emailInput = $("#modal-email-input").val().trim();
+    // Suppose emailInput is the user’s typed email
+    const emailInput = $("#modal-email-input").val().trim();
 
-  // Log the event with the email
-  logSessionEvent("modal_send_clicked", { email: emailInput });    await sendReportFromModal();
+    // Log the event with the email
+    logSessionEvent("modal_send_clicked", { email: emailInput });
+
+    await sendReportFromModal();
   });
 
   /*******************************************************
