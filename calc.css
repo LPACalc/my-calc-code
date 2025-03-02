@@ -1,6 +1,6 @@
-/********************************************
- * GLOBAL RESETS & BASE
- ********************************************/
+/*******************************************************
+ * GLOBAL RESET & BASE
+ *******************************************************/
 * {
   margin: 0;
   padding: 0;
@@ -15,8 +15,9 @@ html, body {
 }
 button {
   cursor: pointer;
-  outline: none;
   border: none;
+  outline: none;
+  background: none;
 }
 a {
   text-decoration: none;
@@ -27,9 +28,9 @@ img {
   display: block;
 }
 
-/********************************************
+/*******************************************************
  * LAYOUT => .page-wrap => left + right columns
- ********************************************/
+ *******************************************************/
 .page-wrap {
   display: flex;
   flex-direction: row;
@@ -37,7 +38,8 @@ img {
   width: 100%;
   position: relative;
 }
-/* Hide left column by default */
+
+/* MOBILE => hide left column */
 .left-column {
   display: none;
   width: 25%;
@@ -58,8 +60,6 @@ img {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  position: relative;
 }
 .container {
   flex: 1;
@@ -67,20 +67,16 @@ img {
   flex-direction: column;
 }
 
-/********************************************
- * DESKTOP => show the left column after user clicks
-   We do it in JS by setting .left-column {display: flex;}
-   That’s the approach used in your script.
- ********************************************/
+/* DESKTOP => show left column */
 @media (min-width: 992px) {
   .left-column {
-    /* Initially hidden until user clicks "Get Started" or "How It Works" in JS */
+    display: flex;
   }
 }
 
-/********************************************
+/*******************************************************
  * HERO => #default-hero
- ********************************************/
+ *******************************************************/
 .hero-section {
   position: relative;
   width: 100%;
@@ -107,7 +103,7 @@ img {
   font-size: 1rem;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: all 0.2s ease;
 }
 .cta-dark {
   background-color: #1a2732;
@@ -136,9 +132,9 @@ img {
   border-radius: 9999px;
 }
 
-/********************************************
+/*******************************************************
  * “HOW IT WORKS” => lines & images
- ********************************************/
+ *******************************************************/
 .hiw-line {
   width: 60px;
   height: 4px;
@@ -149,38 +145,24 @@ img {
 .hiw-line.active-line {
   background-color: #1a2732;
 }
-.hiw-desktop-margin {
-  /* Desktop => 10rem top margin, mobile => smaller */
-  margin-top: 10rem;
-}
-@media (max-width: 992px) {
-  .hiw-desktop-margin {
-    margin-top: 4rem; /* A smaller margin on tablets/mobile */
-  }
-}
 .hiw-main-image {
   width: 100%;
   height: auto;
 }
 
-/* Let’s handle mobile “How It Works” layout => stacking */
-@media (max-width: 576px) {
-  .hiw-flex-row {
-    flex-direction: column;
-    text-align: center;
-  }
-  .hiw-img-col {
-    width: 100%;
-  }
-  .hiw-main-image {
-    width: 80%; /* 80% on mobile */
-    margin: 0 auto;
+/* Desktop margin => 10rem */
+.hiw-desktop-margin {
+  margin-top: 4rem; /* default for smaller screens */
+}
+@media (min-width: 992px) {
+  .hiw-desktop-margin {
+    margin-top: 10rem; /* #1 => 10rem on desktop */
   }
 }
 
-/********************************************
+/*******************************************************
  * SCROLL WRAPPERS
- ********************************************/
+ *******************************************************/
 .outer-scroll-wrapper {
   position: relative;
   overflow: hidden;
@@ -196,18 +178,16 @@ img {
   padding: 0 1rem;
 }
 
-/********************************************
+/*******************************************************
  * BACK ARROW
- ********************************************/
+ *******************************************************/
 .back-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
   width: 24px;
   height: 24px;
+  background: none;
+  cursor: pointer;
   margin-right: 10px;
   margin-left: 0;
-  /* Remove the default outline or focus ring if needed */
 }
 .back-btn::before {
   content: "";
@@ -223,10 +203,9 @@ img {
   opacity: 0.7;
 }
 
-/********************************************
- * STATE HEADERS => Desktop vs Mobile
- * On mobile => we want the back button on a separate line (above the H1)
- ********************************************/
+/*******************************************************
+ * STATE HEADERS
+ *******************************************************/
 .state-header {
   display: flex;
   align-items: center;
@@ -240,25 +219,30 @@ img {
   font-size: 1.5rem;
   font-weight: bold;
 }
+/* Desktop => bigger title => #2 => 3rem */
+@media (min-width: 992px) {
+  .state-header .state-title {
+    font-size: 3rem;
+  }
+}
 @media (max-width: 576px) {
   .state-header {
     flex-direction: column;
     gap: 1rem;
-    margin-top: 3rem; /* #7 request => 3rem on mobile */
+    margin-top: 3rem; 
   }
   .state-header .back-btn {
-    align-self: flex-start; /* so it sits on top */
+    align-self: flex-start;
     margin-left: 1rem;
   }
   .state-header .state-title {
     font-size: 1.25rem;
-    text-align: center;
   }
 }
 
-/********************************************
+/*******************************************************
  * CLEAR ALL
- ********************************************/
+ *******************************************************/
 .clear-all-btn {
   background-color: #dc3545;
   color: #fff;
@@ -270,63 +254,43 @@ img {
   background-color: #b32431;
 }
 
-/********************************************
- * INFO BOX
- ********************************************/
+/*******************************************************
+ * INFO BOX => .points-info-box
+ *******************************************************/
 .points-info-box {
   background-color: #f5f5f7;
   border-radius: 8px;
   display: flex;
   gap: 12px;
+  align-items: flex-start; /* default */
 }
 .info-icon {
   width: 24px;
   height: 24px;
   object-fit: contain;
 }
-.input-points-info {
-  margin-top: 15px; /* #13 on mobile => we do via media query */
-}
-@media (max-width: 576px) {
-  .input-points-info {
-    margin-top: 15px !important;
-  }
-  .info-icon {
-    margin-left: 10px;
-    margin-right: 10px; /* #14 */
+/* #3 => desktop => bigger gap, new padding, center icon with copy */
+@media (min-width: 992px) {
+  .points-info-box.input-points-info {
+    gap: 30px;
+    padding: 20px 50px 20px 15px;
+    align-items: center; /* center icon vertically with text */
   }
 }
 
-/********************************************
- * SEARCH PREVIEW => #program-preview
- ********************************************/
-#program-preview {
-  display: none;
-  position: absolute;
-  width: 100%;
-  background-color: #fff;
-  box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-  border-radius: 12px;
-  overflow: hidden;
-  z-index: 9999;
-}
-.preview-item {
-  padding: 12px 18px;
-  font-size: 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-}
-.preview-item:hover {
-  background-color: #f8fafd;
+/*******************************************************
+ * program-search => margin-top:2rem on desktop (#4)
+ *******************************************************/
+@media (min-width: 992px) {
+  #program-search {
+    margin-top: 2rem;
+  }
 }
 
-/********************************************
- * TOP PROGRAMS => Desktop vs Mobile
-   - Desktop => show plus/check
-   - Mobile => entire box goes dark blue
- ********************************************/
+/*******************************************************
+ * TOP PROGRAMS => desktop vs mobile
+ * #5 => circle with check => .add-btn
+ *******************************************************/
 .top-programs-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -340,41 +304,44 @@ img {
   border: 1px solid #dce3eb;
   border-radius: 8px;
   padding: 8px 10px;
-  transition: box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+  transition: box-shadow 0.2s ease;
   cursor: pointer;
 }
 .top-program-box:hover {
   box-shadow: 0 2px 6px rgba(0,0,0,0.06);
 }
 .add-btn {
-  display: block; /* Desktop => check circle or plus sign */
+  width: 24px;
+  height: 24px;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
 }
-.top-program-box.selected-state .add-btn {
-  content: "✓";
-}
-.top-program-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #1a2732;
+/* When selected => dark blue circle with check mark (#5) => DESKTOP ONLY */
+@media (min-width: 992px) {
+  .top-program-box.selected-state .add-btn {
+    background-color: #1a2732;
+    color: #fff;
+    content: "✓";
+  }
 }
 
-/* MOBILE => 2 columns, entire box => dark blue if selected (#4) */
+/* MOBILE => entire box highlight. So hide .add-btn? 
+   Or keep it hidden via your earlier code if desired. */
 @media (max-width: 576px) {
   .top-programs-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .top-program-box {
-    padding: 6px 8px;
-  }
   .top-program-box .add-btn {
-    display: none; /* hide plus/check on mobile */
-  }
-  .top-program-label {
-    font-size: 1rem;    /* #3 => 1rem */
-    line-height: 1.2rem;/* #3 => line-height:1.2rem */
+    display: none; /* hide circle check on mobile, entire box becomes highlight */
   }
   .top-program-box.selected-state {
-    background-color: #1a2732 !important; /* #4 => dark blue */
+    background-color: #1a2732;
     border-color: #1a2732;
   }
   .top-program-box.selected-state .top-program-label {
@@ -382,16 +349,15 @@ img {
   }
 }
 
-/********************************************
- * SELECTED PROGRAMS
- ********************************************/
+/*******************************************************
+ * SELECTED PROGRAMS => same row => #6
+ *******************************************************/
 .seleted-program-title {
   font-size: 16px;
   font-weight: 700;
   color: #333;
   text-transform: uppercase;
   display: none;
-  margin-bottom: 0;
 }
 .selected-programs-row {
   display: flex;
@@ -400,9 +366,9 @@ img {
   margin-bottom: 0.75rem;
 }
 
-/********************************************
+/*******************************************************
  * PROGRAM & OUTPUT ROWS
- ********************************************/
+ *******************************************************/
 .program-row,
 .output-row {
   border: 1px solid #DFE5EB;
@@ -413,11 +379,19 @@ img {
   align-items: center;
   justify-content: space-between;
 }
+/* #10 => desktop => 0.8rem padding, program-name => 1.1rem */
+@media (min-width: 992px) {
+  .program-row {
+    padding: 0.8rem !important;
+  }
+  .program-row .program-name {
+    font-size: 1.1rem !important;
+  }
+}
 .program-name {
   font-size: 0.9rem;
   font-weight: 600;
   color: #1D3A5F;
-  margin: 0;
 }
 .output-value {
   font-size: 0.9rem;
@@ -425,55 +399,22 @@ img {
   color: #1D3A5F;
 }
 
-/* On mobile => smaller text, smaller logos => #9, #10, #11  */
-@media (max-width: 576px) {
-  .program-row {
-    padding: 0.75rem 1rem !important; /* #11 => narrower padding */
-  }
-  .program-name {
-    font-size: 0.8rem !important;  /* #9 => .8rem */
-    line-height: 1.2rem !important;
-  }
-  .program-row .program-left img {
-    width: 40px !important; /* #10 => 40px logo */
-  }
+/*******************************************************
+ * REMOVE BACKGROUND ON RED X => #9
+ *******************************************************/
+.remove-btn {
+  background: none;
+  color: #dc3545;
+  font-size: 1.25rem;
 }
 
-/********************************************
- * CALCULATOR ROW => Points Input
- ********************************************/
-.dollar-input-container {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #DFE5EB;
-  border-radius: 0.5rem;
-  background-color: #fff;
-  padding: 0 1rem;
-}
-.points-input {
-  border: none;
-  outline: none;
-  font-size: 1rem;
-  background-color: transparent;
-  padding: 0.75rem 0;
-  width: 7rem;
-  /* #12 => number keyboard on mobile */
-  inputmode: numeric;
-  -webkit-textfield-decimal: none;
-}
-.points-input:focus {
-  outline: none; /* #15 => remove black border */
-  border: none;
-}
-
-/********************************************
- * NEXT BUTTON => pinned at bottom on mobile,
-   not pinned on desktop
- ********************************************/
+/*******************************************************
+ * pinned next => center => #7
+ *******************************************************/
 .sticky-next-btn {
-  display: none; /* show via JS if needed */
+  display: none;
   position: static;
-  margin: 2rem auto;
+  margin: 2rem auto; /* #7 => centered */
   left: 0;
   right: 0;
   width: auto;
@@ -483,7 +424,7 @@ img {
 @media (max-width: 768px) {
   .sticky-next-btn {
     position: fixed;
-    bottom: 80px; /* some offset so it doesn’t overlap footer (#6 => some padding) */
+    bottom: 80px;
     margin: 0 auto;
     left: 0;
     right: 0;
@@ -493,19 +434,26 @@ img {
   }
 }
 
-/********************************************
+/*******************************************************
+ * Additional spacing => #8 => "calc" page 
+   => margin-bottom between .calc-points-info and .program-container
+ *******************************************************/
+.calc-points-info {
+  margin-bottom: 2rem; /* enough padding between info box & first row */
+}
+
+/*******************************************************
  * TRAVEL/CASH SWITCH
- ********************************************/
+ *******************************************************/
 .tc-switch-btn {
   padding: 8px 16px;
   border-radius: 9999px;
-  margin: 0;
   background-color: #f0f0f0;
   color: #333;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 .tc-switch-btn:hover {
   background-color: #2e4461;
@@ -516,28 +464,12 @@ img {
   color: #fff;
 }
 
-/********************************************
- * OUTPUT CTAs => smaller font on mobile (#18)
- ********************************************/
-.out-cta {
-  font-size: 1rem;
-  padding: 0.65rem 1rem;
-}
-@media (max-width: 576px) {
-  .out-cta {
-    font-size: 0.9rem; 
-    padding: 0.5rem 0.75rem; 
-  }
-}
-
-/********************************************
+/*******************************************************
  * USECASE => expansions
- ********************************************/
+ *******************************************************/
 .module-container {
   width: 100%;
   background-color: transparent; 
-  padding: 0;
-  margin: 0 auto;
 }
 .inner-content {
   width: 100%;
@@ -569,14 +501,13 @@ img {
 .point-option {
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: #333;
   cursor: pointer;
   padding: 8px 16px;
   border-radius: 20px;
   margin: 10px 0;
-  transition: background-color 0.2s;
   background-color: #f0f0f0;
-  color: #333;
+  transition: background-color 0.2s;
 }
 .point-option.active,
 .point-option:hover {
@@ -615,23 +546,24 @@ img {
   line-height: 1.4;
   max-width: 400px;
 }
-/* #16 => mini-pill dynamic sizing => handled in JS or we can do a max-width. */
+
+/* #12 => bigger pills if space is available => desktop => remove max-width */
 .mini-pill {
-  max-width: 100px; /* #16 => clamp the max */
-  text-overflow: ellipsis;
-  overflow: hidden;
+  max-width: 100px;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (min-width: 992px) {
+  .mini-pill {
+    max-width: none; /* no truncation on desktop => #12 */
+    font-size: 0.95rem;
+  }
 }
 
-/* #17 => horizontal swipe => simplest approach is setting overflow-x. */
-.usecase-details {
-  overflow-x: auto; /* allows horizontal swipe if content is wide */
-  -webkit-overflow-scrolling: touch;
-}
-
-/********************************************
+/*******************************************************
  * SEND-REPORT => #send-report-state
- ********************************************/
+ *******************************************************/
 .save-results-container {
   margin-top: 20px;
   display: flex;
@@ -648,22 +580,6 @@ img {
   border: 1px solid #dce3eb;
   border-radius: 4px;
   padding: 10px;
-  outline: none;
-}
-#email-input:focus {
-  border: 1px solid #999;
-  outline: none;
-}
-#send-results-btn {
-  font-size: 16px;
-  color: #fff;
-  background-color: #007bff;
-  border-radius: 4px;
-  padding: 10px 16px;
-  transition: background-color 0.2s ease;
-}
-#send-results-btn:hover {
-  background-color: #005fa3;
 }
 .save-results-left p {
   font-size: 14px;
@@ -675,9 +591,9 @@ img {
   display: none;
 }
 
-/********************************************
+/*******************************************************
  * SUBMISSION TAKEOVER => #submission-takeover
- ********************************************/
+ *******************************************************/
 #submission-takeover {
   position: absolute;
   top: 50%;
@@ -689,16 +605,10 @@ img {
   padding: 20px;
   max-width: 50rem;
 }
-#submission-takeover img {
-  width: 200px;
-  margin-bottom: 20px;
-}
 
-/********************************************
- * REPORT MODAL => center in the right column 
-   (We’ll do absolute on entire page for simplicity)
-   #20 => more padding under CTA etc.
- ********************************************/
+/*******************************************************
+ * REPORT MODAL => #report-modal
+ *******************************************************/
 #report-modal {
   display: none;
   position: fixed;
@@ -718,29 +628,34 @@ img {
   max-width: 90%;
   background: #fff;
   border-radius: 8px;
-  padding: 30px; /* #20 => more generous padding */
+  padding: 30px;
   box-sizing: border-box;
+}
+/* #13 => center on the right column (approx) => 
+   We'll offset the left:50% by the left column 25% width => 
+   or do a simpler approach. E.g. */
+@media (min-width: 992px) {
+  #report-modal-content {
+    /* Attempt to place it in the middle of the right column.
+       The right column starts at 25% of viewport. So we shift the left
+       from 50% to about 62.5%. Then translateX -50%. 
+       This is approximate. */
+    left: 62.5%;
+    transform: translate(-50%,-50%);
+  }
 }
 #modal-close-btn {
   float: right;
-  background: none;
-  border: none;
   font-size: 24px;
   cursor: pointer;
   line-height: 1;
 }
-#modal-close-btn:hover {
-  opacity: 0.7;
-}
-#modal-email-input {
-  outline: none;
-}
-#modal-email-input:focus {
-  outline: none;
-  border-color: #999;
-}
-.modal-btn-container {
-  margin-bottom: 20px; /* extra space below CTA #20 */
+#modal-email-error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-align: center;
+  display: none;
 }
 #email-sent-message {
   display: none;
@@ -750,7 +665,7 @@ img {
   text-align: center;
 }
 
-/* On mobile => bottom sheet style if desired */
+/* On mobile => bottom sheet if we want, or remain fixed center */
 @media (max-width: 576px) {
   #report-modal-content {
     top: auto;
@@ -760,13 +675,5 @@ img {
     border-radius: 12px 12px 0 0;
     width: 100%;
     max-width: 100%;
-  }
-  #modal-close-btn {
-    position: absolute;
-    top: 10px;
-    right: 16px;
-  }
-  .modal-subheader {
-    text-align: left !important;
   }
 }
