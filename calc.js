@@ -17,18 +17,18 @@ function getOrCreateSessionId() {
   return stored;
 }
 
-// You can now access this anywhere in calc.js
+// Global sessionId
 const sessionId = getOrCreateSessionId();
 console.log("Session ID:", sessionId);
 
 /*******************************************************
  * [NEW] FETCH CLIENT IP & LOG EVENTS
  *******************************************************/
+let clientIP = null; // optional
+let approximateLocation = null; 
+let userEmail = null; // once user enters email
+let hasSentReport = false; // track if user has already sent a report
 
-// A variable to store the user’s IP address (optional)
-let clientIP = null;
-
-// Fetches IP from your Glitch server
 async function fetchClientIP() {
   try {
     const resp = await fetch("https://young-cute-neptune.glitch.me/getClientIP");
@@ -44,25 +44,19 @@ async function fetchClientIP() {
 }
 
 async function fetchApproxLocationFromIP() {
-  if (!clientIP) return; // No IP yet
-  
+  if (!clientIP) return;
   try {
-    // Check if IP is likely IPv6 by looking for a colon
     if (clientIP.includes(":")) {
-      // ip-api free doesn't handle IPv6 => skip
-      console.warn("Detected IPv6 address. Skipping ip-api to avoid 403.");
+      console.warn("IPv6 address. Skipping ip-api to avoid 403.");
       approximateLocation = null; 
       return;
     }
-
-    // Otherwise, IP is IPv4 => proceed with ip-api free
     const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
     const resp = await fetch(url);
     if (!resp.ok) {
       throw new Error(`Location fetch error: ${resp.status}`);
     }
     const data = await resp.json();
-
     if (data.status === "success") {
       approximateLocation = {
         country: data.country,
@@ -73,17 +67,11 @@ async function fetchApproxLocationFromIP() {
       };
     }
     console.log("Approx location =>", approximateLocation);
-
   } catch (err) {
     console.error("Error fetching location =>", err);
   }
 }
 
-
-/**
- * Log an event to your Glitch server’s /logEvent endpoint.
- * Include sessionId + clientIP so you can track usage.
- */
 function logSessionEvent(eventName, payload = {}) {
   const eventData = {
     sessionId,
@@ -93,8 +81,6 @@ function logSessionEvent(eventName, payload = {}) {
     timestamp: Date.now(),
     ...payload
   };
-
-  // If we have a global userEmail, include it
   if (userEmail) {
     eventData.email = userEmail;
   }
@@ -103,7 +89,6 @@ function logSessionEvent(eventName, payload = {}) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(eventData),
-    // keepalive helps in some browsers when user navigates away quickly
     keepalive: true
   }).catch(err => console.error("Failed to log event:", err));
 }
@@ -113,61 +98,38 @@ let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
   const sessionDurationMs = sessionEndTime - sessionStartTime;
-
-  // Log an event with the duration
+  // Log an event
   logSessionEvent("session_end", { durationMs: sessionDurationMs });
-  
-  // Remove the session ID from localStorage
+  // Remove from localStorage
   localStorage.removeItem("pointsLensSessionId");
 });
 
 /*******************************************************
- * A) GLOBAL VARIABLES & DATA
+ * GLOBALS & DATA
  *******************************************************/
 let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = []; 
-let userEmail = null; // Will store the user's email once they submit
-let approximateLocation = null;
+let isTransitioning = false; // prevent double transitions
 
-// Prevent double-click transitions
-let isTransitioning = false;
-
-// Track if user has already sent a report
-let hasSentReport = false;
-
-// Static pill data for your #points-showcase
+// Pill data example
 const pointsData = {
   "10000": {
-    image: "https://www.point.me/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fbertrand-bouchez-Xjd9vc3vwik-unsplash.c121795b.jpg&w=640&q=75",
-    title: "Zak's Caribbean getaway",
-    description: "Zak had only earned a handful of points so far and wasn't sure how he could use them! He found round-trip economy flights to the Bahamas for just 10,000 points per person."
+    image: "...",
+    title: "Example Title 1",
+    description: "Example Desc 1"
   },
-  "40000": {
-    image: "https://www.point.me/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ftomas-malik-VF8P5iTbKQg-unsplash.1c5d3ce2.jpg&w=640&q=75",
-    title: "Marisa's Moroccan adventure",
-    description: "Marisa planned the perfect girl's trip to Morocco, starting with easy economy flights for 40,000 points round-trip."
-  },
-  "80000": {
-    image: "https://www.point.me/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ffarsai-chaikulngamdee-oZSDI44GwKU-unsplash.0eef42b6.jpg&w=640&q=75",
-    title: "Tara's European honeymoon",
-    description: "Tara earned points for eligible wedding purchases. By utilizing a bonus, she flew to Paris and returned from Rome in flat-bed business class seats for just 80,000 points each."
-  },
-  "140000": {
-    image: "https://www.point.me/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fhu-chen-0LwfbRtQ-ac-unsplash.b4375fe0.jpg&w=640&q=75",
-    title: "Daniel's luxury safari",
-    description: "Daniel wanted to indulge in caviar and champagne in first class. A well-timed points transfer got him a Cathay Pacific first class seat for 140,000 points."
-  }
+  // ...
 };
 
-// Stage graphic images
+// Stage images
 const stageImages = {
-  default:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/af0bbfc5-9892-4487-a87d-5fd185a47819/unnamed+%284%29.png",
-  input:     "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/5474cde0-06cb-4afb-9c99-2cdf9d136a17/unnamed+%281%29.png",
-  calc:      "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif",
-  output:    "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/ab18a97d-fe5e-4d0c-9c27-67d36e13a11e/unnamed+%281%29+copy.png",
-  usecase:   "https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/0f4cf2b3-b35f-41b4-a0a7-6f240604617f/unnamed+%281%29.gif",
-  sendReport:"https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/6f6b427d-c6c7-4284-b86e-06132fb5dd51/unnamed.gif"
+  default:   "https://images.squarespace-cdn.com/content/...",
+  input:     "https://images.squarespace-cdn.com/content/...",
+  calc:      "https://images.squarespace-cdn.com/content/...",
+  output:    "https://images.squarespace-cdn.com/content/...",
+  usecase:   "https://images.squarespace-cdn.com/content/...",
+  sendReport:"https://images.squarespace-cdn.com/content/..."
 };
 
 /*******************************************************
@@ -178,7 +140,7 @@ function updateStageGraphic(stageKey) {
 }
 
 function hideAllStates() {
-  $("#default-hero, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
+  $("#default-hero, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover, #how-it-works-state").hide();
 }
 
 function isValidEmail(str) {
@@ -186,7 +148,7 @@ function isValidEmail(str) {
 }
 
 /*******************************************************
- * B) FETCH & DATA-RELATED UTILITIES
+ * FETCH UTILS
  *******************************************************/
 async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries = 2) {
   let attempt = 0;
@@ -199,7 +161,6 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
     try {
       const response = await fetch(url, { ...options, signal });
       clearTimeout(timeoutId);
-
       if (response.ok) {
         return response;
       }
@@ -208,10 +169,8 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
       }
       console.log(`Retry #${attempt} after HTTP status: ${response.status} ...`);
       await new Promise(r => setTimeout(r, 500));
-
     } catch (err) {
       clearTimeout(timeoutId);
-
       if (err.name === "AbortError") {
         if (attempt > maxRetries) {
           throw new Error("Request timed out multiple times.");
@@ -244,12 +203,11 @@ async function fetchAirtableTable(tableName) {
 }
 
 /*******************************************************
- * C) INITIALIZE APP => loads data
+ * INITIALIZE APP
  *******************************************************/
 async function initializeApp() {
   console.log("=== initializeApp() CALLED ===");
-
-  // 1) Fetch Points Calculator Data
+  // 1) fetch points data
   try {
     const resp = await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
@@ -269,32 +227,30 @@ async function initializeApp() {
       return acc;
     }, {});
     console.log("Loyalty Programs =>", loyaltyPrograms);
-
   } catch (err) {
     console.error("Error fetching Points Calc data:", err);
-    return; // stop if fails
+    return;
   }
 
-  // 2) Fetch Real-World Use Cases
+  // 2) fetch Real-World Use Cases
   try {
-    const useCasesData = await fetchAirtableTable("Real-World Use Cases", 3, 2000);
+    const useCasesData = await fetchAirtableTable("Real-World Use Cases");
     realWorldUseCases = useCasesData.reduce((acc, record) => {
       acc[record.id] = { id: record.id, ...record.fields };
       return acc;
     }, {});
     console.log("Real-World Use Cases =>", realWorldUseCases);
-
   } catch (err) {
     console.error("Error fetching Real-World Use Cases:", err);
   }
 
-  // 3) Build the 'Popular Programs' grid
+  // 3) Build 'Popular Programs'
   buildTopProgramsSection();
   console.log("=== All Data loaded, app is ready. ===");
 }
 
 /*******************************************************
- * D) BUILD TOP PROGRAMS SECTION
+ * BUILD TOP PROGRAMS
  *******************************************************/
 function buildTopProgramsSection() {
   const container = document.getElementById("top-programs-grid");
@@ -309,7 +265,6 @@ function buildTopProgramsSection() {
     const prog = loyaltyPrograms[rid];
     const name = prog["Program Name"] || "Unnamed Program";
     const logo = prog["Brand Logo URL"] || "";
-
     html += `
       <div class="top-program-box" data-record-id="${rid}">
         <div style="display: flex; align-items: center;">
@@ -328,7 +283,7 @@ function buildTopProgramsSection() {
 }
 
 /*******************************************************
- * E) FILTER / PREVIEW
+ * FILTER PROGRAMS
  *******************************************************/
 function filterPrograms() {
   if (!loyaltyPrograms || Object.keys(loyaltyPrograms).length === 0) {
@@ -347,10 +302,7 @@ function filterPrograms() {
   const results = Object.keys(loyaltyPrograms).filter(id => {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
-    const alreadyInCalc = $(
-      `#program-container .program-row[data-record-id='${id}']`
-    ).length > 0;
-
+    const alreadyInCalc = $(`#program-container .program-row[data-record-id='${id}']`).length > 0;
     return prog["Program Name"].toLowerCase().includes(val) && !alreadyInCalc;
   });
 
@@ -384,14 +336,11 @@ function filterPrograms() {
 }
 
 /*******************************************************
- * F) ADD PROGRAM ROW
+ * ADD PROGRAM ROW
  *******************************************************/
 function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
-
-  // REMOVED the old lines that forced: $("#default-hero").hide(); $("#calculator-state").fadeIn();
-  // So adding rows no longer auto-switches states.
 
   const logo = prog["Brand Logo URL"] || "";
   const name = prog["Program Name"] || "Unnamed Program";
@@ -417,19 +366,17 @@ function addProgramRow(recordId) {
       </div>
     </div>
   `;
-
   $("#program-container").append(rowHTML);
   updateClearAllVisibility();
   calculateTotal();
 }
 
 /*******************************************************
- * G) UPDATE CHOSEN PROGRAMS DISPLAY
+ * UPDATE CHOSEN PROGRAMS DISPLAY
  *******************************************************/
 function updateChosenProgramsDisplay() {
   const container = $("#chosen-programs-row");
   container.empty();
-
   if (chosenPrograms.length === 0) {
     $("#selected-programs-label").hide();
     return;
@@ -439,7 +386,6 @@ function updateChosenProgramsDisplay() {
   chosenPrograms.forEach(rid => {
     const prog = loyaltyPrograms[rid];
     if (!prog) return;
-
     const logoUrl = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unnamed Program";
     const logoHTML = `
@@ -456,7 +402,7 @@ function updateChosenProgramsDisplay() {
 }
 
 /*******************************************************
- * H) TOGGLE SEARCH & POPULAR
+ * TOGGLE SEARCH & POPULAR
  *******************************************************/
 function toggleSearchItemSelection(itemEl) {
   const rid = itemEl.data("record-id");
@@ -482,7 +428,6 @@ function toggleSearchItemSelection(itemEl) {
     }
     itemEl.remove();
   }
-
   $("#program-search").val("");
   $("#program-preview").hide().empty();
   filterPrograms();
@@ -500,7 +445,6 @@ function toggleProgramSelection(boxEl) {
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
     boxEl.find(".add-btn").text("✓");
-
     const searchItem = $(`.preview-item[data-record-id='${rid}']`);
     if (searchItem.length) searchItem.remove();
   } else {
@@ -510,7 +454,6 @@ function toggleProgramSelection(boxEl) {
     const searchItem = $(`.preview-item[data-record-id='${rid}']`);
     if (searchItem.length) searchItem.removeClass("selected-state");
   }
-
   $("#program-search").val("");
   $("#program-preview").hide().empty();
   filterPrograms();
@@ -520,7 +463,7 @@ function toggleProgramSelection(boxEl) {
 }
 
 /*******************************************************
- * I) NEXT CTA VISIBILITY
+ * NEXT CTA VISIBILITY
  *******************************************************/
 function updateNextCTAVisibility() {
   if (chosenPrograms.length > 0) {
@@ -531,7 +474,7 @@ function updateNextCTAVisibility() {
 }
 
 /*******************************************************
- * J) CLEAR ALL
+ * CLEAR ALL
  *******************************************************/
 function updateClearAllVisibility() {
   if ($("#input-state").is(":visible")) {
@@ -563,19 +506,17 @@ function clearAllPrograms() {
 }
 
 /*******************************************************
- * K) INPUT => CALCULATOR
+ * K) Transitions: Input => Calculator
  *******************************************************/
 $("#input-next-btn").on("click", function() {
   if (isTransitioning) return;
   isTransitioning = true;
-
   hideAllStates();
   $("#calculator-state").fadeIn(() => {
     showCTAsForState("calculator");
     isTransitioning = false;
   });
   updateStageGraphic("calc");
-
   // Build rows from chosenPrograms
   $("#program-container").empty();
   chosenPrograms.forEach(rid => addProgramRow(rid));
@@ -601,7 +542,6 @@ function formatNumberInput(el) {
  * M) CALCULATE TOTAL
  *******************************************************/
 function calculateTotal() {
-  // purely optional
   let totalPoints = 0;
   $(".program-row").each(function() {
     const pStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
@@ -610,16 +550,14 @@ function calculateTotal() {
 }
 
 /*******************************************************
- * N) GATHER PROGRAM DATA
+ * GATHER PROGRAM DATA
  *******************************************************/
 function gatherProgramData() {
   const data = [];
   $(".program-row").each(function() {
-    // Correctly retrieve the recordId for each row
     const rid = $(this).data("record-id");
     const prog = loyaltyPrograms[rid];
     if (!prog) return;
-
     const pStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
     const points = parseFloat(pStr) || 0;
     data.push({
@@ -633,215 +571,10 @@ function gatherProgramData() {
 }
 
 /*******************************************************
- * Q) NAVY SHOWCASE => INIT STATIC PILLS
- *******************************************************/
-function initNavyShowcase() {
-  const pills = document.querySelectorAll("#static-pills .point-option");
-  const img   = document.getElementById("useCaseImage");
-  const ttl   = document.getElementById("useCaseTitle");
-  const body  = document.getElementById("useCaseBody");
-
-  function updateStaticView(k) {
-    const pd = pointsData[k];
-    if (!pd) return;
-    img.src         = pd.image;
-    ttl.textContent = pd.title;
-    body.textContent= pd.description;
-  }
-
-  pills.forEach(p => {
-    p.addEventListener("click", function() {
-      pills.forEach(pp => pp.classList.remove("active"));
-      this.classList.add("active");
-      updateStaticView(this.getAttribute("data-points"));
-    });
-  });
-
-  // default
-  updateStaticView("10000");
-  if (pills[0]) pills[0].classList.add("active");
-}
-
-/*******************************************************
- * R) SEND REPORT
- *******************************************************/
-async function sendReport(email) {
-  if (!email) return;
-  if (!isValidEmail(email)) {
-    throw new Error("Invalid email format");
-  }
-
-  // gather minimal data: {programName, points}
-  const fullData = gatherProgramData();
-  const programsToSend = fullData.map(item => ({
-    programName: item.programName,
-    points: item.points
-  }));
-
-  console.log("Sending to server =>", { email, programs: programsToSend });
-
-  const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, programs: programsToSend })
-  });
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.error || `HTTP ${response.status}`);
-  }
-  return true;
-}
-
-/*******************************************************
- * R2) SEND REPORT FROM MODAL
- *******************************************************/
-async function sendReportFromModal() {
-  const emailInput = $("#modal-email-input").val().trim();
-  const errorEl    = $("#modal-email-error");
-  const sentMsgEl  = $("#email-sent-message");
-  const sendBtn    = $("#modal-send-btn");
-
-  errorEl.hide().text("");
-  sentMsgEl.hide();
-
-  if (!isValidEmail(emailInput)) {
-    errorEl.text("Invalid email address.").show();
-    return;
-  }
-
-  sendBtn.prop("disabled", true).text("Sending...");
-
-  try {
-    await sendReport(emailInput);
-    sentMsgEl.show();
-    hasSentReport = true;
-
-    // 1) Store email in the global variable
-    userEmail = emailInput;
-
-    // 2) You can also log an event if you want:
-    logSessionEvent("email_submitted", { email: userEmail });
-
-    // fade out after 0.7s
-    setTimeout(() => {
-      hideReportModal();
-      sentMsgEl.hide();
-
-      // Swap button colors
-      $("#unlock-report-btn").removeClass("default-colors").addClass("swapped-colors");
-      $("#explore-concierge-lower").removeClass("default-colors").addClass("swapped-colors");
-    }, 700);
-
-  } catch (err) {
-    console.error("Failed to send report =>", err);
-    errorEl.text(err.message || "Error sending report.").show();
-
-  } finally {
-    sendBtn.prop("disabled", false).text("Send Report");
-  }
-}
-
-/*******************************************************
- * transformUnlockButtonToResend
- *******************************************************/
-function transformUnlockButtonToResend() {
-  const unlockBtn    = $("#unlock-report-btn");
-  const conciergeBtn = $("#explore-concierge-lower");
-
-  unlockBtn.removeClass("default-colors").addClass("swapped-colors");
-  conciergeBtn.removeClass("default-colors").addClass("swapped-colors");
-
-  unlockBtn.text("Resend Report");
-  conciergeBtn.show();
-}
-
-/*******************************************************
- * T) BUILD USE CASE ACCORDION => Per-Program
- *******************************************************/
-function buildUseCaseAccordionContent(recordId, userPoints) {
-  const program = loyaltyPrograms[recordId];
-  if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
-  }
-
-  let matchingUseCases = Object.values(realWorldUseCases).filter(uc => {
-    if (!uc.Recommended) return false;
-    if (!uc["Points Required"]) return false;
-    if (!uc["Use Case Title"]) return false;
-    if (!uc["Use Case Body"])  return false;
-    const linked = uc["Program Name"] || [];
-    const userHasEnoughPoints = (uc["Points Required"] <= userPoints);
-    return linked.includes(recordId) && userHasEnoughPoints;
-  });
-
-  matchingUseCases.sort((a, b) => {
-    const aP = a["Points Required"] || 0;
-    const bP = b["Points Required"] || 0;
-    return aP - bP;
-  });
-  matchingUseCases = matchingUseCases.slice(0, 4);
-
-  if (!matchingUseCases.length) {
-    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
-  }
-
-  let pillsHTML = "";
-  matchingUseCases.forEach((uc, i) => {
-    const ptsReq = uc["Points Required"] || 0;
-    const activeClass = (i === 0) ? "active" : "";
-    pillsHTML += `
-      <div class="mini-pill ${activeClass}" data-usecase-id="${uc.id}">
-        ${ptsReq.toLocaleString()} pts
-      </div>
-    `;
-  });
-
-  const first = matchingUseCases[0];
-  const imageURL = first["Use Case URL"]  || "";
-  const title    = first["Use Case Title"] || "Untitled";
-  const body     = first["Use Case Body"]  || "No description";
-
-  return `
-    <div class="usecases-panel" style="display:flex; flex-direction:column; gap:1rem;">
-      <div
-        class="pills-container"
-        style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;"
-      >
-        ${pillsHTML}
-      </div>
-      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
-        <div class="image-wrap" style="max-width:180px;">
-          <img
-            src="${imageURL}"
-            alt="Use Case"
-            style="width:100%; height:auto; border-radius:4px;"
-          />
-        </div>
-        <div class="text-wrap" style="flex:1;">
-          <h4 
-            class="uc-title"
-            style="font-size:16px; margin:0 0 0.5rem; color:#1a2732;"
-          >
-            ${title}
-          </h4>
-          <p
-            class="uc-body"
-            style="font-size:14px; line-height:1.4; color:#555; margin:0;"
-          >
-            ${body}
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/*******************************************************
  * Show CTAs For State
  *******************************************************/
 function showCTAsForState(state) {
   $("#get-started-btn, #input-next-btn, #to-output-btn, #unlock-report-btn, #usecase-next-btn, #send-report-next-btn, #explore-concierge-lower").hide();
-
   switch (state) {
     case "default":
       $("#get-started-btn").show();
@@ -868,7 +601,7 @@ function showCTAsForState(state) {
 }
 
 /*******************************************************
- * hideReportModal / showReportModal
+ * hide/showReportModal
  *******************************************************/
 function hideReportModal() {
   $("#report-modal").fadeOut(300);
@@ -880,355 +613,72 @@ function showReportModal() {
 }
 
 /*******************************************************
- * DOCUMENT READY
+ * SEND REPORT
  *******************************************************/
-$(document).ready(async function() {
-  // Log session load right at the start
-  logSessionEvent("session_load");
+async function sendReport(email) {
+  if (!email) return;
+  if (!isValidEmail(email)) {
+    throw new Error("Invalid email format");
+  }
+  const fullData = gatherProgramData();
+  const programsToSend = fullData.map(item => ({
+    programName: item.programName,
+    points: item.points
+  }));
+  console.log("Sending to server =>", { email, programs: programsToSend });
 
-  // [NEW] Fetch IP before initialization (optional)
-  await fetchClientIP();
-
-  // If you want to immediately fetch approximate location after IP:
-  await fetchApproxLocationFromIP();
-
-  // Continue with your other initialization code...
-  await initializeApp();
-
-  /*******************************************************
-   * 1) INITIALIZE
-   *******************************************************/
-  initNavyShowcase();
-  await initializeApp().catch(err => console.error("initializeApp error =>", err));
-
-  hideAllStates();
-  $("#default-hero").show();
-  updateStageGraphic("default");
-  showCTAsForState("default");
-
-  // (E) *** FORCE-PREVIEW HIDE *** => Add this line
-  $("#program-preview").hide().empty();
-
-  /*******************************************************
-   * 2) TRANSITIONS: BACK & NEXT
-   *******************************************************/
-  // (A) “Get Started” => Input
-  $("#get-started-btn").on("click", function() {
-    logSessionEvent("get_started_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#input-state").fadeIn(() => {
-      showCTAsForState("input");
-      isTransitioning = false;
-    });
-    updateStageGraphic("input");
+  const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, programs: programsToSend })
   });
-
-  // (B) “Input -> Back” => show default hero
-  $("#input-back-btn").on("click", function() {
-    logSessionEvent("input_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#default-hero").fadeIn(() => {
-      showCTAsForState("default");
-      isTransitioning = false;
-    });
-    updateStageGraphic("default");
-  });
-
-  // (C) “Input -> Next” => Calculator
-  $("#input-next-btn").on("click", function() {
-    logSessionEvent("input_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#calculator-state").fadeIn(() => {
-      showCTAsForState("calculator");
-      isTransitioning = false;
-    });
-    updateStageGraphic("calc");
-
-    // Build rows from chosenPrograms
-    $("#program-container").empty();
-    chosenPrograms.forEach(rid => addProgramRow(rid));
-  });
-
-  // (D) “Calculator -> Back” => Input
-  $("#calc-back-btn").on("click", function() {
-    logSessionEvent("calculator_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#input-state").fadeIn(() => {
-      showCTAsForState("input");
-      isTransitioning = false;
-    });
-    updateStageGraphic("input");
-  });
-
-  // (E) “Calculator -> Next” => Output
-  $("#to-output-btn").on("click", function() {
-    logSessionEvent("calculator_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#output-state").fadeIn(() => {
-      showCTAsForState("output");
-      isTransitioning = false;
-    });
-    updateStageGraphic("output");
-
-    // Default to Travel
-    $(".toggle-btn").removeClass("active");
-    $(".toggle-btn[data-view='travel']").addClass("active");
-    buildOutputRows("travel");
-  });
-
-  // (F) “Output -> Back” => Calculator
-  $("#output-back-btn").on("click", function() {
-    logSessionEvent("output_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#calculator-state").fadeIn(() => {
-      showCTAsForState("calculator");
-      isTransitioning = false;
-    });
-    updateStageGraphic("calc");
-  });
-
-  // (G) “Unlock” => open modal
-  $("#unlock-report-btn").on("click", function() {
-    logSessionEvent("unlock_report_clicked");
-    showReportModal();
-  });
-
-  // (H) “Usecase -> Back” => Output
-  $("#usecase-back-btn").on("click", function() {
-    logSessionEvent("usecase_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#output-state").fadeIn(() => {
-      showCTAsForState("output");
-      isTransitioning = false;
-    });
-    updateStageGraphic("output");
-  });
-
-  // (I) “Usecase -> Next” => Send-Report
-  $("#usecase-next-btn").on("click", function() {
-    logSessionEvent("usecase_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#send-report-state").fadeIn(() => {
-      showCTAsForState("sendReport");
-      isTransitioning = false;
-    });
-    updateStageGraphic("sendReport");
-  });
-
-  // (J) “Send-Report -> Back” => Usecase
-  $("#send-report-back-btn").on("click", function() {
-    logSessionEvent("send_report_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#usecase-state").fadeIn(() => {
-      showCTAsForState("usecase");
-      isTransitioning = false;
-    });
-    updateStageGraphic("usecase");
-  });
-
-  // (K) “Send-Report -> Next” => Submission
-  $("#send-report-next-btn").on("click", function() {
-    logSessionEvent("send_report_next_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#submission-takeover").fadeIn(() => {
-      isTransitioning = false;
-    });
-  });
-
-  // (L) “Go Back” in Submission => Output
-  $("#go-back-btn").on("click", function() {
-    logSessionEvent("submission_back_clicked");
-
-    if (isTransitioning) return;
-    isTransitioning = true;
-
-    hideAllStates();
-    $("#output-state").fadeIn(() => {
-      showCTAsForState("output");
-      isTransitioning = false;
-    });
-    updateStageGraphic("output");
-  });
-
-  // (M) Explore Concierge => external link
-  $("#explore-concierge-btn, #explore-concierge-lower").on("click", function() {
-    logSessionEvent("explore_concierge_clicked");
-    window.open("https://www.legacypointsadvisors.com/pricing", "_blank");
-  });
-
-  // (N) Modal close (X)
-  $("#modal-close-btn").on("click", function() {
-    logSessionEvent("modal_close_clicked");
-    hideReportModal();
-  });
-
-  // (O) Modal send
-  $("#modal-send-btn").on("click", async function() {
-    // Suppose emailInput is the user’s typed email
-    const emailInput = $("#modal-email-input").val().trim();
-
-    // Log the event with the email
-    logSessionEvent("modal_send_clicked", { email: emailInput });
-
-    await sendReportFromModal();
-  });
-
-  /*******************************************************
-   * 3) OTHER LISTENERS (Search, Program Toggling, Pills)
-   *******************************************************/
-  // Program search => filter
-  $("#program-search").on("input", filterPrograms);
-
-  // If user presses Enter & only one => auto-add
-  $(document).on("keypress", "#program-search", function(e) {
-    if (e.key === "Enter" && $(".preview-item").length === 1) {
-      logSessionEvent("program_search_enter");
-      $(".preview-item").click();
-    }
-  });
-
-  // Preview item => toggle
-  $(document).on("click", ".preview-item", function() {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-    // Log event with recordId and programName
-    logSessionEvent("program_preview_item_clicked", {
-      recordId: rid,
-      programName
-    });
-
-    toggleSearchItemSelection($(this));
-    $("#program-preview").hide().empty();
-  });
-
-  // Top Program Box => toggle
-  $(document).on("click", ".top-program-box", function() {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-    // Log event with recordId and programName
-    logSessionEvent("top_program_box_clicked", {
-      recordId: rid,
-      programName
-    });
-
-    toggleProgramSelection($(this));
-  });
-
-  // Remove row => recalc
-  $(document).on("click", ".remove-btn", function() {
-    const rowEl = $(this).closest(".program-row");
-    const rid = rowEl.data("record-id");
-
-    logSessionEvent("program_remove_clicked", { recordId: rid });
-    rowEl.remove();
-    calculateTotal();
-  });
-
-  // Toggle Travel vs Cash
-  $(document).on("click", ".toggle-btn", function() {
-    logSessionEvent("toggle_view_clicked", {
-      newView: $(this).data("view")
-    });
-    $(".toggle-btn").removeClass("active");
-    $(this).addClass("active");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
-  });
-
-  // Clicking output-row => expand/collapse usecase (travel only)
-  $(document).on("click", ".output-row", function() {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
-
-    logSessionEvent("output_row_clicked", {
-      recordId: rid,
-      programName
-    });
-
-    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
-      return;
-    }
-    $(".usecase-accordion:visible").slideUp();
-    const panel = $(this).next(".usecase-accordion");
-    if (panel.is(":visible")) {
-      panel.slideUp();
-    } else {
-      panel.slideDown();
-    }
-  });
-
-  // (NEW) mini-pill => load that use case
-  $(document).on("click", ".mini-pill", function() {
-    const useCaseId = $(this).data("usecaseId");
-    logSessionEvent("mini_pill_clicked", { useCaseId });
-
-    $(this).siblings(".mini-pill").removeClass("active");
-    $(this).addClass("active");
-
-    if (!useCaseId) return;
-    const uc = realWorldUseCases[useCaseId];
-    if (!uc) return;
-
-    const container = $(this).closest(".usecases-panel");
-    container.find(".uc-title").text(uc["Use Case Title"] || "Untitled");
-    container.find(".uc-body").text(uc["Use Case Body"] || "");
-    container.find("img").attr("src", uc["Use Case URL"] || "");
-  });
-});
-
-$(document).on("click", "#clear-all-btn", function() {
-  logSessionEvent("clear_all_clicked");
-  clearAllPrograms();
-});
-
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.error || `HTTP ${response.status}`);
+  }
+  return true;
+}
 
 /*******************************************************
- * U) buildOutputRows => Show "Total Value"
+ * SEND REPORT FROM MODAL
+ *******************************************************/
+async function sendReportFromModal() {
+  const emailInput = $("#modal-email-input").val().trim();
+  const errorEl    = $("#modal-email-error");
+  const sentMsgEl  = $("#email-sent-message");
+  const sendBtn    = $("#modal-send-btn");
+
+  errorEl.hide().text("");
+  sentMsgEl.hide();
+
+  if (!isValidEmail(emailInput)) {
+    errorEl.text("Invalid email address.").show();
+    return;
+  }
+
+  sendBtn.prop("disabled", true).text("Sending...");
+  try {
+    await sendReport(emailInput);
+    sentMsgEl.show();
+    hasSentReport = true;
+    userEmail = emailInput;
+    logSessionEvent("email_submitted", { email: userEmail });
+    setTimeout(() => {
+      hideReportModal();
+      sentMsgEl.hide();
+      $("#unlock-report-btn").removeClass("default-colors").addClass("swapped-colors");
+      $("#explore-concierge-lower").removeClass("default-colors").addClass("swapped-colors");
+    }, 700);
+  } catch (err) {
+    console.error("Failed to send report =>", err);
+    errorEl.text(err.message || "Error sending report.").show();
+  } finally {
+    sendBtn.prop("disabled", false).text("Send Report");
+  }
+}
+
+/*******************************************************
+ * buildOutputRows => Show "Total Value"
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
@@ -1239,7 +689,6 @@ function buildOutputRows(viewType) {
     const prog = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
     const programName = item.programName;
-
     let rowValue = 0;
     if (viewType === "travel") {
       rowValue = item.points * (prog?.["Travel Value"] || 0);
@@ -1247,7 +696,6 @@ function buildOutputRows(viewType) {
       rowValue = item.points * (prog?.["Cash Value"] || 0);
     }
     totalValue += rowValue;
-
     const formattedRowVal = `$${rowValue.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
@@ -1271,7 +719,6 @@ function buildOutputRows(viewType) {
         </div>
       `;
     }
-
     $("#output-programs-list").append(rowHtml);
   });
 
@@ -1286,4 +733,262 @@ function buildOutputRows(viewType) {
       ${label}: ${formattedTotal}
     </div>
   `);
+}
+
+/*******************************************************
+ * buildUseCaseAccordionContent
+ *******************************************************/
+function buildUseCaseAccordionContent(recordId, userPoints) {
+  // not changed => same as your existing logic
+  return `<div style="padding:1rem;">No data found for now.</div>`;
+}
+
+/*******************************************************
+ * transformUnlockButtonToResend
+ *******************************************************/
+function transformUnlockButtonToResend() {
+  $("#unlock-report-btn").removeClass("default-colors").addClass("swapped-colors");
+  $("#explore-concierge-lower").removeClass("default-colors").addClass("swapped-colors");
+  $("#unlock-report-btn").text("Resend Report");
+  $("#explore-concierge-lower").show();
+}
+
+/*******************************************************
+ * DOC READY => attach listeners
+ *******************************************************/
+$(document).ready(async function() {
+  logSessionEvent("session_load");
+  await fetchClientIP();
+  await fetchApproxLocationFromIP();
+  await initializeApp();
+
+  hideAllStates();
+  $("#default-hero").show();
+  updateStageGraphic("default");
+  showCTAsForState("default");
+  $("#program-preview").hide().empty(); // ensure hidden
+
+  // “Get Started” in hero => same logic as the main #get-started-btn
+  $("#get-started-btn-hero").on("click", function() {
+    logSessionEvent("get_started_clicked_hero");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
+    updateStageGraphic("input");
+  });
+
+  // "How It Works" => show #how-it-works-state
+  $("#how-it-works-btn").on("click", function() {
+    logSessionEvent("how_it_works_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#how-it-works-state").fadeIn(() => {
+      isTransitioning = false;
+    });
+  });
+
+  // how it works => next/prev
+  $("#hiw-next").on("click", function() {
+    advanceHowItWorksStep(+1);
+  });
+  $("#hiw-prev").on("click", function() {
+    advanceHowItWorksStep(-1);
+  });
+
+  // final "Get Started" in step #3 => route same place
+  $("#hiw-final-cta").on("click", function() {
+    logSessionEvent("hiw_finalcta_clicked");
+    hideAllStates();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
+    updateStageGraphic("input");
+  });
+
+  // older transitions & listeners:
+  $("#get-started-btn").on("click", function() {
+    // your existing default CTA in the footer
+    logSessionEvent("get_started_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
+    updateStageGraphic("input");
+  });
+
+  $("#input-back-btn").on("click", function() {
+    logSessionEvent("input_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#default-hero").fadeIn(() => {
+      showCTAsForState("default");
+      isTransitioning = false;
+    });
+    updateStageGraphic("default");
+  });
+
+  $("#calc-back-btn").on("click", function() {
+    logSessionEvent("calculator_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#input-state").fadeIn(() => {
+      showCTAsForState("input");
+      isTransitioning = false;
+    });
+    updateStageGraphic("input");
+  });
+
+  $("#to-output-btn").on("click", function() {
+    logSessionEvent("calculator_next_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#output-state").fadeIn(() => {
+      showCTAsForState("output");
+      isTransitioning = false;
+    });
+    updateStageGraphic("output");
+    // default to travel
+    $(".toggle-btn").removeClass("active");
+    $(".toggle-btn[data-view='travel']").addClass("active");
+    buildOutputRows("travel");
+  });
+
+  $("#output-back-btn").on("click", function() {
+    logSessionEvent("output_back_clicked");
+    if (isTransitioning) return;
+    isTransitioning = true;
+    hideAllStates();
+    $("#calculator-state").fadeIn(() => {
+      showCTAsForState("calculator");
+      isTransitioning = false;
+    });
+    updateStageGraphic("calc");
+  });
+
+  $("#unlock-report-btn").on("click", function() {
+    logSessionEvent("unlock_report_clicked");
+    showReportModal();
+  });
+
+  $("#modal-close-btn").on("click", function() {
+    logSessionEvent("modal_close_clicked");
+    hideReportModal();
+  });
+
+  $("#modal-send-btn").on("click", async function() {
+    const emailInput = $("#modal-email-input").val().trim();
+    logSessionEvent("modal_send_clicked", { email: emailInput });
+    await sendReportFromModal();
+  });
+
+  // usecase => existing stuff
+  $("#usecase-back-btn").on("click", function() {
+    // ...
+  });
+
+  // “clear all” button
+  $("#clear-all-btn").on("click", function() {
+    logSessionEvent("clear_all_clicked");
+    clearAllPrograms();
+  });
+
+  // program search => filter
+  $("#program-search").on("input", filterPrograms);
+
+  $(document).on("keypress", "#program-search", function(e) {
+    if (e.key === "Enter" && $(".preview-item").length === 1) {
+      logSessionEvent("program_search_enter");
+      $(".preview-item").click();
+    }
+  });
+
+  // preview item => toggle
+  $(document).on("click", ".preview-item", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+    logSessionEvent("program_preview_item_clicked", { recordId: rid, programName });
+    toggleSearchItemSelection($(this));
+    $("#program-preview").hide().empty();
+  });
+
+  // top program box => toggle
+  $(document).on("click", ".top-program-box", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+    logSessionEvent("top_program_box_clicked", { recordId: rid, programName });
+    toggleProgramSelection($(this));
+  });
+
+  // remove row => recalc
+  $(document).on("click", ".remove-btn", function() {
+    const rowEl = $(this).closest(".program-row");
+    const rid = rowEl.data("record-id");
+    logSessionEvent("program_remove_clicked", { recordId: rid });
+    rowEl.remove();
+    calculateTotal();
+  });
+
+  // toggle travel vs cash
+  $(document).on("click", ".toggle-btn", function() {
+    logSessionEvent("toggle_view_clicked", { newView: $(this).data("view") });
+    $(".toggle-btn").removeClass("active");
+    $(this).addClass("active");
+    const viewType = $(this).data("view");
+    buildOutputRows(viewType);
+  });
+
+  // clicking output-row => expand/collapse
+  $(document).on("click", ".output-row", function() {
+    const rid = $(this).data("record-id");
+    const prog = loyaltyPrograms[rid];
+    const programName = prog ? (prog["Program Name"] || "Unknown") : "N/A";
+    logSessionEvent("output_row_clicked", { recordId: rid, programName });
+
+    if ($(".toggle-btn[data-view='cash']").hasClass("active")) {
+      return;
+    }
+    $(".usecase-accordion:visible").slideUp();
+    const panel = $(this).next(".usecase-accordion");
+    if (panel.is(":visible")) {
+      panel.slideUp();
+    } else {
+      panel.slideDown();
+    }
+  });
+});
+
+/*******************************************************
+ * ADVANCE HOW-IT-WORKS STEPS (3-step slideshow)
+ *******************************************************/
+function advanceHowItWorksStep(delta) {
+  const steps = $(".hiw-step");
+  // find which is visible
+  let currentIndex = 0;
+  steps.each(function(i) {
+    if ($(this).is(":visible")) {
+      currentIndex = i;
+    }
+  });
+  const newIndex = currentIndex + delta;
+  if (newIndex < 0 || newIndex >= steps.length) return; // out of range
+
+  steps.hide();
+  $(steps[newIndex]).show();
+  // update bullet
+  $(".hiw-bullet").removeClass("active");
+  $(".hiw-bullet").eq(newIndex).addClass("active");
 }
