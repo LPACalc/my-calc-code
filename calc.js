@@ -109,7 +109,7 @@ function hideAllStates() {
 }
 
 /*******************************************************
- * Show left column + banner
+ * Show left column + background
  *******************************************************/
 function showLeftColumnBanner() {
   $(".left-column").css({
@@ -126,7 +126,7 @@ function isValidEmail(str) {
 }
 
 /*******************************************************
- * FETCH with Timeout
+ * FETCH UTILS
  *******************************************************/
 async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   let attempt=0;
@@ -164,9 +164,6 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   throw new Error("Failed fetch after maxRetries");
 }
 
-/*******************************************************
- * fetchAirtableTable
- *******************************************************/
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
@@ -181,7 +178,7 @@ async function fetchAirtableTable(tableName){
 }
 
 /*******************************************************
- * initializeApp => loads data
+ * initializeApp => fetch data
  *******************************************************/
 async function initializeApp(){
   console.log("=== initializeApp() ===");
@@ -250,7 +247,7 @@ function buildTopProgramsSection(){
 }
 
 /*******************************************************
- * filterPrograms => revert old style
+ * filterPrograms => revert older style
  *******************************************************/
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
@@ -327,7 +324,7 @@ function addProgramRow(recordId){
 }
 
 /*******************************************************
- * toggleSearchItemSelection, toggleProgramSelection
+ * toggleSearchItemSelection / toggleProgramSelection
  *******************************************************/
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
@@ -404,14 +401,11 @@ function updateChosenProgramsDisplay(){
 }
 
 /*******************************************************
- * CTA Visibility => show “Next” if chosenPrograms>0
+ * CTA Visibility => show/hide #input-next-btn
  *******************************************************/
 function updateNextCTAVisibility(){
+  // If user has chosen any programs => show Next
   if(chosenPrograms.length>0){
-    // If you have a “Next” button for input => calc
-    // or a cta in the footer, show it. 
-    // For example:
-    // $("#input-next-btn").show();
     $("#input-next-btn").show();
   } else {
     $("#input-next-btn").hide();
@@ -453,7 +447,7 @@ function formatNumberInput(el){
   el.value=num.toLocaleString();
 }
 function calculateTotal(){
-  // purely optional logic
+  // optional
 }
 
 /*******************************************************
@@ -615,16 +609,14 @@ $(document).ready(async function(){
     if(isTransitioning)return;
     isTransitioning=true;
 
-    // 1) Show left column w/ banner
+    // Show left column w/ background
     showLeftColumnBanner();
-    // 2) Show small stage graphic in right col
-    $("#stage-graphic-right").fadeIn(200);
 
-    // 3) hide hero, show input
+    // Hide hero, show input
     hideAllStates();
-    $("#input-state").fadeIn(()=>{ 
+    $("#input-state").fadeIn(()=>{
       isTransitioning=false;
-      updateNextCTAVisibility(); 
+      updateNextCTAVisibility();
       updateClearAllVisibility();
     });
   });
@@ -638,7 +630,6 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     showLeftColumnBanner();
-    $("#stage-graphic-right").fadeIn(200);
 
     hideAllStates();
     $("#how-it-works-state").fadeIn(()=>{ isTransitioning=false; });
@@ -661,8 +652,8 @@ $(document).ready(async function(){
 
     hideAllStates();
     $("#input-state").fadeIn(()=>{
-      isTransitioning=false; 
-      updateNextCTAVisibility(); 
+      isTransitioning=false;
+      updateNextCTAVisibility();
       updateClearAllVisibility();
     });
   });
@@ -676,9 +667,8 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    // Hide left col + stage graphic again
+    // Hide left col again
     $(".left-column").css("display","none");
-    $("#stage-graphic-right").hide();
     $("#default-hero").fadeIn(()=>{ isTransitioning=false; });
   });
 
@@ -691,7 +681,11 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    $("#calculator-state").fadeIn(()=>{ isTransitioning=false; });
+    $("#calculator-state").fadeIn(()=>{ 
+      isTransitioning=false;
+      // If you want a “Next” button to go to Output, show #to-output-btn
+      $("#to-output-btn").show();
+    });
     // Build program rows
     $("#program-container").empty();
     chosenPrograms.forEach(rid=>addProgramRow(rid));
@@ -722,6 +716,8 @@ $(document).ready(async function(){
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
+    // Potentially show #unlock-report-btn here if desired
+    $("#unlock-report-btn").show();
   });
 
   /****************************************************
