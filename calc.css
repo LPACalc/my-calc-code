@@ -23,16 +23,15 @@ button {
 }
 
 /*******************************************************
- * SECTION B: FLEX LAYOUT
+ * FLEX LAYOUT => .page-wrap => left col + right col
  *******************************************************/
 .page-wrap {
   display: flex;
-  flex-direction: row; /* side-by-side columns on desktop */
-  min-height: 100vh;   /* fill screen if short */
+  flex-direction: row;
+  min-height: 100vh;
   width: 100%;
-  position: relative;  
+  position: relative;
 }
-
 .left-column {
   width: 25%;
   min-width: 250px;
@@ -41,8 +40,16 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  /* Hidden by default => shown by JS if needed */
 }
-
+.stage-graphic {
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  position: absolute;
+}
 .right-column {
   display: flex;
   flex-direction: column;
@@ -50,7 +57,6 @@ button {
   position: relative;
   background: #fff;
 }
-
 .container {
   flex: 1;
   position: relative;
@@ -60,13 +66,13 @@ button {
   margin: 0;
 }
 
-/* Stacks columns on narrower screens */
+/* At narrower than 992px => stack columns or hide left column */
 @media (max-width: 992px) {
   .page-wrap {
     flex-direction: column;
   }
   .left-column {
-    display: none; /* or make it 100% if you want it stacked */
+    display: none;
   }
   .right-column {
     width: 100%;
@@ -89,66 +95,58 @@ button {
   box-shadow: 0 -2px 5px rgba(0,0,0,0.05);
 }
 .calc-footer .next-btn {
-  border: none;
-  border-radius: 9999px;
   background-color: #1a2732;
   color: #fff;
   font-size: 20px;
   font-weight: 600;
   padding: 1.25rem 7rem;
   margin: 0 0.5rem;
-  cursor: pointer;
+  border-radius: 9999px;
   transition: background-color 0.2s ease;
 }
 .calc-footer .next-btn:hover {
   background-color: #141d28;
 }
 
-@media (max-width: 576px) {
-  .calc-footer {
-    flex-direction: column;
-    gap: 8px;
-    padding: 1rem 0 !important;
-  }
-  .calc-footer .next-btn {
-    width: 90% !important;
-    max-width: 500px;
-    margin: 0 auto !important;
-    padding: 0.75rem 1rem !important;
-    font-size: 16px !important;
-    border-radius: 6px !important;
-  }
-  .container {
-    padding-bottom: 80px !important;
-  }
-}
-
 /*******************************************************
- * HERO (Default)
+ * FULL-SCREEN HERO => #default-hero
  *******************************************************/
 .hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+}
+.hero-section::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url("http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg")
+    center center / cover no-repeat;
+  z-index: 0;
+}
+.hero-inner {
+  position: relative;
+  z-index: 1; 
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 60px 20px;
+  justify-content: center;
+  min-height: 100vh; 
   text-align: center;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-  margin-bottom: 40px;
-  background: none; /* If you want a full background image, do it here */
+  color: #fff;
+  padding: 0 1rem;
 }
-.hero-section h1 {
+.hero-inner h1 {
   font-size: 2rem;
   font-weight: 600;
-  color: #000;
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
-.hero-section h2 {
-  font-size: 20px;
-  font-weight: 400;
-  color: #555;
-  max-width: 800px;
-  margin: 0 auto 32px;
+.hero-inner h2 {
+  font-size: 1.2rem;
+  line-height: 1.4;
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  color: #f5f5f5;
 }
 .hero-cta-container {
   display: inline-flex;
@@ -157,12 +155,14 @@ button {
   align-items: center;
   justify-content: center;
 }
+
+/*******************************************************
+ * CTA STYLES => .cta-btn
+ *******************************************************/
 .cta-btn {
   font-size: 1rem;
   font-weight: 600;
-  border-radius: 6px;
   padding: 0.75rem 1.5rem;
-  cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 .cta-dark {
@@ -182,79 +182,110 @@ button {
   background-color: #1a2732;
   color: #fff;
 }
+.cta-round {
+  border-radius: 9999px;
+}
 
 /*******************************************************
- * INPUT STATE
+ * HOW IT WORKS => LINES INSTEAD OF DOTS
  *******************************************************/
-#input-state {
+.hiw-line {
+  width: 60px;
+  height: 4px;
+  background-color: #ccc;
+  border-radius: 2px;
+  transition: background-color 0.3s;
+}
+.hiw-line.active-line {
+  background-color: #1a2732;
+}
+
+/*******************************************************
+ * INPUT / CALCULATOR / OUTPUT STATES
+ *******************************************************/
+#input-state,
+#calculator-state,
+#output-state {
   display: none;
-  text-align: center;
   max-width: 50rem;
   margin: auto;
   padding: 80px 20px 0px 20px;
+  text-align: center;
 }
-#input-state h1,
-#calculator-state h1,
-#output-state h1 {
-  font-size: 42px;
-  font-weight: 800;
-  color: #333;
-}
-h2 {
-  font-size: 32px;
-  font-weight: 800;
-  color: #333;
-}
-.points-info-box {
-  max-width: 50rem;
-  margin: 0 auto 20px auto;
-  background-color: rgb(245 245 247);
-  border-radius: 8px;
-  padding: 16px;
+.state-header {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.state-header .back-btn {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.state-title {
+  margin: 0;
+}
+
+/*******************************************************
+ * PROGRAM & OUTPUT ROWS
+ *******************************************************/
+.program-row,
+.output-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  background-color: #fff;
+}
+.program-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1D3A5F;
+}
+.output-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1a2732;
+}
+
+/*******************************************************
+ * CLEAR ALL
+ *******************************************************/
+.clear-all-btn {
+  background-color: #dc3545;
+  color: #fff;
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+.clear-all-btn:hover {
+  background-color: #b32431;
+}
+
+/*******************************************************
+ * POINTS INFO BOX => etc.
+ *******************************************************/
+.points-info-box {
+  background-color: #f5f5f7;
+  padding: 16px;
+  border-radius: 8px;
+  display: flex;
   gap: 12px;
-  text-align: left;
 }
 .info-icon {
   width: 24px;
   height: 24px;
-}
-.points-info-box p {
-  font-size: 14px;
-  color: #555;
-}
-.started-search-area {
-  margin: 30px auto 10px auto;
-  max-width: 40rem;
-  position: relative;
-  text-align: center;
-}
-.dollar-input-container {
-  margin: 5px auto 5px auto;
-  max-width: 40rem;
-  position: relative;
-  text-align: center;
-}
-#program-search {
-  background: #fff;
-  padding: 1rem;
-  width: 100%;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(223, 229, 235);
-  outline: none;
-}
-.points-input,
-.email-input {
-  background: #fff;
-  padding: .75rem;
-  max-width: 8rem;
-  border-radius: 0.5rem;
-  border: 1px solid rgb(223, 229, 235);
-  outline: none;
+  object-fit: contain;
 }
 
-/* Program preview => absolute => no extra space if hidden */
+/*******************************************************
+ * SEARCH PREVIEW => #program-preview
+ *******************************************************/
 #program-preview {
   display: none;
   position: absolute;
@@ -262,7 +293,7 @@ h2 {
   max-width: 50rem;
   left: 50%;
   transform: translateX(-50%);
-  background-color: #ffffff;
+  background-color: #fff;
   box-shadow: 0 6px 15px rgba(0,0,0,0.1);
   border-radius: 12px;
   overflow: hidden;
@@ -275,7 +306,6 @@ h2 {
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
-  color: #2b2d42;
 }
 .preview-item:hover {
   background-color: #f8fafd;
@@ -285,7 +315,7 @@ h2 {
 }
 
 /*******************************************************
- * TOP PROGRAMS
+ * POPULAR PROGRAMS => .top-program-box
  *******************************************************/
 .top-programs-section {
   max-width: 800px;
@@ -312,6 +342,7 @@ h2 {
   border: 1px solid #dce3eb;
   border-radius: 8px;
   padding: 15px 10px;
+  box-sizing: border-box;
   transition: box-shadow 0.2s ease;
 }
 .top-program-box:hover {
@@ -356,228 +387,205 @@ h2 {
 }
 
 /*******************************************************
- * CALCULATOR STATE
+ * USECASE => #usecase-state
  *******************************************************/
-.calculator-state {
+#usecase-state {
   display: none;
-  text-align: center;
-  max-width: 50rem;
-  margin: auto;
-  padding: 80px 20px 0px 20px;
-}
-.calc-header {
-  margin-bottom: 20px;
-  text-align: center;
-}
-.info-box {
-  background-color: #f7f9fc;
-  border: 1px solid #e7eaf3;
-  border-radius: 8px;
-  padding: 16px;
-}
-.programs-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 20px;
-}
-.program-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid #DFE5EB;
-  border-radius: 6px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  background-color: #fff;
-}
-.program-left {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-.program-right {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-.program-logo {
-  width: 32px;
-  height: auto;
-  object-fit: contain;
-  margin-right: 1rem;
-}
-#calculator-state .remove-btn {
-  background: none !important;
-  color: #dc3545 !important;
-  font-size: 1.25rem;
-}
-
-/*******************************************************
- * OUTPUT STATE
- *******************************************************/
-.output-state {
-  display: none;
-  padding: 80px 20px 0px 20px;
-  max-width: 50rem;
-  margin: 0 auto;
-  text-align: left;
-}
-.output-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start; 
-  gap: 8px;
-  margin-bottom: 16px;
-}
-.toggle-container {
-  display: inline-flex;
-  background-color: rgb(245 245 247);
-  border: 1px solid #dce3eb;
-  border-radius: 0.5rem;
-  margin: 0 auto;
-  padding: 2px 8px;
-}
-.toggle-btn {
-  border: none;
-  background: transparent;
-  font-size: 18px;
-  color: #666;
-  padding: 0.75rem 1rem;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s, color 0.2s;
-}
-.toggle-btn:not(.active):hover {
-  background-color: #eaeaea;
-}
-.toggle-btn.active {
-  background-color: #fff;
-  color: #333;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.1);
-  font-weight: 700;
-}
-.output-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid #e5e9ef;
-  border-radius: 6px;
-  margin-bottom: 8px;
-  padding: 12px 16px;
-  background-color: #fff;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-.output-row:hover {
-  background-color: #f8faff;
-}
-.output-logo {
-  width: 32px;
-  height: auto;
-  object-fit: contain;
-}
-.program-name {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #1D3A5F;
-}
-.output-value {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1a2732;
-}
-
-/*******************************************************
- * BACK & NEXT BUTTONS
- *******************************************************/
-.next-btn {
-  border: none;
-  border-radius: 9999px;
   background-color: #1a2732;
   color: #fff;
-  font-size: 20px;
-  font-weight: 600;
-  padding: 1.25rem 7rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  margin: 0 0.5rem;
+  padding: 40px 20px;
+  height: 100%;
 }
-.next-btn:hover {
-  background-color: #141d28;
-}
-.back-btn {
-  background: none;
-  color: #1a2732;
-  cursor: pointer;
+.module-container {
+  width: 100%;
+  background-color: #1a2732;
   padding: 0;
-  margin: 0 10px;
-  font-size: 1rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  margin: 0 auto;
 }
-.back-btn::before {
-  content: "";
-  display: inline-block;
-  width: 24px;
-  height: 24px;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
-    no-repeat center center;
-  background-size: 24px 24px;
-  transition: opacity 0.2s ease;
+.inner-content {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: #fff;
+  padding: 0 20px;
 }
-.back-btn:hover::before {
-  opacity: 0.7;
-}
-.state-header {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-.state-header .back-btn {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-.state-title {
-  margin: 0;
+.module-title h1 {
+  font-size: 32px;
+  font-weight: 900;
+  margin-bottom: 6px;
+  margin-top: 0;
   text-align: center;
+  color: #fff;
+}
+.module-subtitle {
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 30px;
+}
+.points-options {
+  display: flex;
+  justify-content: center;
+  column-gap: 40px;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+.point-option {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin: 10px 0;
+  transition: background-color 0.2s;
+}
+.point-option.active,
+.point-option:hover {
+  background-color: #2e4461;
+}
+.points-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.points-view-img {
+  flex: 0 1 400px;
+  max-width: 400px;
+}
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  max-height:225px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  display: block;
+}
+.points-view-content {
+  flex: 1 1 300px;
+  text-align: left;
+}
+.points-state-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.points-state-description {
+  font-size: 14px;
+  line-height: 1.4;
+  color: #f0f0f0;
+  max-width: 400px;
 }
 
 /*******************************************************
- * CLEAR ALL
+ * SEND-REPORT => #send-report-state
  *******************************************************/
-.clear-all-btn {
-  background-color: #dc3545;
+#send-report-state {
+  display: none;
+  padding: 40px 20px;
+}
+.save-results-container {
+  margin-top: 20px;
+  display: none;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  box-shadow: none;
+}
+.save-results-right {
+  display: flex;
+  gap: 8px;
+}
+#email-input {
+  flex: 1;
+  font-size: 16px;
+  border: 1px solid #dce3eb;
+  border-radius: 4px;
+  padding: 10px;
+}
+#send-results-btn {
+  font-size: 16px;
   color: #fff;
-  padding: 4px 10px;
+  background-color: #007bff;
+  border-radius: 4px;
+  padding: 10px 16px;
+  transition: background-color 0.2s ease;
+}
+#send-results-btn:hover {
+  background-color: #005fa3;
+}
+.save-results-left p {
+  font-size: 14px;
+  color: #2b2d42;
+  margin: 0;
+}
+#email-error {
+  color: red;
+  display: none;
+}
+
+/*******************************************************
+ * SUBMISSION TAKEOVER => #submission-takeover
+ *******************************************************/
+#submission-takeover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255,255,255,0.95);
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+  max-width: 50rem;
+}
+#submission-takeover h2 {
+  font-size: 24px;
+  color: #2b2d42;
+  margin-bottom: 16px;
+}
+#submission-takeover p {
+  font-size: 16px;
+  color: #2b2d42;
+  margin-bottom: 20px;
+}
+#submission-takeover img {
+  width: 200px;
+  margin-bottom: 20px;
+}
+#go-back-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: #fff;
   border-radius: 4px;
   transition: background-color 0.2s ease;
 }
-.clear-all-btn:hover {
-  background-color: #b32431;
+#go-back-btn:hover {
+  background-color: #0056b3;
+}
+#explore-concierge-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  background-color: #495057;
+  color: #fff;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+#explore-concierge-btn:hover {
+  background-color: #2a2f33;
 }
 
 /*******************************************************
- * MODULE CONTAINERS & USECASE (unchanged)
- *******************************************************/
-/* ... your existing styling ... */
-
-/*******************************************************
- * THREE CARDS (Landing/Hero) (unchanged)
- *******************************************************/
-
-/*******************************************************
- * REPORT MODAL => position absolute => center
+ * REPORT MODAL => #report-modal
  *******************************************************/
 #report-modal {
   display: none;
   position: absolute;
-  top: 0; left: 0;
+  top: 0; 
+  left: 0;
   width: 100%; 
   height: 100%; 
   background: rgba(0,0,0,0.5);
@@ -585,8 +593,9 @@ h2 {
 }
 #report-modal-content {
   position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%,-50%);
   width: 35rem;
   max-width: 90%;
   background: #fff;
@@ -617,41 +626,30 @@ h2 {
   font-weight: 600;
   text-align: center;
 }
-
-/*******************************************************
- * SQUARESPACE OVERRIDES
- *******************************************************/
-.sqs-block-spacer {
-  display: none !important;
+.modal-subheader {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
 }
-.sqs-section {
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
+#modal-email-input {
+  width: 85%;
+  margin: 0 auto 8px auto;
+  display: block;
+  font-size: 14px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
-
-/*******************************************************
- * NEW: HOW-IT-WORKS STEPS & BULLETS
- *******************************************************/
-#how-it-works-state {
-  /* you can style it more if you want a full screen, etc. */
-}
-.hiw-step {
-  /* each step => show/hide via JS */
-}
-.hiw-bullet {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #ccc;
-  margin: 0 5px;
-}
-.hiw-bullet.active {
-  background-color: #1a2732;
+#modal-email-error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-align: center;
+  display: none;
 }
 
 /*******************************************************
- * MOBILE EDGE-TO-EDGE OVERRIDES
+ * MEDIA QUERIES => MOBILE
  *******************************************************/
 @media (max-width: 576px) {
   html, body,
@@ -670,51 +668,37 @@ h2 {
     padding: 0 !important;
   }
   [style*="max-width"],
-  [style*="cell-max-width"],
   [style*="width"] {
     max-width: 100% !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
-
-  /* headings, etc. */
-  .hero-section h1,
-  #input-state h1,
-  #calculator-state h1,
-  #output-state h1,
-  .state-title {
-    font-size: 1.25rem !important;
+  .hero-inner h1 {
+    font-size: 1.5rem !important;
   }
-  h2,
-  .hero-section h2,
-  .module-title h1,
-  .module-subtitle,
-  .section-title,
-  .popular-program-title h2 {
+  .hero-inner h2 {
     font-size: 1rem !important;
   }
-
   #input-state,
   #calculator-state,
-  #output-state,
-  #usecase-state {
+  #output-state {
     padding: 20px !important;
   }
-
-  .program-name {
-    font-size: 0.85rem !important;
-    line-height: 1.2;
+  .calc-footer {
+    flex-direction: column;
+    gap: 8px;
+    padding: 1rem 0 !important;
   }
-
-  .program-left {
-    gap: 0 !important;
+  .calc-footer .next-btn {
+    width: 90% !important;
+    max-width: 500px;
+    margin: 0 auto !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 16px !important;
+    border-radius: 6px !important;
   }
-
-  .dollar-input-container {
-    padding: 0 !important;
-    margin: 0 !important;
-    width: 100% !important;
-    padding-left: 5px;
+  .container {
+    padding-bottom: 80px !important;
   }
 }
