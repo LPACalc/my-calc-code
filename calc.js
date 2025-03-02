@@ -20,7 +20,7 @@ const sessionId = getOrCreateSessionId();
 console.log("Session ID:", sessionId);
 
 /*******************************************************
- * GLOBALS & LOGGING
+ * GLOBALS & LOG EVENTS
  *******************************************************/
 let clientIP = null;
 let approximateLocation = null;
@@ -102,19 +102,19 @@ window.addEventListener('beforeunload', () => {
 });
 
 /*******************************************************
- * HELPER => hideAllStates
+ * hideAllStates => common
  *******************************************************/
 function hideAllStates() {
   $("#default-hero, #how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
 
 /*******************************************************
- * Show left column + background
+ * Show left column => background
  *******************************************************/
 function showLeftColumnBanner() {
   $(".left-column").css({
-    "display": "flex",
-    "background": `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
+    display: "flex",
+    background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
   });
 }
 
@@ -126,7 +126,7 @@ function isValidEmail(str) {
 }
 
 /*******************************************************
- * FETCH UTILS
+ * fetchWithTimeout
  *******************************************************/
 async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   let attempt=0;
@@ -164,6 +164,9 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
   throw new Error("Failed fetch after maxRetries");
 }
 
+/*******************************************************
+ * fetchAirtableTable
+ *******************************************************/
 async function fetchAirtableTable(tableName){
   const resp=await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
@@ -178,7 +181,7 @@ async function fetchAirtableTable(tableName){
 }
 
 /*******************************************************
- * initializeApp => fetch data
+ * initializeApp => loads data
  *******************************************************/
 async function initializeApp(){
   console.log("=== initializeApp() ===");
@@ -264,6 +267,7 @@ function filterPrograms(){
   const results=Object.keys(loyaltyPrograms).filter(id=>{
     const prog=loyaltyPrograms[id];
     if(!prog["Program Name"])return false;
+    // check if in calc
     const inCalc=$(`#program-container .program-row[data-record-id='${id}']`).length>0;
     return prog["Program Name"].toLowerCase().includes(val)&&!inCalc;
   });
@@ -404,7 +408,6 @@ function updateChosenProgramsDisplay(){
  * CTA Visibility => show/hide #input-next-btn
  *******************************************************/
 function updateNextCTAVisibility(){
-  // If user has chosen any programs => show Next
   if(chosenPrograms.length>0){
     $("#input-next-btn").show();
   } else {
@@ -447,7 +450,7 @@ function formatNumberInput(el){
   el.value=num.toLocaleString();
 }
 function calculateTotal(){
-  // optional
+  // purely optional
 }
 
 /*******************************************************
@@ -471,7 +474,7 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * buildOutputRows => Travel vs Cash
+ * buildOutputRows => Travel vs Cash => plus usecase expansions
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -488,16 +491,30 @@ function buildOutputRows(viewType){
     }
     totalValue+=rowVal;
     const strVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
-    $("#output-programs-list").append(`
+
+    // Output row
+    let rowHtml=`
       <div class="output-row" data-record-id="${item.recordId}">
-        <div class="output-left" style="display:flex; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" class="output-logo"/>
+        <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="logo" class="output-logo" style="width:80px; height:auto;"/>
           <span class="program-name">${item.programName}</span>
         </div>
         <div class="output-value" style="font-weight:600;">${strVal}</div>
       </div>
-    `);
+    `;
+
+    // If Travel => show a hidden usecase-accordion
+    if(viewType==="travel"){
+      rowHtml += `
+        <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem;">
+          <p style="font-size:14px;">Placeholder expansions or recommended use-cases could appear here if you implement them.</p>
+        </div>
+      `;
+    }
+
+    $("#output-programs-list").append(rowHtml);
   });
+
   const label=(viewType==="travel")?"Travel Value":"Cash Value";
   const totalStr=`$${totalValue.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
   $("#output-programs-list").append(`
@@ -587,16 +604,17 @@ function showHowItWorksStep(stepNum){
 }
 
 /*******************************************************
- * DOC READY
+ * DOC READY => main flow
  *******************************************************/
 $(document).ready(async function(){
   logSessionEvent("session_load");
 
+  // 1) fetch IP + data
   await fetchClientIP();
   await fetchApproxLocationFromIP();
   await initializeApp();
 
-  // Hide all states, show hero
+  // 2) hide all but hero
   hideAllStates();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
@@ -632,19 +650,15 @@ $(document).ready(async function(){
     showLeftColumnBanner();
 
     hideAllStates();
-    $("#how-it-works-state").fadeIn(()=>{ isTransitioning=false; });
-    showHowItWorksStep(1);
+    $("#how-it-works-state").fadeIn(()=>{ 
+      isTransitioning=false; 
+      showHowItWorksStep(1);
+    });
   });
 
-  /****************************************************
-   * How It Works => step transitions
-   ****************************************************/
-  $("#hiw-continue-1").on("click",function(){
-    showHowItWorksStep(2);
-  });
-  $("#hiw-continue-2").on("click",function(){
-    showHowItWorksStep(3);
-  });
+  // Steps transitions
+  $("#hiw-continue-1").on("click",()=> showHowItWorksStep(2));
+  $("#hiw-continue-2").on("click",()=> showHowItWorksStep(3));
   $("#hiw-final-start-btn").on("click",function(){
     logSessionEvent("hiw_final_get_started");
     if(isTransitioning)return;
@@ -683,16 +697,15 @@ $(document).ready(async function(){
     hideAllStates();
     $("#calculator-state").fadeIn(()=>{ 
       isTransitioning=false;
-      // If you want a “Next” button to go to Output, show #to-output-btn
+      // Show “Next” for calculator => output
       $("#to-output-btn").show();
     });
-    // Build program rows
     $("#program-container").empty();
     chosenPrograms.forEach(rid=>addProgramRow(rid));
   });
 
   /****************************************************
-   * Calculator -> back => input
+   * Calc -> back => input
    ****************************************************/
   $("#calc-back-btn").on("click",function(){
     logSessionEvent("calc_back_clicked");
@@ -704,7 +717,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Calculator -> Next => output
+   * Calc -> Next => output
    ****************************************************/
   $("#to-output-btn").on("click",function(){
     logSessionEvent("calc_next_clicked");
@@ -712,12 +725,15 @@ $(document).ready(async function(){
     isTransitioning=true;
 
     hideAllStates();
-    $("#output-state").fadeIn(()=>{ isTransitioning=false; });
+    $("#output-state").fadeIn(()=>{ 
+      isTransitioning=false;
+      // Possibly show the “Unlock Full Report” CTA
+      $("#unlock-report-btn").show();
+    });
+    // Default => Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
-    // Potentially show #unlock-report-btn here if desired
-    $("#unlock-report-btn").show();
   });
 
   /****************************************************
@@ -775,11 +791,9 @@ $(document).ready(async function(){
     buildOutputRows($(this).data("view"));
   });
 
-  /****************************************************
-   * Expanding Usecase if travel
-   ****************************************************/
+  // Expand/collapse “usecase-accordion” on .output-row click
   $(document).on("click",".output-row",function(){
-    if($(".toggle-btn[data-view='cash']").hasClass("active"))return;
+    if($(".toggle-btn[data-view='cash']").hasClass("active")) return;
     $(".usecase-accordion:visible").slideUp();
     const panel=$(this).next(".usecase-accordion");
     if(panel.is(":visible")) panel.slideUp();
@@ -787,7 +801,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * “Unlock Full Report” => show modal
+   * Unlock => show modal
    ****************************************************/
   $("#unlock-report-btn").on("click",function(){
     logSessionEvent("unlock_report_clicked");
