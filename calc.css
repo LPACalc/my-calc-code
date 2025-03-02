@@ -30,7 +30,7 @@ button {
   position: relative;
   flex-wrap: nowrap;
   width: 100%;
-  min-height: 100vh; /* Let content grow to fill full height if short */
+  /* min-height: 100vh;  Let content grow to fill full height if short */
 }
 
 /* LEFT COLUMN */
