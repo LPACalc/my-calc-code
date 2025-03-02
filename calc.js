@@ -906,6 +906,9 @@ $(document).ready(async function() {
   updateStageGraphic("default");
   showCTAsForState("default");
 
+  // (E) *** FORCE-PREVIEW HIDE *** => Add this line
+  $("#program-preview").hide().empty();
+
   /*******************************************************
    * 2) TRANSITIONS: BACK & NEXT
    *******************************************************/
