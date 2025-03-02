@@ -238,15 +238,16 @@ function buildTopProgramsSection(){
     const prog=loyaltyPrograms[rid];
     const name=prog["Program Name"]||"Unnamed Program";
     const logo=prog["Brand Logo URL"]||"";
+    // Single-line layout => logo | name | + 
     html+=`
       <div class="top-program-box" data-record-id="${rid}">
-        <div style="display:flex; align-items:center; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
           <img 
             src="${logo}" 
             alt="${name} logo" 
-            style="width:60px; height:auto; object-fit:contain; margin-right:0.5rem;"
+            style="width:40px; height:auto; object-fit:contain;"
           />
-          <span class="top-program-label" style="white-space:normal;">
+          <span class="top-program-label" style="font-size:0.85rem; font-weight:600;">
             ${name}
           </span>
         </div>
@@ -318,13 +319,14 @@ function addProgramRow(recordId){
         display:flex; 
         align-items:center; 
         justify-content:space-between; 
-        padding:0.75rem 1rem;"
+        padding:0.75rem 1rem;
+        margin-bottom:1rem;"
     >
       <div 
         class="program-left" 
         style="display:flex; align-items:center; gap:0.75rem;"
       >
-        ${logo? `<img src="${logo}" alt="${name} logo" style="width:60px; height:auto;">`:""}
+        ${logo? `<img src="${logo}" alt="${name} logo" style="width:50px; height:auto;">`:""}
         <span class="program-name">${name}</span>
       </div>
       <div 
@@ -355,13 +357,19 @@ function addProgramRow(recordId){
               border:none;
               outline:none;
               font-size:1rem;
-              width:8rem;
+              width:7rem;
               background-color:transparent;
               padding:0.75rem 0;
             "
           />
         </div>
-        <button class="remove-btn">×</button>
+        <button 
+          class="remove-btn" 
+          style="
+            background:none;
+            color:#dc3545;
+            font-size:1.25rem;"
+        >×</button>
       </div>
     </div>
   `;
@@ -589,7 +597,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * buildOutputRows => Travel vs Cash => toggle
+ * buildOutputRows => Travel or Cash => pill-based
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -616,13 +624,14 @@ function buildOutputRows(viewType){
           display:flex; 
           justify-content:space-between; 
           align-items:center;
-          padding:0.75rem 1rem;"
+          padding:0.75rem 1rem;
+          margin-bottom:1rem;"
       >
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
           <img 
             src="${logoUrl}" 
             alt="logo" 
-            style="width:60px; height:auto;"
+            style="width:50px; height:auto;"
           />
           <span class="program-name">${item.programName}</span>
         </div>
@@ -631,7 +640,6 @@ function buildOutputRows(viewType){
         </div>
       </div>
     `;
-    // if Travel => use-case expansions
     if(viewType==="travel"){
       rowHtml+=`
         <div 
@@ -881,8 +889,9 @@ $(document).ready(async function(){
     });
 
     // default => Travel
-    $("#travelCashSwitch").prop("checked",true);
     buildOutputRows("travel");
+    $(".tc-switch-btn").removeClass("active-tc");
+    $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
   });
 
   /****************************************************
@@ -898,15 +907,13 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * TravelCashSwitch => toggles
+   * Travel | Cash => pill buttons
    ****************************************************/
-  $(document).on("change","#travelCashSwitch",function(){
-    const isTravel=$(this).is(":checked");
-    if(isTravel){
-      buildOutputRows("travel");
-    } else {
-      buildOutputRows("cash");
-    }
+  $(document).on("click",".tc-switch-btn",function(){
+    $(".tc-switch-btn").removeClass("active-tc");
+    $(this).addClass("active-tc");
+    const viewType=$(this).data("view");
+    buildOutputRows(viewType);
   });
 
   /****************************************************
@@ -950,7 +957,8 @@ $(document).ready(async function(){
    * Usecases => expand/collapse if travel
    ****************************************************/
   $(document).on("click",".output-row",function(){
-    if(!$("#travelCashSwitch").is(":checked")) return;
+    const activeView=$(".tc-switch-btn.active-tc").data("view");
+    if(activeView!=="travel")return; // only in travel mode
     $(".usecase-accordion:visible").slideUp();
     const nextAcc=$(this).next(".usecase-accordion");
     if(nextAcc.is(":visible")) nextAcc.slideUp();
