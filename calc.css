@@ -166,6 +166,11 @@ a {
   margin-top: 10px; 
   text-align: left; 
 }
+/* Force the Output State's content to 60rem, matching input/calc */
+#output-state .content-limiter {
+  max-width: 60rem !important;
+  margin: 0 auto !important;
+}
 /*******************************************************
  * SCROLL WRAPPERS & .content-limiter => set widths
  *******************************************************/
