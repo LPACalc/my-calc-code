@@ -102,14 +102,14 @@ window.addEventListener('beforeunload', () => {
 });
 
 /*******************************************************
- * hideAllStates => used to switch screens
+ * hideAllStates => switch screens
  *******************************************************/
 function hideAllStates() {
   $("#default-hero, #how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
 }
 
 /*******************************************************
- * showLeftColumnBanner => reveals left column
+ * showLeftColumnBanner => left col
  *******************************************************/
 function showLeftColumnBanner() {
   $(".left-column").css({
@@ -119,7 +119,7 @@ function showLeftColumnBanner() {
 }
 
 /*******************************************************
- * isValidEmail => quick check
+ * isValidEmail => quick
  *******************************************************/
 function isValidEmail(str) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
@@ -241,7 +241,12 @@ function buildTopProgramsSection(){
     html+=`
       <div class="top-program-box" data-record-id="${rid}">
         <div style="display:flex; align-items:center;">
-          <img src="${logo}" alt="${name} logo" class="top-program-logo"/>
+          <!-- Make these logos smaller => 60px wide -->
+          <img 
+            src="${logo}" 
+            alt="${name} logo" 
+            style="width:60px; height:auto; object-fit:contain; margin-right:0.5rem;"
+          />
           <span class="top-program-label">${name}</span>
         </div>
         <button class="add-btn">+</button>
@@ -306,13 +311,15 @@ function addProgramRow(recordId){
   const logo=prog["Brand Logo URL"]||"";
   const name=prog["Program Name"]||"Unnamed Program";
   const rowHTML=`
-    <div class="program-row" data-record-id="${recordId}">
-      <div class="program-left">
-        ${logo? `<img src="${logo}" alt="${name} logo" class="program-logo">`:""}
+    <div class="program-row" data-record-id="${recordId}" 
+      style="display:flex; align-items:center; justify-content:space-between;"
+    >
+      <div class="program-left" style="display:flex; align-items:center; gap:0.75rem;">
+        ${logo? `<img src="${logo}" alt="${name} logo" class="program-logo" style="width:60px; height:auto;">`:""}
         <span class="program-name">${name}</span>
       </div>
-      <div class="program-right">
-        <!-- Rounded container for the input field -->
+      <div class="program-right" style="display:flex; align-items:center; gap:1rem;">
+        <!-- Wider “Enter Total” => more padding -->
         <div 
           class="dollar-input-container"
           style="
@@ -333,8 +340,9 @@ function addProgramRow(recordId){
               border:none;
               outline:none;
               font-size:1rem;
-              width:5rem;
+              width:8rem; /* wider */
               background-color:transparent;
+              padding:0.5rem 0; /* more vertical padding */
             "
           />
         </div>
@@ -401,7 +409,7 @@ function toggleProgramSelection(boxEl){
 }
 
 /*******************************************************
- * updateChosenProgramsDisplay => show logos
+ * updateChosenProgramsDisplay => show chosen logos
  *******************************************************/
 function updateChosenProgramsDisplay(){
   const container=$("#chosen-programs-row");
@@ -425,7 +433,7 @@ function updateChosenProgramsDisplay(){
 }
 
 /*******************************************************
- * updateNextCTAVisibility => show/hide #input-next-btn
+ * updateNextCTAVisibility => show #input-next-btn if chosen
  *******************************************************/
 function updateNextCTAVisibility(){
   if(chosenPrograms.length>0){
@@ -436,7 +444,7 @@ function updateNextCTAVisibility(){
 }
 
 /*******************************************************
- * updateClearAllVisibility => show Clear All if >=3
+ * updateClearAllVisibility => show if >=3
  *******************************************************/
 function updateClearAllVisibility(){
   if($("#input-state").is(":visible")){
@@ -460,7 +468,7 @@ function clearAllPrograms(){
 }
 
 /*******************************************************
- * formatNumberInput / calculateTotal
+ * formatNumberInput / calculateTotal => optional
  *******************************************************/
 function formatNumberInput(el){
   let raw=el.value.replace(/,/g,"").replace(/[^0-9]/g,"");
@@ -494,22 +502,22 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * buildUseCaseAccordionContent => for real-world use cases
+ * buildUseCaseAccordionContent => dynamic pills
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
   if(!program){
-    return `<div style="padding:1rem;">No data found for program.</div>`;
+    return `<div style="padding:1rem;">No data found for this program.</div>`;
   }
-  // Filter realWorldUseCases => recommended for this recordId
+  // Filter realWorldUseCases
   let matching=Object.values(realWorldUseCases).filter(uc=>{
     if(!uc.Recommended) return false;
     if(!uc["Points Required"]) return false;
     if(!uc["Use Case Title"]) return false;
     if(!uc["Use Case Body"])  return false;
     const linked=uc["Program Name"]||[];
-    const userHasEnough = uc["Points Required"] <= userPoints;
-    return linked.includes(recordId) && userHasEnough;
+    const userHasEnough = uc["Points Required"]<=userPoints;
+    return linked.includes(recordId)&&userHasEnough;
   });
   matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
   matching=matching.slice(0,3);
@@ -518,12 +526,23 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // Build a small pill + content approach
+  // Build pill approach
   let pillsHTML="";
   matching.forEach((uc,i)=>{
     const pts=uc["Points Required"]||0;
-    pillsHTML += `
-      <div class="mini-pill ${i===0?"active":""}" data-usecase-id="${uc.id}">
+    pillsHTML+=`
+      <div class="mini-pill ${i===0?"active":""}" data-usecase-id="${uc.id}" 
+        style="
+          display:inline-block; 
+          background-color:#f0f0f0; 
+          color:#333; 
+          border-radius:9999px;
+          margin-right:8px; 
+          margin-bottom:8px;
+          padding:6px 12px;
+          cursor:pointer;
+        "
+      >
         ${pts.toLocaleString()} pts
       </div>
     `;
@@ -539,7 +558,14 @@ function buildUseCaseAccordionContent(recordId, userPoints){
       <div class="pills-container" style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
         ${pillsHTML}
       </div>
-      <div class="usecase-details" style="display:flex; gap:1rem; flex-wrap:nowrap;">
+      <div 
+        class="usecase-details" 
+        style="
+          display:flex; 
+          gap:1rem; 
+          flex-wrap:nowrap; 
+          align-items:flex-start;"
+      >
         <div class="image-wrap" style="max-width:180px;">
           <img
             src="${imageURL}"
@@ -561,7 +587,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * buildOutputRows => Travel vs Cash => usecases
+ * buildOutputRows => Travel vs Cash => use-case expansions
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -581,7 +607,7 @@ function buildOutputRows(viewType){
     const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
 
     let rowHtml=`
-      <div class="output-row" data-record-id="${item.recordId}">
+      <div class="output-row" data-record-id="${item.recordId}" style="display:flex; justify-content:space-between; align-items:center;">
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
           <img 
             src="${logoUrl}" 
@@ -596,15 +622,15 @@ function buildOutputRows(viewType){
         </div>
       </div>
     `;
+    // If Travel => build use-case accordion
     if(viewType==="travel"){
-      // Real-world use cases => show an accordion
-      const userPoints=item.points||0;
       rowHtml+=`
         <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem;">
-          ${buildUseCaseAccordionContent(item.recordId, userPoints)}
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
     }
+
     $("#output-programs-list").append(rowHtml);
   });
 
@@ -640,7 +666,8 @@ async function sendReport(email){
     programName:x.programName,
     points:x.points
   }));
-  console.log("Sending report =>", { email, programs:programsToSend });
+
+  console.log("Sending =>", { email, programsToSend });
 
   const response=await fetch("https://young-cute-neptune.glitch.me/submitData",{
     method:"POST",
@@ -663,7 +690,7 @@ async function sendReportFromModal(){
   sentMsgEl.hide();
 
   if(!isValidEmail(emailInput)){
-    errorEl.text("Invalid email.").show();
+    errorEl.text("Invalid email address.").show();
     return;
   }
 
@@ -675,23 +702,22 @@ async function sendReportFromModal(){
     userEmail=emailInput;
     logSessionEvent("email_submitted",{ email:userEmail });
 
-    // After short delay => hide modal + “swap ctas”
+    // After short delay => hide modal + swap CTA colors
     setTimeout(()=>{
       hideReportModal();
       sentMsgEl.hide();
 
-      // Swap CTAs => “Unlock Full Report” => white, “Explore Services” => blue
+      // Swap “Unlock Full Report” => white, “Explore Services” => blue
       $("#unlock-report-btn")
         .removeClass("cta-dark").removeClass("cta-light-border")
         .addClass("cta-light-border");
       $("#explore-concierge-lower")
         .removeClass("cta-dark").removeClass("cta-light-border")
         .addClass("cta-dark");
-
     },700);
   }catch(err){
-    console.error("Failed to send =>",err);
-    errorEl.text(err.message||"Error sending report.").show();
+    console.error("Failed to send =>", err);
+    errorEl.text(err.message||"Error sending report").show();
   }finally{
     sendBtn.prop("disabled",false).text("Send Report");
   }
@@ -715,6 +741,7 @@ function showHowItWorksStep(stepNum){
  * DOC READY => main transitions
  *******************************************************/
 $(document).ready(async function(){
+
   // Log session load
   logSessionEvent("session_load");
 
@@ -810,7 +837,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Calc => Back => Input
+   * Calc => Back => input
    ****************************************************/
   $("#calc-back-btn").on("click",function(){
     logSessionEvent("calc_back_clicked");
@@ -822,7 +849,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Calc => Next => Output
+   * Calc => Next => output
    ****************************************************/
   $("#to-output-btn").on("click",function(){
     logSessionEvent("calc_next_clicked");
@@ -832,18 +859,17 @@ $(document).ready(async function(){
     hideAllStates();
     $("#output-state").fadeIn(()=>{
       isTransitioning=false;
-      // show the 2 ctas
+      // Show the 2 CTAs
       $("#unlock-report-btn").show();
       $("#explore-concierge-lower").show();
     });
-    // Default => Travel
     $(".toggle-btn").removeClass("active");
     $(".toggle-btn[data-view='travel']").addClass("active");
     buildOutputRows("travel");
   });
 
   /****************************************************
-   * Output => Back => Calc
+   * Output => Back => calc
    ****************************************************/
   $("#output-back-btn").on("click",function(){
     logSessionEvent("output_back_clicked");
@@ -855,7 +881,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Clear All, Search, Program Remove
+   * Clear All, Program search, remove row
    ****************************************************/
   $("#clear-all-btn").on("click",function(){
     logSessionEvent("clear_all_clicked");
@@ -868,17 +894,20 @@ $(document).ready(async function(){
       $(".preview-item").click();
     }
   });
+  // preview item => toggle
   $(document).on("click",".preview-item",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("program_preview_item_clicked",{ rid });
     toggleSearchItemSelection($(this));
     $("#program-preview").hide().empty();
   });
+  // popular box => toggle
   $(document).on("click",".top-program-box",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("top_program_box_clicked",{ rid });
     toggleProgramSelection($(this));
   });
+  // remove row => recalc
   $(document).on("click",".remove-btn",function(){
     const rowEl=$(this).closest(".program-row");
     const rid=rowEl.data("record-id");
@@ -888,7 +917,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Toggle Travel / Cash => buildOutputRows
+   * Toggle Travel/Cash
    ****************************************************/
   $(document).on("click",".toggle-btn",function(){
     logSessionEvent("toggle_view_clicked",{ newView:$(this).data("view")});
@@ -896,7 +925,6 @@ $(document).ready(async function(){
     $(this).addClass("active");
     buildOutputRows($(this).data("view"));
   });
-
   // Expand/collapse usecase if Travel
   $(document).on("click",".output-row",function(){
     if($(".toggle-btn[data-view='cash']").hasClass("active")) return;
@@ -904,6 +932,23 @@ $(document).ready(async function(){
     const panel=$(this).next(".usecase-accordion");
     if(panel.is(":visible")) panel.slideUp();
     else panel.slideDown();
+  });
+  // mini-pill => load that use case
+  $(document).on("click",".mini-pill",function(){
+    const useCaseId=$(this).data("usecaseId");
+    logSessionEvent("mini_pill_clicked",{ useCaseId });
+
+    $(this).siblings(".mini-pill").removeClass("active");
+    $(this).addClass("active");
+    
+    // find the record
+    const uc=Object.values(realWorldUseCases).find(x=>x.id===useCaseId);
+    if(!uc)return;
+    // update the container
+    const container=$(this).closest(".usecases-panel");
+    container.find(".image-wrap img").attr("src",uc["Use Case URL"]||"");
+    container.find("h4").text(uc["Use Case Title"]||"Untitled");
+    container.find("p").text(uc["Use Case Body"]||"No description");
   });
 
   /****************************************************
@@ -924,27 +969,24 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Explore Services => external link or “services” page
+   * Explore Services => external link
    ****************************************************/
   $("#explore-concierge-lower").on("click",function(){
     logSessionEvent("explore_concierge_clicked");
-    // example: open link
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 
   /****************************************************
-   * If you have further states => usecase-back => etc.
+   * Additional => usecase, send-report, submission
    ****************************************************/
   $("#usecase-back-btn").on("click",function(){
     hideAllStates();
     $("#output-state").fadeIn();
   });
-
   $("#send-report-back-btn").on("click",function(){
     hideAllStates();
     $("#output-state").fadeIn();
   });
-
   $("#go-back-btn").on("click",function(){
     hideAllStates();
     $("#output-state").fadeIn();
