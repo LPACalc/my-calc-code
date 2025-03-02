@@ -319,7 +319,7 @@ function addProgramRow(recordId){
         display:flex; 
         align-items:center; 
         justify-content:space-between; 
-        padding:0.75rem 1rem;
+        padding:0.75rem 1.5rem;
         margin-bottom:1rem;"
     >
       <div 
@@ -450,15 +450,15 @@ function updateNextCTAVisibility(){
 }
 
 /*******************************************************
- * updateClearAllVisibility => show if >=3
+ * updateClearAllVisibility => now show if >= 1 chosen
  *******************************************************/
 function updateClearAllVisibility(){
   if($("#input-state").is(":visible")){
-    if(chosenPrograms.length>=3) $("#clear-all-btn").fadeIn();
+    if(chosenPrograms.length>=1) $("#clear-all-btn").fadeIn();
     else $("#clear-all-btn").fadeOut();
   } else if($("#calculator-state").is(":visible")){
     const rowCount=$("#program-container .program-row").length;
-    if(rowCount>=3) $("#clear-all-btn").fadeIn();
+    if(rowCount>=1) $("#clear-all-btn").fadeIn();
     else $("#clear-all-btn").fadeOut();
   } else {
     $("#clear-all-btn").fadeOut();
@@ -597,7 +597,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * buildOutputRows => Travel or Cash => pill-based
+ * buildOutputRows => Travel or Cash => replicate “point-option”
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -624,7 +624,7 @@ function buildOutputRows(viewType){
           display:flex; 
           justify-content:space-between; 
           align-items:center;
-          padding:0.75rem 1rem;
+          padding:0.75rem 1.5rem;
           margin-bottom:1rem;"
       >
         <div class="output-left" style="display:flex; align-items:center; gap:0.75rem;">
@@ -907,7 +907,7 @@ $(document).ready(async function(){
   });
 
   /****************************************************
-   * Travel | Cash => pill buttons
+   * Travel | Cash => pill-style
    ****************************************************/
   $(document).on("click",".tc-switch-btn",function(){
     $(".tc-switch-btn").removeClass("active-tc");
