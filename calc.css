@@ -249,7 +249,7 @@ a {
 }
 
 /*******************************************************
- * POINTS INFO BOX => #points-info-box => icon + text center
+ * POINTS INFO BOX => #points-info-box => horizontal layout
  *******************************************************/
 .points-info-box {
   background-color: #f5f5f7;
@@ -257,6 +257,8 @@ a {
   border-radius: 8px;
   display: flex;
   gap: 12px;
+  align-items: center;
+  justify-content: center;
 }
 .info-icon {
   width: 24px;
@@ -289,9 +291,6 @@ a {
 }
 .preview-item:hover {
   background-color: #f8fafd;
-}
-.preview-item.chosen-state {
-  background-color: #daf0ff;
 }
 
 /*******************************************************
@@ -426,13 +425,13 @@ a {
   justify-content: center;
 }
 .points-view-img {
-  flex: 0 1 400px;
-  max-width: 400px;
+  flex: 0 1 580px;
+  max-width: 580px; /* match hiw images if desired */
 }
 .image-wrapper img {
   width: 100%;
   height: auto;
-  max-height:225px;
+  max-height:300px;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.15);
   display: block;
@@ -600,44 +599,65 @@ a {
   font-weight: 600;
   text-align: center;
 }
-.modal-subheader {
-  font-size: 14px;
-  color: #555;
-  margin-bottom: 12px;
-}
-#modal-email-input {
-  width: 85%;
-  margin: 0 auto 1rem auto;
-  display: block;
-  font-size: 14px;
-  padding: 8px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-#modal-email-error {
-  color: red;
-  font-size: 14px;
-  margin-bottom: 8px;
-  text-align: center;
-  display: none;
-}
 
 /*******************************************************
- * “TOGGLE SWITCH” => #travelCashSwitch
+ * Travel/Cash Switch => input #travelCashSwitch
  *******************************************************/
-.toggle-switch-wrapper {
-  margin-bottom:1rem;
+.travel-cash-switch {
+  position: relative;
+  display: inline-block;
+  width: 80px;
+  height: 40px;
 }
-.toggle-switch input {
-  opacity:0;
-  width:0;
-  height:0;
+.travel-cash-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
 }
-.slider.round {
-  border-radius:34px;
+.travel-cash-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #fff;
+  border: 2px solid #1a2732;
+  transition: 0.4s;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+  box-sizing: border-box;
 }
-.slider.round:before {
-  border-radius:50%;
+.travel-cash-switch .switch-label {
+  font-size: 0.9rem;
+  color: #666;
+  pointer-events: none;
+  flex:0 0 auto;
+}
+.switch-label-left {
+  margin-right:auto;
+}
+.switch-label-right {
+  margin-left:auto;
+}
+.travel-cash-switch input:checked + .slider {
+  background-color: #1a2732;
+  color: #fff;
+}
+/* Animate the slider knob via a pseudo-element */
+.travel-cash-switch .slider::before {
+  content: "";
+  position: absolute;
+  height: 32px;
+  width: 32px;
+  left: 2px;
+  top: 2px;
+  background-color: #fff;
+  border-radius: 9999px;
+  transition: 0.4s;
+}
+.travel-cash-switch input:checked + .slider:before {
+  transform: translateX(40px);
 }
 
 /*******************************************************
