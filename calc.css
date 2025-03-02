@@ -141,7 +141,7 @@ a {
 }
 
 /*******************************************************
- * “HOW IT WORKS” => .hiw-line
+ * “HOW IT WORKS” => lines
  *******************************************************/
 .hiw-line {
   width: 60px;
@@ -155,11 +155,13 @@ a {
 }
 
 /*******************************************************
- * INPUT / CALCULATOR / OUTPUT => common
+ * STATES => input/calculator/output => consistent widths
  *******************************************************/
 #input-state,
 #calculator-state,
-#output-state {
+#output-state,
+#usecase-state,
+#send-report-state {
   display: none;
   max-width: 50rem;
   margin: auto;
@@ -176,7 +178,9 @@ a {
 .state-title {
   margin: 0;
 }
-/* REINSTATE BACK ARROWS => .back-btn::before */
+/*******************************************************
+ * BACK ARROW => top-left
+ *******************************************************/
 .back-btn {
   border: none;
   background: none;
@@ -218,13 +222,13 @@ a {
 }
 .program-logo, 
 .output-logo {
-  width: 80px; 
-  height: auto; 
-  object-fit: contain; 
+  width: 60px;
+  height: auto;
+  object-fit: contain;
   margin-right: 1rem;
 }
 .program-name {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   font-weight: 600;
   color: #1D3A5F;
 }
@@ -248,7 +252,7 @@ a {
 }
 
 /*******************************************************
- * POINTS INFO BOX
+ * POINTS INFO BOX => #points-info-box
  *******************************************************/
 .points-info-box {
   background-color: #f5f5f7;
@@ -648,6 +652,7 @@ a {
     margin: 0!important;
     padding: 0!important;
   }
+
   .hero-inner h1 {
     font-size: 2rem!important;
   }
@@ -660,6 +665,6 @@ a {
     padding: 20px!important;
   }
   .container {
-    padding-bottom: 80px!important;
+    padding-bottom: 80px!important; /* or enough to avoid pinned bottom issues */
   }
 }
