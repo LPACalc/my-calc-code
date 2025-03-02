@@ -127,9 +127,20 @@ a {
 .cta-dark:hover {
   background-color: #141d28;
 }
+/* (1) new .cta-no-border => remove the dark border */
+.cta-no-border {
+  background-color: #fff;
+  color: #1a2732;
+  border: none; 
+}
+.cta-no-border:hover {
+  background-color: #e0e0e0;
+  color: #111;
+}
 .cta-light-border {
   background-color: #fff;
   color: #1a2732;
+  border: 2px solid #1a2732;
 }
 .cta-light-border:hover {
   background-color: #1a2732;
@@ -185,7 +196,6 @@ a {
 }
 .content-limiter {
   margin: 0 auto;
-  /* We'll set max-width: 60rem in the HTML inline styles for each state. */
 }
 
 /*******************************************************
@@ -196,7 +206,7 @@ a {
   background: none;
   cursor: pointer;
   padding: 0;
-  margin: 0 10px;
+  margin: 0;
   font-size: 1rem;
   display: inline-flex;
   align-items: center;
@@ -351,7 +361,7 @@ a {
 #usecase-state {
   display: none;
   padding: 10px 20px;
-  background-color: #fff; /* or #1a2732 if desired */
+  background-color: #fff; 
 }
 .module-container {
   width: 100%;
@@ -627,14 +637,12 @@ a {
     margin: 0!important;
     padding: 0!important;
   }
-
   .hero-inner h1 {
     font-size: 2rem!important;
   }
   .hero-inner h2 {
     font-size: 1rem!important;
   }
-
   .container {
     padding-bottom: 80px!important;
   }
