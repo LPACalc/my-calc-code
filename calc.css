@@ -111,7 +111,7 @@ a {
 }
 
 /*******************************************************
- * CTA => .cta-btn
+ * CTA => .cta-btn + .cta-no-border
  *******************************************************/
 .cta-btn {
   font-size: 1rem;
@@ -127,7 +127,6 @@ a {
 .cta-dark:hover {
   background-color: #141d28;
 }
-/* (1) new .cta-no-border => remove the dark border */
 .cta-no-border {
   background-color: #fff;
   color: #1a2732;
@@ -176,11 +175,12 @@ a {
   margin-top: 10px; 
   text-align: left; 
 }
-/* Force the Output State's content to 60rem, matching input/calc */
+/* Force the Output State's content-limiter => 60rem */
 #output-state .content-limiter {
   max-width: 60rem !important;
   margin: 0 auto !important;
 }
+
 /*******************************************************
  * SCROLL WRAPPERS & .content-limiter => set widths
  *******************************************************/
@@ -199,14 +199,13 @@ a {
 }
 
 /*******************************************************
- * BACK ARROW => top-left
+ * BACK ARROW => flush left => position:absolute
  *******************************************************/
 .back-btn {
   border: none;
   background: none;
   cursor: pointer;
   padding: 0;
-  margin: 0;
   font-size: 1rem;
   display: inline-flex;
   align-items: center;
