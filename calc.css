@@ -131,29 +131,55 @@ img {
  *******************************************************/
 @media (max-width: 576px) {
 
-  /* (1) Reduce .state-header margin-top to 2.5rem */
+  /* Trim down .state-header top margin */
   .state-header {
     margin-top: 2.5rem !important;
   }
 
-  /* 2 & 3) 1 rem top/bottom margin for .points-info-box and .started-search-area
-     plus left/right margin for a balanced layout */
+  /* Info cards => 1rem margin top/bottom/left/right */
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
-    margin: 1rem 1rem !important; /* 1rem all around (top/bottom/left/right) */
-    padding: 1rem !important;     /* from your existing mobile snippet */
-  }
-  .started-search-area {
-    margin: 1rem 1rem !important; /* 1rem top/bottom, 1rem left/right */
+    margin: 1rem 1rem !important;
+    padding: 1rem !important; 
   }
 
-  /* 4 & 5) Popular Programs => 1rem left margin; 2 columns x 3 rows */
+  /* Program search => 1rem margin all around */
+  .started-search-area {
+    margin: 1rem 1rem !important;
+  }
+
+  /* Keep the same design for the search field, 
+     just narrower & no black outline on focus */
+  .program-search-field {
+    width: 100% !important; 
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 1rem 2rem !important;
+  }
+  .program-search-field:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: transparent !important; /* no border highlight on focus */
+  }
+
+  /* .back-btn => 1rem left margin */
+  .back-btn {
+    margin-left: 1rem !important;
+  }
+
+  /* Popular programs => 2 columns x 3 rows, plus 1rem side margins & 0.5rem gap */
   #top-programs-grid.top-programs-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
     grid-template-rows: repeat(3, auto) !important;
-    gap: 16px;
-    margin-left: 1rem !important; 
+    margin: 0 1rem !important;
+    gap: 0.5rem !important;
+  }
+
+  /* .top-program-label => .75rem + line-height 1rem */
+  .top-program-label {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
   }
 
   /* Hide the plus button on mobile */
@@ -161,7 +187,7 @@ img {
     display: none !important;
   }
 
-  /* Clicking top program => dark background => white text */
+  /* Selected top program => dark background, white text */
   .top-program-box.selected-state {
     background-color: #1a2732 !important;
     border-color: #1a2732 !important;
@@ -170,21 +196,13 @@ img {
     color: #fff !important;
   }
 
-  /* Clear all => red */
+  /* Clear-all button => remain red */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
   }
 
-  /* Keep the search bar styling, just narrower */
-  .program-search-field {
-    width: 100% !important; 
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 1rem 2rem !important; 
-  }
-
-  /* Smaller redemption pills & horizontal scrolling */
+  /* Redemption-option pills => smaller */
   .point-option {
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
@@ -200,15 +218,15 @@ img {
     width: 80% !important;
   }
 
-  /* (6) Selected programs => same font size & weight as popular programs 
-     (which uses .top-program-label => 0.85rem, 600) */
+  /* Selected Programs heading => match the smaller .top-program-label style */
   .selected-programs-row h3 {
-    font-size: 0.85rem !important;
+    font-size: 0.75rem !important;
     font-weight: 600 !important;
+    line-height: 1rem !important;
     color: #1a2732 !important;
   }
-
 }
+
 
 
 
