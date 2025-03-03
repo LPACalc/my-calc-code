@@ -308,10 +308,9 @@ function addProgramRow(recordId){
       </div>
       <div style="display:flex; align-items:center; gap:1rem;">
         <div class="dollar-input-container">
-     <input
-  type="text"
+ <input
+  type="tel"
   inputmode="numeric"
-  pattern="[0-9]*"
   class="points-input"
   placeholder="Enter Total"
   oninput="formatNumberInput(this); calculateTotal()"
