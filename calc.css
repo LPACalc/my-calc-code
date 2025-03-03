@@ -703,7 +703,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   margin-bottom:0.75rem;
 }
 .selected-programs-row h3 {
-  margin-bottom:0.75rem;
+
 }
 .clear-all-btn {
   display:none;
@@ -993,4 +993,9 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .email-field-container:focus-within {
   border-color: #007bff;  /* highlight color */
   box-shadow: 0 0 0 2px #b7b7b7;
+}
+#chosen-wrapper {
+  min-height: 100px; /* enough space to cover both heading + row */
+  /* optionally a background or something if you want to see the area */
+  margin-bottom: 1rem; /* so there's space under it before the Next button */
 }
