@@ -856,22 +856,12 @@ $(document).ready(async function(){
     // Decide if we should show
     let shouldShow = false;
 
-    if ($("#input-state").is(":visible") && chosenPrograms.length >= 1) {
-      shouldShow = true;
-    } 
-    else if ($("#calculator-state").is(":visible") 
-          && $("#program-container .program-row").length >= 1) {
-      shouldShow = true;
-    }
-
-    if (shouldShow) {
-      // Stop any ongoing fade-out, then fade in
-      $btn.stop(true, true).fadeIn(200);
-    } else {
-      // Stop any ongoing fade-in, then fade out
-      $btn.stop(true, true).fadeOut(200);
-    }
+     if (hasChosen) {
+    $btn.stop(true, true).fadeIn(200);
+  } else {
+    $btn.stop(true, true).fadeOut(200);
   }
+}
 
   // Program search => filter
   $("#program-search").on("input", filterPrograms);
