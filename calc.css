@@ -157,7 +157,7 @@ img {
     padding: 1rem !important; 
   }
 
-  /* (1) .infobox-desktop-text => 0 top/bottom margin on mobile */
+  /* Zero top/bottom margin on .infobox-desktop-text */
   .infobox-desktop-text {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
@@ -168,6 +168,18 @@ img {
     margin: 1rem 1rem !important;
   }
 
+  /* (1) Remove outline color on focus for inputs, selects, etc. */
+  input:focus,
+  select:focus,
+  textarea:focus,
+  input[type="radio"]:focus-visible ~ .radio-outline,
+  .form-field-checkbox-type-button .field.checkbox input[type="checkbox"]:focus-visible + span,
+  .form-field-radio-type-button input[type="radio"]:focus-visible + .radio-label {
+    outline-color: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+  }
+
   /* The search field => full width, no black outline on focus */
   .program-search-field {
     width: 100% !important; 
@@ -175,6 +187,7 @@ img {
     margin: 0 auto;
     padding: 1rem 2rem !important;
   }
+
   .program-search-field:focus {
     outline: none !important;
     box-shadow: none !important;
@@ -192,6 +205,7 @@ img {
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
   }
+
   .points-options {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -202,7 +216,6 @@ img {
   #modal-email-input {
     width: 80% !important;
   }
-
 
   /* --- POPULAR PROGRAMS / SELECT PROGRAMS --- */
 
@@ -220,7 +233,7 @@ img {
     font-weight: bold !important;
   }
 
-  /* (2) #chosen-programs-row => 1rem left/right margin */
+  /* #chosen-programs-row => 1rem left/right margin */
   #chosen-programs-row {
     margin: 0 1rem !important;
   }
@@ -249,10 +262,10 @@ img {
     background-color: #1a2732 !important;
     border-color: #1a2732 !important;
   }
+
   .top-program-box.selected-state .top-program-label {
     color: #fff !important;
   }
-
 
   /* --- INPUT MILES & POINTS => #calculator-state --- */
 
@@ -261,30 +274,36 @@ img {
     margin-top: 2.5rem !important;
   }
 
-  /* (3) On “Input Miles & Points” page => logos = 3rem wide */
+  /* #program-container => 1rem left/right margin (2) */
+  #calculator-state #program-container {
+    margin: 0 1rem !important;
+  }
+
+  /* On “Input Miles & Points” page => logos = 3rem wide */
   #calculator-state .program-row img {
     width: 3rem !important;
     height: auto !important;
   }
 
-  /* (4) On mobile => .program-name => .75rem, line-height 1rem */
+  /* On mobile => .program-name => .75rem, line-height 1rem */
   .program-name {
     font-size: 0.75rem !important;
     line-height: 1rem !important;
   }
 
-  /* (5) .program-row, .output-row => padding: 0.5rem 0.5rem */
+  /* .program-row, .output-row => padding:0.5rem */
   .program-row,
   .output-row {
     padding: 0.5rem 0.5rem !important;
   }
 
-  /* (6) .points-input => width: 85px on mobile */
+  /* .points-input => width:85px on mobile */
   .points-input {
     width: 85px !important;
   }
 
 }
+
 
 
 
