@@ -101,8 +101,7 @@ img {
 
   /* Points info boxes => more padding, border, etc. */
   .points-info-box.input-points-info,
-  .points-info-box.calc-points-info {
-    padding: 20px 40px;
+  .points-info-box.calc-points-info {    padding: 20px 40px;
     border: 1px solid #DFE5EB;
     margin: 1rem 0;
     align-items: center;
