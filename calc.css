@@ -392,40 +392,26 @@ img {
   }
 
   /* --- BOTTOM SHEET MODAL ON MOBILE --- */
-  #report-modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background-color: rgba(0,0,0,0.6) !important;
-    z-index: 99999 !important; 
-    display: none;
-      opacity: 0;
-  transition: opacity 0.3s ease;;
-  }
-  #report-modal.show {
-  display: block; /* or flex, etc. */
-  opacity: 1;
-}
+ /* Mobile: bottom sheet approach */
+@media (max-width: 576px) {
   #report-modal-content {
-    position: absolute !important;
-    bottom: 0 !important;
+    /* override the above “center screen” logic */
+    top: auto !important;
     left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
     width: 100% !important;
-    border-top-left-radius: 12px !important;
-    border-top-right-radius: 12px !important;
-    background: #fff !important;
-    padding: 1.5rem !important;
-    
-      optional “slide up” animation:
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      (toggle to translateY(0) in your JS for open)
-    
+    border-radius: 12px 12px 0 0 !important; /* top-left, top-right corners */
+
+    /* Start off fully “below” the bottom edge */
+    transform: translateY(100%);
+    transition: transform 0.5s ease; /* slower slide-up */
   }
+
+  /* on .show, it slides up to 0 */
   #report-modal.show #report-modal-content {
-  transform: translateY(0);
+    transform: translateY(0);
+  }
 }
     .clear-all-btn {
     margin-right: 1rem !important;
@@ -920,7 +906,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   height: 100%; 
   background-color: rgba(0,0,0,0.6);
   z-index: 9999;
-  display: none;
+  display: none; /* You add .show => display: block */
 }
 #report-modal-content {
   position: absolute;
@@ -933,7 +919,16 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   width: 80%;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  /* If you only want a bottom sheet on mobile, 
+     you can keep these lines for desktop only and override them in your mobile query. */
 }
+
+/* When .show is applied, we reveal the modal. 
+   If you want a fade, set opacity transitions. Otherwise you can keep it simple. */
+#report-modal.show {
+  display: block;
+}
+
 #modal-close-btn {
   float:right;
   font-size:24px;
