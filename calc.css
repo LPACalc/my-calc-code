@@ -140,35 +140,30 @@ img {
 
   /* --- SHARED / GLOBAL MOBILE TWEAKS --- */
 
-  /* Trim down .state-header top margin */
   .state-header {
     margin-top: 2.5rem !important;
   }
 
-  /* .back-btn => 1rem left margin */
   .back-btn {
     margin-left: 1rem !important;
   }
 
-  /* Info cards => 1rem margin around, smaller padding */
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
     margin: 1rem 1rem !important;
     padding: 1rem !important; 
   }
 
-  /* Zero top/bottom margin on .infobox-desktop-text */
   .infobox-desktop-text {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
 
-  /* Program search => 1rem margin all around */
   .started-search-area {
     margin: 1rem 1rem !important;
   }
 
-  /* (1) Remove outline color on focus for inputs, selects, etc. */
+  /* Remove outline color on focus for inputs, etc. */
   input:focus,
   select:focus,
   textarea:focus,
@@ -180,7 +175,6 @@ img {
     border-color: transparent !important;
   }
 
-  /* The search field => full width, no black outline on focus */
   .program-search-field {
     width: 100% !important; 
     max-width: 100%;
@@ -194,13 +188,11 @@ img {
     border-color: transparent !important;
   }
 
-  /* Clear-all button => remain red on mobile */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
   }
 
-  /* Redemption-option pills => smaller */
   .point-option {
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
@@ -212,33 +204,28 @@ img {
     white-space: nowrap;
   }
 
-  /* Narrower email input in the modal */
   #modal-email-input {
     width: 80% !important;
   }
 
   /* --- POPULAR PROGRAMS / SELECT PROGRAMS --- */
 
-  /* .popular-programs-heading => margin-left:1rem, font-size:1rem, bold */
   .popular-programs-heading {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
   }
 
-  /* #selected-programs-label => margin-left:1rem, font-size:1rem, bold */
   #selected-programs-label {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
   }
 
-  /* #chosen-programs-row => 1rem left/right margin */
   #chosen-programs-row {
     margin: 0 1rem !important;
   }
 
-  /* Popular programs => 2 cols x 3 rows, 1rem side margins, 0.5rem gap */
   #top-programs-grid.top-programs-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -252,12 +239,10 @@ img {
     line-height: 1rem !important;
   }
 
-  /* Hide the plus button on mobile */
   .top-program-box .add-btn {
     display: none !important;
   }
 
-  /* Selected top program => dark background, white text */
   .top-program-box.selected-state {
     background-color: #1a2732 !important;
     border-color: #1a2732 !important;
@@ -269,40 +254,59 @@ img {
 
   /* --- INPUT MILES & POINTS => #calculator-state --- */
 
-  /* #calculator-state header => same margin top (2.5rem) */
   #calculator-state .state-header {
     margin-top: 2.5rem !important;
   }
 
-  /* #program-container => 1rem left/right margin (2) */
   #calculator-state #program-container {
     margin: 0 1rem !important;
   }
 
-  /* On “Input Miles & Points” page => logos = 3rem wide */
   #calculator-state .program-row img {
     width: 3rem !important;
     height: auto !important;
   }
 
-  /* On mobile => .program-name => .75rem, line-height 1rem */
   .program-name {
     font-size: 0.75rem !important;
     line-height: 1rem !important;
   }
 
-  /* .program-row, .output-row => padding:0.5rem */
   .program-row,
   .output-row {
     padding: 0.5rem 0.5rem !important;
   }
 
-  /* .points-input => width:85px on mobile */
   .points-input {
     width: 85px !important;
   }
 
+  /* --- (1) .tc-btn-row => 1rem left & right margin --- */
+  .tc-btn-row {
+    margin: 0 1rem !important;
+  }
+
+  /* --- (2) #output-programs-container => 1rem left & right margin --- */
+  #output-programs-container {
+    margin: 0 1rem !important;
+  }
+
+  /* --- (3) “mini pills” on a single line => new .mini-pill-row class --- */
+  .mini-pill-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    gap: 1rem !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    justify-content: flex-start !important; /* or center, if you prefer */
+  }
+  .mini-pill-row .mini-pill {
+    flex: 0 0 auto !important; /* prevent wrapping */
+    margin-bottom: 0 !important; /* remove bottom margin if you like */
+  }
 }
+
 
 
 
