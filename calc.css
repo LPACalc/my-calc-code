@@ -288,6 +288,8 @@ img {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
+        margin-bottom: 1rem;
+    margin-top: 1rem;
   }
 
   #chosen-programs-row {
