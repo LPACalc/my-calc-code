@@ -210,18 +210,13 @@ img {
     margin-bottom: 0 !important;
   }
 
-
-
-
-  
-    
- .mobile-sticky-cta {
-  /* so it doesn't look transparent when stuck */
-  background-color: #fff;
-  padding: 1rem;
-  text-align: center;
-  border-top: 1px solid #ccc;
-}
+  /* Now we have a valid selector: */
+  .mobile-sticky-cta {
+    background-color: #fff;
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid #ccc;
+  }
   .started-search-area {
     margin: 1rem 1rem !important;
   }
@@ -269,6 +264,8 @@ img {
 
   #modal-email-input {
     width: 80% !important;
+    border-radius:8px;
+    
   }
 
   /* tip-text => 1rem left & right margin */
@@ -961,4 +958,26 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   margin-top:10px;
   font-weight:600;
   text-align:center;
+}
+
+.email-field-container {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 0.5rem; /* add space so the text isn't pressed against the border */
+  background-color: #fff;
+  /* Optional: fixed width or let it size to content */
+}
+
+/* The input inside shouldn't have its own border/outlines */
+.email-field-container input {
+  border: none;
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.email-field-container:focus-within {
+  border-color: #007bff; /* or some highlight color */
+  /* Optional: add a box-shadow for a subtle glow */
+  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
 }
