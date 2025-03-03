@@ -124,6 +124,13 @@ img {
     left: 60% !important;
     transform: translate(-50%, -50%);
   }
+
+  h2.popular-programs-heading {
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 1rem;
+}
 }
 
 /*******************************************************
