@@ -162,8 +162,9 @@ img {
  *******************************************************/
 @media (max-width: 576px) {
 
-  /* --- SHARED / GLOBAL MOBILE TWEAKS --- */
-
+  /* ---------------------------
+   * SHARED / GLOBAL MOBILE TWEAKS
+   * --------------------------- */
   .state-header {
     margin-top: 2.5rem !important;
   }
@@ -175,7 +176,7 @@ img {
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
     margin: 1rem 1rem !important;
-    padding: 1rem !important; 
+    padding: 1rem !important;
   }
 
   .infobox-desktop-text {
@@ -200,7 +201,7 @@ img {
   }
 
   .program-search-field {
-    width: 100% !important; 
+    width: 100% !important;
     max-width: 100%;
     margin: 0 auto;
     padding: 1rem 2rem !important;
@@ -237,8 +238,9 @@ img {
     margin: 1rem !important;
   }
 
-  /* --- POPULAR PROGRAMS / SELECT PROGRAMS --- */
-
+  /* ---------------------------
+   * POPULAR PROGRAMS / SELECT PROGRAMS
+   * --------------------------- */
   .popular-programs-heading {
     margin-left: 1rem !important;
     font-size: 1rem !important;
@@ -281,8 +283,9 @@ img {
     color: #fff !important;
   }
 
-  /* --- INPUT MILES & POINTS => #calculator-state --- */
-
+  /* ---------------------------
+   * INPUT MILES & POINTS => #calculator-state
+   * --------------------------- */
   #calculator-state .state-header {
     margin-top: 2.5rem !important;
   }
@@ -306,15 +309,13 @@ img {
     padding: 0.5rem 0.5rem !important;
   }
 
-  /* This is still a standard text box from CSS’s perspective;
-     numeric keypad must be triggered by HTML attributes. */
   .points-input {
     width: 85px !important;
-    /* optionally reduce font-size to ensure bigger digits:
-       font-size: 1.2rem !important; */
   }
 
-  /* --- TRAVEL/CASH SWITCH + OUTPUT CONTAINER --- */
+  /* ---------------------------
+   * TRAVEL/CASH SWITCH + OUTPUT
+   * --------------------------- */
   .tc-btn-row {
     margin: 2rem 1rem 0 1rem !important; /* top => 2rem, sides => 1rem */
   }
@@ -338,24 +339,60 @@ img {
     text-align: center !important;
   }
 
-  /* --- MINI-PILLS => single line + horizontal swipe --- */
+  /* ---------------------------
+   * MINI-PILLS => single line + smaller
+   * --------------------------- */
   .mini-pill-row {
     display: flex !important;
     flex-wrap: nowrap !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
-    scroll-snap-type: x mandatory !important; /* “carousel” feeling */
-    gap: 1rem !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 0 !important; /* 1) Gap is zero now */
   }
   .mini-pill-row .mini-pill {
     flex: 0 0 auto !important;
-    max-width: 80px !important; /* (2) max pill width */
-    font-size: 0.75rem !important; /* slightly smaller text to fit 5 pills */
-    text-align: center !important;
-    scroll-snap-align: center !important; /* each pill snaps to center */
-    
+    font-size: 0.8rem !important;   /* smaller text */
+    padding: 0.4rem 4px !important; /* 4px left/right, 0.4rem top/bottom */
+    scroll-snap-align: center !important;
+    margin-right: 0 !important;     /* no default margin */
   }
+  .mini-pill-row .mini-pill.active {
+    margin-right: 0.2rem !important; /* 2) Only the “active” pill has 0.2rem spacing to next */
+  }
+
+  /* ---------------------------
+   * BOTTOM SHEET MODAL ON MOBILE
+   * --------------------------- */
+  #report-modal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    background-color: rgba(0,0,0,0.6) !important;
+    z-index: 99999 !important; /* Increase z-index even more */
+    display: none !important;
+  }
+
+  #report-modal-content {
+    position: absolute !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+    background: #fff !important;
+    padding: 1.5rem !important;
+    /* optional: “slide up” animation 
+       transform: translateY(100%);
+       transition: transform 0.3s ease; 
+       (toggle to translateY(0) in your JS for open) 
+    */
+  }
+}
+
 
   
 
