@@ -314,6 +314,53 @@ img {
   background-color: #1a2732;
 }
 
+  /* Only affect screens up to 768px wide */
+@media only screen and (max-width: 768px) {
+
+  /* Make each HIW step flow vertically */
+  #how-it-works-state .hiw-step .hiw-flex-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;      /* centers both image & text */
+    text-align: center;       /* center the text */
+  }
+
+  /* Image on top */
+  #how-it-works-state .hiw-step .hiw-image-col {
+    order: 1;
+    margin-bottom: 1rem;
+  }
+
+  /* Title/subheader/CTA below image */
+  #how-it-works-state .hiw-step .hiw-text-col {
+    order: 2;
+    max-width: 100%; /* remove any desktop constraints */
+  }
+
+  /* Tweak the heading and paragraph sizes if desired */
+  #how-it-works-state .hiw-step .hiw-text-col h3 {
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+  }
+
+  #how-it-works-state .hiw-step .hiw-text-col p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  /* The "Continue" button stays under the subheader */
+  #how-it-works-state .hiw-step .hiw-text-col .hiw-continue-btn {
+    margin: 0 auto 1rem auto; /* center with spacing */
+  }
+
+  /* Finally the step tracker (the bottom lines) stays at the bottom */
+  /* Each line has .hiw-bottom-lines > .hiw-line, but you can shift that container if needed. */
+  #how-it-works-state .hiw-bottom-lines {
+    order: 3;
+    margin-top: 1rem;
+  }
+}
+
 /*******************************************************
  * STATE HEADERS => back + title
  *******************************************************/
