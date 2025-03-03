@@ -379,8 +379,14 @@ img {
     height: 100% !important;
     background-color: rgba(0,0,0,0.6) !important;
     z-index: 99999 !important; 
-    display: none !important;
+    display: none;
+      opacity: 0;
+  transition: opacity 0.3s ease;;
   }
+  #report-modal.show {
+  display: block; /* or flex, etc. */
+  opacity: 1;
+}
   #report-modal-content {
     position: absolute !important;
     bottom: 0 !important;
@@ -397,6 +403,9 @@ img {
       (toggle to translateY(0) in your JS for open)
     
   }
+  #report-modal.show #report-modal-content {
+  transform: translateY(0);
+}
     .clear-all-btn {
     margin-right: 1rem !important;
 
