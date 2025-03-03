@@ -41,10 +41,8 @@ img {
 
 /* LEFT => hidden on mobile => show on desktop only upon user click */
 .left-column {
-  /* Ensure we can position #left-col-logo inside it */
   position: relative;
-  
-  display: none; /* or block/flex, depending on your design */
+  display: none;
   width: 25%;
   min-width: 250px;
   align-items: center;
@@ -76,8 +74,7 @@ img {
  * DESKTOP ONLY CHANGES => (min-width: 992px)
  *******************************************************/
 @media (min-width: 992px) {
-  /* Show left column on desktop only after triggered by JS 
-     (.left-column is initially hidden in JS) */
+  /* Show left column on desktop after triggered by JS (if needed) */
 
   /* Program name -> bigger font */
   .program-row .program-name {
@@ -90,16 +87,9 @@ img {
   /* Next button => center => margin: 2rem auto */
   .sticky-next-btn {
     margin: 2rem auto !important;
+    padding: 1rem 6rem; /* Make it wider on desktop */
+    display: block !important;
   }
-
-  /* Desktop only: make the button twice as wide and keep it centered */
-@media (min-width: 992px) {
-  .sticky-next-btn {
-    margin: 2rem auto;       /* keeps the button centered horizontally */
-    padding: 1rem 6rem;      /* doubles the horizontal space from 3rem to 6rem */
-  display: block !important;
-  }
-}
 
   /* Clear all => red button => keep consistent */
   .clear-all-btn {
@@ -129,10 +119,10 @@ img {
     width: 120px !important; /* bigger on desktop */
   }
 
-  /* Modal: center in the right column => offset left: ~60% */
+  /* Modal: center in the right column => offset left: ~60% (optional) */
   #report-modal-content {
     left: 60% !important;
-    transform: translate(-50%,-50%);
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -143,17 +133,15 @@ img {
   /* top-programs-grid => 2 columns, 3 rows => up to 6 boxes */
   .top-programs-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr; 
+    grid-template-columns: 1fr 1fr;
     grid-template-rows: repeat(3, auto);
     gap: 16px;
   }
 
-  /* Search bar => more side padding */
   .program-search-field {
     padding: 1rem 2rem !important;
   }
 
-  /* Info box => smaller padding */
   .points-info-box {
     padding: 1rem !important;
   }
@@ -172,25 +160,21 @@ img {
     color: #fff !important;
   }
 
-  /* Clear all => red */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
   }
 
-  /* Use case pills => smaller font */
   .point-option {
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
   }
-  /* Force horizontal scroll if needed */
   .points-options {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;
   }
 
-  /* Email modal input => narrower width */
   #modal-email-input {
     width: 80% !important;
   }
@@ -265,26 +249,27 @@ img {
  * HOW IT WORKS
  *******************************************************/
 .hiw-mobile-stack {
-    padding: 50px 80px 40px;
+  padding: 50px 80px 40px;
   text-align: center;
 }
 
 @media (min-width: 992px) {
-  /* (1) Limit HIW images to 60rem on desktop */
+  /* Limit HIW images on desktop */
   .hiw-main-image {
     max-width: 60rem;
-    margin: 0 auto; /* optional: center the image if container is wider than 60rem */
-    display: block; /* ensure it can center properly if needed */
+    margin: 0 auto;
+    display: block;
   }
 
-.hiw-flex-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 2rem;
+  .hiw-flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+  }
 }
 
-@media (max-width:576px){
+@media (max-width: 576px) {
   .hiw-flex-container {
     flex-direction: column;
   }
@@ -309,12 +294,9 @@ img {
   border-radius: 2px;
   transition: background-color 0.3s;
 }
-
 .hiw-line.active-line {
   background-color: #1a2732;
 }
-
- 
 
 /*******************************************************
  * STATE HEADERS => back + title
@@ -325,7 +307,6 @@ img {
   justify-content: center;
   margin-top: 4.5rem;
 }
-
 .state-header .state-title {
   margin: 0 auto;
   font-size: 1.5rem;
@@ -343,7 +324,6 @@ img {
   background:none;
   cursor:pointer;
 }
-
 .back-btn::before {
   content:"";
   display:inline-block;
@@ -354,7 +334,6 @@ img {
   background-size:24px 24px;
   transition:opacity 0.2s ease;
 }
-
 .back-btn:hover::before {
   opacity:0.7;
 }
@@ -370,7 +349,6 @@ img {
   align-items:flex-start;
   margin:1rem 0;
 }
-
 .info-icon {
   width:24px;
   height:24px;
@@ -378,7 +356,6 @@ img {
   margin-top:auto;
   margin-bottom:auto;
 }
-
 .infobox-desktop-text {
   font-size:0.9rem;
   line-height:1.4;
@@ -391,7 +368,6 @@ img {
   position:relative;
   margin:1rem 0;
 }
-
 .program-search-field {
   width:100%;
   border-radius:0.5rem;
@@ -399,7 +375,6 @@ img {
   padding:1rem;
   outline:none;
 }
-
 #program-preview {
   display:none;
   position:absolute;
@@ -410,7 +385,6 @@ img {
   border-radius:8px;
   z-index:9999;
 }
-
 .preview-item {
   padding:12px 16px;
   display:flex;
@@ -418,7 +392,6 @@ img {
   justify-content:space-between;
   cursor:pointer;
 }
-
 .preview-item:hover {
   background:#f8fafd;
 }
@@ -431,7 +404,6 @@ img {
   grid-template-columns:repeat(3,1fr);
   gap:16px;
 }
-
 .top-program-box {
   display:flex;
   align-items:center;
@@ -443,38 +415,24 @@ img {
   cursor:pointer;
   transition:box-shadow 0.2s ease;
 }
-
 .top-program-box img {
   width: 40px;
   height: auto;
 }
-
-@media (min-width: 992px) {
-  /* When .top-program-box has .selected-state, style the .add-btn */
-  .top-program-box.selected-state .add-btn {
-    background-color: #1a2732; /* Dark blue */
-    color: #fff;               /* White check text */
-    border-color: #1a2732;
-  }
-}
-
 @media (min-width: 992px) {
   .top-program-box img {
     width: 60px;
     height: auto;
   }
 }
-
 .top-program-box:hover {
   box-shadow:0 2px 6px rgba(0,0,0,0.06);
 }
-
 .top-program-label {
   font-size:0.85rem;
   font-weight:600;
   color:#1a2732;
 }
-
 .add-btn {
   width:24px; 
   height:24px;
@@ -491,29 +449,16 @@ img {
 /*******************************************************
  * SELECTED PROGRAMS
  *******************************************************/
-.seleted-program-title {
-  font-size:16px;
-  font-weight:700;
-  color:#333;
-  text-transform:uppercase;
-  display:none;
-}
-
 .selected-programs-row {
   display:flex;
   align-items:center;
   justify-content:space-between;
   margin-bottom:0.75rem;
 }
+.selected-programs-row h3 {
+  margin-bottom:0.75rem;
+}
 
-  selected-programs-row h3 {
-margin-bottom:0.75rem;
-  }
-  
-
-/*******************************************************
- * CLEAR-ALL-BTN => default
- *******************************************************/
 .clear-all-btn {
   display:none;
   background-color:#dc3545;
@@ -535,15 +480,13 @@ margin-bottom:0.75rem;
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0.8rem 1rem; /* default mobile spacing */
+  padding:0.8rem 1rem;
 }
-
 .program-name {
   font-size:0.9rem;
   font-weight:600;
   color:#1D3A5F;
 }
-
 .remove-btn {
   background:none;
   color:#dc3545;
@@ -561,7 +504,6 @@ margin-bottom:0.75rem;
   display:inline-flex;
   align-items:center;
 }
-
 .points-input {
   border:none;
   outline:none;
@@ -590,7 +532,6 @@ margin-bottom:0.75rem;
   justify-content:center;
   margin:1rem 0;
 }
-
 .tc-switch-btn {
   padding:8px 16px;
   border-radius:9999px;
@@ -601,12 +542,10 @@ margin-bottom:0.75rem;
   cursor:pointer;
   transition:background-color 0.2s ease;
 }
-
 .tc-switch-btn:hover {
   background-color:#2e4461;
   color:#fff;
 }
-
 .tc-switch-btn.active-tc {
   background-color:#1a2732;
   color:#fff;
@@ -628,7 +567,6 @@ margin-bottom:0.75rem;
   justify-content:center;
   gap:40px;
 }
-
 .point-option {
   font-size:16px;
   font-weight:600;
@@ -640,13 +578,11 @@ margin-bottom:0.75rem;
   transition:background-color 0.2s;
   cursor:pointer;
 }
-
 .point-option.active,
 .point-option:hover {
   background-color:#1a2732;
   color:#fff;
 }
-
 .points-view {
   display:flex;
   align-items:flex-start;
@@ -654,12 +590,10 @@ margin-bottom:0.75rem;
   flex-wrap:wrap;
   justify-content:center;
 }
-
 .points-view-img {
   flex:0 1 820px;
   max-width:820px;
 }
-
 .image-wrapper img {
   width:100%;
   height:auto;
@@ -667,24 +601,20 @@ margin-bottom:0.75rem;
   border-radius:8px;
   box-shadow:0 2px 4px rgba(0,0,0,0.15);
 }
-
 .points-view-content {
   flex:1 1 300px;
   text-align:left;
 }
-
 .points-state-title {
   font-size:20px;
   font-weight:700;
   margin-bottom:10px;
 }
-
 .points-state-description {
   font-size:14px;
   line-height:1.4;
   max-width:400px;
 }
-
 .usecase-accordion,
 .usecase-accordion .mini-pill {
   overflow-x:auto;
@@ -704,7 +634,8 @@ margin-bottom:0.75rem;
  *******************************************************/
 #submission-takeover {
   position:absolute;
-  top:50%; left:50%;
+  top:50%; 
+  left:50%;
   transform:translate(-50%,-50%);
   background-color:rgba(255,255,255,0.95);
   z-index:9999;
@@ -716,39 +647,34 @@ margin-bottom:0.75rem;
 /*******************************************************
  * REPORT MODAL => #report-modal
  *******************************************************/
-/* Make the modal overlay cover the entire viewport at a higher stacking level */
 #report-modal {
-  position: fixed;        /* stays fixed on screen, even if the page scrolls */
+  position: fixed; 
   top: 0; 
   left: 0; 
   width: 100%; 
   height: 100%; 
-  background-color: rgba(0,0,0,0.6); /* a semi-transparent background overlay */
-  z-index: 9999;        /* ensure it's above everything else */
-  display: none;        /* hidden by default; show it with JS */
+  background-color: rgba(0,0,0,0.6);
+  z-index: 9999;
+  display: none;
 }
-
-/* Center the modal content box inside the overlay */
 #report-modal-content {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%); /* shift back to center */
+  transform: translate(-50%, -50%);
   background: #fff;
   padding: 20px;
-  max-width: 400px;     /* or any desired max width */
-  width: 80%;           /* so it’s nicely sized on mobile as well */
-  border-radius: 6px;   /* optional styling */
+  max-width: 400px;
+  width: 80%;
+  border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
-
 #modal-close-btn {
   float:right;
   font-size:24px;
   line-height:1;
   cursor:pointer;
 }
-
 #modal-email-error {
   color:red;
   font-size:14px;
@@ -756,7 +682,6 @@ margin-bottom:0.75rem;
   text-align:center;
   display:none;
 }
-
 #email-sent-message {
   display:none;
   color:green;
@@ -764,96 +689,3 @@ margin-bottom:0.75rem;
   font-weight:600;
   text-align:center;
 }
-
-@media only screen and (max-width: 768px) {
-
-  /****************************************************
-   * HOW IT WORKS (HIW)
-   ****************************************************/
-  #how-it-works-state .hiw-step .hiw-flex-container {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    text-align: center !important;
-  }
-
-  #how-it-works-state .hiw-image-col {
-    order: 1 !important;
-    margin-bottom: 1rem !important;
-  }
-
-  #how-it-works-state .hiw-text-col {
-    order: 2 !important;
-    max-width: 100% !important;
-  }
-
-  #how-it-works-state .hiw-text-col h3 {
-    font-size: 1.2rem !important;
-    margin-bottom: 0.5rem !important;
-  }
-
-  #how-it-works-state .hiw-text-col p {
-    font-size: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-
-  #how-it-works-state .hiw-text-col .hiw-continue-btn {
-    margin: 0 auto 1rem auto !important;
-  }
-
-  #how-it-works-state .hiw-bottom-lines {
-    order: 3 !important;
-    margin-top: 1rem !important;
-  }
-
-  /****************************************************
-   * SELECT YOUR PROGRAMS (#input-state)
-   ****************************************************/
-  /* 1) Title + back arrow in one line */
-  #input-state .state-header {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    margin-bottom: 1rem !important;
-  }
-  #input-state .state-header .back-btn {
-    margin-right: 8px !important;
-  }
-  #input-state .state-header h1 {
-    font-size: 1.4rem !important;
-    margin: 0 !important;
-  }
-
-  /* 2) Info box => full width below the header */
-  #input-state .points-info-box.input-points-info {
-    margin-bottom: 1rem !important;
-  }
-
-  /* 3) Search bar => next line, full width */
-  #input-state .started-search-area {
-    width: 100% !important;
-    margin-bottom: 1rem !important;
-  }
-  #input-state #program-search {
-    width: 100% !important;
-  }
-
-  /* 4) Popular Programs => 2 columns */
-  #input-state #top-programs-grid.top-programs-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    grid-gap: 1rem !important;
-    margin-bottom: 1rem !important;
-  }
-
-  /* Extra: "Selected Programs" row and the “Next” button */
-  #input-state #chosen-programs-row {
-    margin-bottom: 1rem !important;
-  }
-  #input-state #input-next-btn {
-    width: 100% !important;
-    margin-bottom: 1rem !important;
-  }
-
-}
-
