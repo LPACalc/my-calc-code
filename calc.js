@@ -970,6 +970,12 @@ $("#calc-back-btn").on("click",function(){
     $("#output-state").fadeIn();
   });
 
+  $("#clear-all-btn").on("click", function() {
+  logSessionEvent("clear_all_clicked");
+  clearAllPrograms();         // remove selected programs
+  updateClearAllVisibility(); // then re-check if it should be hidden
+});
+
   $("#explore-concierge-btn").on("click",function(){
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
