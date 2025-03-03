@@ -431,6 +431,15 @@ img {
 }
 
 @media (min-width: 992px) {
+  /* When .top-program-box has .selected-state, style the .add-btn */
+  .top-program-box.selected-state .add-btn {
+    background-color: #1a2732; /* Dark blue */
+    color: #fff;               /* White check text */
+    border-color: #1a2732;
+  }
+}
+
+@media (min-width: 992px) {
   .top-program-box img {
     width: 60px;
     height: auto;
