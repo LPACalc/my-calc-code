@@ -738,6 +738,24 @@ img {
   padding:0.9rem 6rem;
 }
 
+/* Default: disabled => gray */
+#input-next-btn.disabled-btn,
+#input-next-btn:disabled {
+  background-color: #ccc !important;  /* gray background */
+  color: #fff !important;            /* white text, or #999 if you prefer */
+  pointer-events: none !important; 
+  opacity: 0.7;                      /* slightly faded to indicate disabled */
+}
+
+/* Enabled => blue background */
+#input-next-btn {
+  background-color: #1a2732; /* or whatever “blue” you prefer */
+  color: #fff;
+  pointer-events: auto;
+  opacity: 1;
+}
+
+
 /*******************************************************
  * TRAVEL/CASH => switch
  *******************************************************/
