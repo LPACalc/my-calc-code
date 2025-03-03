@@ -531,7 +531,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 
   return `
     <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
-      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
+      <div class="mini-pill-row">
         ${pillsHTML}
       </div>
       <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
