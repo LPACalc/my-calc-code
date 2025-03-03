@@ -138,7 +138,7 @@ img {
  *******************************************************/
 @media (max-width: 576px) {
 
-  /* --- (1) Shared/Global Mobile Tweaks --- */
+  /* --- SHARED / GLOBAL MOBILE TWEAKS --- */
 
   /* Trim down .state-header top margin */
   .state-header {
@@ -150,11 +150,17 @@ img {
     margin-left: 1rem !important;
   }
 
-  /* Info cards => 1rem margin around & smaller padding */
+  /* Info cards => 1rem margin around, smaller padding */
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
     margin: 1rem 1rem !important;
     padding: 1rem !important; 
+  }
+
+  /* (1) .infobox-desktop-text => 0 top/bottom margin on mobile */
+  .infobox-desktop-text {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
   }
 
   /* Program search => 1rem margin all around */
@@ -162,8 +168,7 @@ img {
     margin: 1rem 1rem !important;
   }
 
-  /* Keep the same design for the search field, 
-     just full width & no black outline on focus */
+  /* The search field => full width, no black outline on focus */
   .program-search-field {
     width: 100% !important; 
     max-width: 100%;
@@ -173,10 +178,10 @@ img {
   .program-search-field:focus {
     outline: none !important;
     box-shadow: none !important;
-    border-color: transparent !important; /* remove default focus border */
+    border-color: transparent !important;
   }
 
-  /* Clear-all button => remain red */
+  /* Clear-all button => remain red on mobile */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
@@ -199,23 +204,28 @@ img {
   }
 
 
-  /* --- (2) Popular Programs Tweaks --- */
+  /* --- POPULAR PROGRAMS / SELECT PROGRAMS --- */
 
-  /* .popular-programs-heading => margin-left: 1rem, font-size:1rem, bold */
+  /* .popular-programs-heading => margin-left:1rem, font-size:1rem, bold */
   .popular-programs-heading {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
   }
 
-  /* #selected-programs-label => 1rem left margin, font-size:1rem, bold */
+  /* #selected-programs-label => margin-left:1rem, font-size:1rem, bold */
   #selected-programs-label {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
   }
 
-  /* Popular programs => 2 columns x 3 rows, plus 1rem side margins & 0.5rem gap */
+  /* (2) #chosen-programs-row => 1rem left/right margin */
+  #chosen-programs-row {
+    margin: 0 1rem !important;
+  }
+
+  /* Popular programs => 2 cols x 3 rows, 1rem side margins, 0.5rem gap */
   #top-programs-grid.top-programs-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -234,6 +244,7 @@ img {
     display: none !important;
   }
 
+  /* Selected top program => dark background, white text */
   .top-program-box.selected-state {
     background-color: #1a2732 !important;
     border-color: #1a2732 !important;
@@ -243,27 +254,38 @@ img {
   }
 
 
-  /* --- (3) “Input Miles & Points” => #calculator-state --- */
+  /* --- INPUT MILES & POINTS => #calculator-state --- */
 
-  /* The same left margin approach for the “Input Your Points & Miles” page */
+  /* #calculator-state header => same margin top (2.5rem) */
   #calculator-state .state-header {
-    margin-top: 2.5rem !important; /* same as other screens */
-  }
-  /* The “back” button on the calculator state will already pick up .back-btn margin-left. */
-
-  /* Ensure the “calc-points-info” card has 1rem margins (already handled above) */
-
-  /* If you’d like the rows themselves to have margin/padding, you can do so here: */
-  #calculator-state .program-row {
-    margin: 0 1rem 1rem 1rem; /* 1rem left, right, and bottom */
+    margin-top: 2.5rem !important;
   }
 
-  /* Optionally make the .program-name smaller if you wish (example) */
-  /* .program-row .program-name {
-    font-size: 0.9rem !important;
-  } */
+  /* (3) On “Input Miles & Points” page => logos = 3rem wide */
+  #calculator-state .program-row img {
+    width: 3rem !important;
+    height: auto !important;
+  }
+
+  /* (4) On mobile => .program-name => .75rem, line-height 1rem */
+  .program-name {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+
+  /* (5) .program-row, .output-row => padding: 0.5rem 0.5rem */
+  .program-row,
+  .output-row {
+    padding: 0.5rem 0.5rem !important;
+  }
+
+  /* (6) .points-input => width: 85px on mobile */
+  .points-input {
+    width: 85px !important;
+  }
 
 }
+
 
 
 
