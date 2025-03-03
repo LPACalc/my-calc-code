@@ -783,6 +783,11 @@ $(document).ready(async function(){
     chosenPrograms.forEach(rid=>addProgramRow(rid));
   });
 
+  
+  // ADDED: check if Clear All should now be visible
+  updateClearAllVisibility();
+});
+
   // Calc => back => input
   $("#calc-back-btn").on("click",function(){
     if(isTransitioning)return;
