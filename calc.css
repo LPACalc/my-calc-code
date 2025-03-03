@@ -41,7 +41,10 @@ img {
 
 /* LEFT => hidden on mobile => show on desktop only upon user click */
 .left-column {
-  display: none; 
+  /* Ensure we can position #left-col-logo inside it */
+  position: relative;
+  
+  display: none; /* or block/flex, depending on your design */
   width: 25%;
   min-width: 250px;
   align-items: center;
@@ -50,10 +53,10 @@ img {
 }
 
 #left-col-logo {
-  position: absolute; 
+  position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%,-50%);
+  transform: translate(-50%, -50%);
   width: 120px;
 }
 
