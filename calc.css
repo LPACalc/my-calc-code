@@ -125,20 +125,21 @@ img {
     transform: translate(-50%, -50%);
   }
 
+  /* Desktop “Popular Programs” heading */
   h2.popular-programs-heading {
     font-size: 1.25rem;
     font-weight: bold;
     text-align: left;
     margin-bottom: 1rem;
-}
-   .mini-pill-row-desktop {
+  }
+
+  /* Example desktop version of .mini-pill-row-desktop */
+  .mini-pill-row-desktop {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 1rem;
   }
-
-  /* If you also want each pill’s inline style replaced, you can do: */
   .mini-pill-row-desktop .mini-pill {
     display: inline-block;
     margin-right: 8px;
@@ -149,8 +150,6 @@ img {
     color: #333;
     cursor: pointer;
   }
-
-  /* Optional: style for the 'active' pill */
   .mini-pill-row-desktop .mini-pill.active {
     background-color: #1a2732;
     color: #fff;
@@ -349,17 +348,17 @@ img {
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
     scroll-snap-type: x mandatory !important;
-    gap: 0 !important; /* 1) Gap is zero now */
+    gap: 0 !important; /* remove gap so they can be smaller */
   }
   .mini-pill-row .mini-pill {
     flex: 0 0 auto !important;
-    font-size: 0.8rem !important;   /* smaller text */
-    padding: 0.4rem 4px !important; /* 4px left/right, 0.4rem top/bottom */
+    font-size: 0.8rem !important;    /* smaller text */
+    padding: 0.4rem 4px !important;  /* 4px horizontal, 0.4rem vertical */
     scroll-snap-align: center !important;
-    margin-right: 0 !important;     /* no default margin */
+    margin-right: 0 !important; 
   }
   .mini-pill-row .mini-pill.active {
-    margin-right: 0.2rem !important; /* 2) Only the “active” pill has 0.2rem spacing to next */
+    margin-right: 0.2rem !important; /* add slight spacing for the active one */
   }
 
   /* ---------------------------
@@ -372,39 +371,7 @@ img {
     width: 100% !important;
     height: 100% !important;
     background-color: rgba(0,0,0,0.6) !important;
-    z-index: 99999 !important; /* Increase z-index even more */
-    display: none !important;
-  }
-
-  #report-modal-content {
-    position: absolute !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    border-top-left-radius: 12px !important;
-    border-top-right-radius: 12px !important;
-    background: #fff !important;
-    padding: 1.5rem !important;
-    optional: “slide up” animation 
-       transform: translateY(100%);
-       transition: transform 0.3s ease; 
-       (toggle to translateY(0) in your JS for open) 
-    
-  }
-}
-
-
-  
-
-  /* --- BOTTOM SHEET MODAL ON MOBILE --- */
-  #report-modal {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background-color: rgba(0,0,0,0.6) !important;
-    z-index: 9999 !important;
+    z-index: 99999 !important; /* increased so it stays on top */
     display: none !important;
   }
   #report-modal-content {
@@ -416,24 +383,14 @@ img {
     border-top-right-radius: 12px !important;
     background: #fff !important;
     padding: 1.5rem !important;
-    optional: “slide up” animation 
-       transform: translateY(100%);
-       transition: transform 0.3s ease; 
-       (toggle to translateY(0); in JS) 
-    
+    /*
+      optional “slide up” animation:
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      (toggle to translateY(0) in your JS for open)
+    */
   }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 /*******************************************************
  * HERO & CTA
@@ -507,7 +464,6 @@ img {
   padding: 50px 80px 40px;
   text-align: center;
 }
-
 @media (min-width: 992px) {
   /* Limit HIW images on desktop */
   .hiw-main-image {
@@ -515,7 +471,6 @@ img {
     margin: 0 auto;
     display: block;
   }
-
   .hiw-flex-container {
     display: flex;
     align-items: center;
@@ -523,25 +478,21 @@ img {
     gap: 2rem;
   }
 }
-
 @media (max-width: 576px) {
   .hiw-flex-container {
     flex-direction: column;
   }
 }
-
 .hiw-main-image {
   width: 100%;
   border-radius: 8px;
 }
-
 .hiw-bottom-lines {
   display: flex;
   justify-content: center;
   margin-top: 4.5rem;
   gap: 8px;
 }
-
 .hiw-line {
   width: 60px;
   height: 4px;
@@ -713,7 +664,6 @@ img {
 .selected-programs-row h3 {
   margin-bottom:0.75rem;
 }
-
 .clear-all-btn {
   display:none;
   background-color:#dc3545;
