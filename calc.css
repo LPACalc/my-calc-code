@@ -265,9 +265,17 @@ img {
  * HOW IT WORKS
  *******************************************************/
 .hiw-mobile-stack {
-  padding: 0 20px 40px; 
+    padding: 50px 80px 40px;
   text-align: center;
 }
+
+@media (min-width: 992px) {
+  /* (1) Limit HIW images to 60rem on desktop */
+  .hiw-main-image {
+    max-width: 60rem;
+    margin: 0 auto; /* optional: center the image if container is wider than 60rem */
+    display: block; /* ensure it can center properly if needed */
+  }
 
 .hiw-flex-container {
   display: flex;
