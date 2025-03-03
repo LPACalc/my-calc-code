@@ -343,30 +343,28 @@ function toggleSearchItemSelection(itemEl){
 /*******************************************************
  * TOGGLE PROGRAM => popular
  *******************************************************/
-function toggleProgramSelection(boxEl){
-  const rid=boxEl.data("record-id");
-  const idx=chosenPrograms.indexOf(rid);
-  if(idx===-1){
+function toggleProgramSelection(boxEl) {
+  const rid = boxEl.data("record-id");
+  const idx = chosenPrograms.indexOf(rid);
+  if (idx === -1) {
     // Not chosen yet
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
-    // On desktop, change plus to check
-    if(window.innerWidth>=992){
+    // Desktop => plus => check
+    if (window.innerWidth >= 992) {
       boxEl.find(".add-btn").text("✓");
     }
   } else {
     // Already chosen => remove
-    chosenPrograms.splice(idx,1);
+    chosenPrograms.splice(idx, 1);
     boxEl.removeClass("selected-state");
-    if(window.innerWidth>=992){
+    if (window.innerWidth >= 992) {
       boxEl.find(".add-btn").text("+");
     }
   }
-  $("#program-search").val("");
-  $("#program-preview").hide().empty();
-  filterPrograms();
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
+  // new => ensure "Clear All" is correct
   updateClearAllVisibility();
 }
 
@@ -412,27 +410,29 @@ function updateNextCTAVisibility(){
  * CLEAR ALL
  *******************************************************/
 function clearAllPrograms() {
-  // Clear chosen programs
+  // 1) Clear the chosenPrograms array
   chosenPrograms = [];
 
-  // Unselect any .top-program-box that was “selected-state”
+  // 2) Unselect any .top-program-box that was "selected-state"
   $(".top-program-box.selected-state").each(function(){
     $(this).removeClass("selected-state");
-    if(window.innerWidth >= 992){
+    // If desktop, revert the checkmark to plus
+    if (window.innerWidth >= 992) {
       $(this).find(".add-btn").text("+");
     }
   });
 
-  // Update the chosen display
+  // 3) Update the chosen display (which will hide the "Selected Programs" label if zero left)
   updateChosenProgramsDisplay();
 
-  // Hide the “Next” button, since no programs remain
+  // 4) Hide the "Next" button, since we have zero chosen programs
   $("#input-next-btn").hide();
 
-  // Remove any program rows
+  // 5) Remove all program rows from #program-container (on the calculator state)
   $("#program-container").empty();
 
-  // Let updateClearAllVisibility() handle fading out the clear-all-btn
+  // 6) Then call updateClearAllVisibility() to hide the button
+  updateClearAllVisibility();
 }
 
 /*******************************************************
@@ -853,6 +853,7 @@ $(document).ready(async function(){
   // Clear all
 function updateClearAllVisibility() {
   const $btn = $("#clear-all-btn");
+  // If we have one or more chosen programs, show the button
   const hasChosen = (chosenPrograms.length > 0);
 
   if (hasChosen) {
@@ -968,11 +969,11 @@ function updateClearAllVisibility() {
   });
 
   // FINAL: "Clear All" click
-  $("#clear-all-btn").on("click", function() {
-    logSessionEvent("clear_all_clicked");
-    clearAllPrograms();         // remove selected programs
-    updateClearAllVisibility(); // then re-check if it should be hidden
-  });
+$("#clear-all-btn").on("click", function() {
+  logSessionEvent("clear_all_clicked");
+  clearAllPrograms(); // that function handles everything, including updateClearAllVisibility()
+});
+
 
   $("#explore-concierge-btn").on("click",function(){
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
