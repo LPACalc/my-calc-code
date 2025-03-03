@@ -411,7 +411,7 @@ img {
   width: 100%;
   min-height: 100vh;
 background: url("http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg");
-    center center / cover no-repeat;
+  
 }
 
 .hero-inner {
