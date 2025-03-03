@@ -306,8 +306,12 @@ img {
     padding: 0.5rem 0.5rem !important;
   }
 
+  /* This is still a standard text box from CSS’s perspective;
+     numeric keypad must be triggered by HTML attributes. */
   .points-input {
     width: 85px !important;
+    /* optionally reduce font-size to ensure bigger digits:
+       font-size: 1.2rem !important; */
   }
 
   /* --- TRAVEL/CASH SWITCH + OUTPUT CONTAINER --- */
@@ -319,7 +323,7 @@ img {
     margin: 0 1rem !important;
   }
 
-  /* Centering “Your Total Value” on #output-state despite back btn */
+  /* Center “Your Total Value” on #output-state despite back btn */
   #output-state .state-header {
     position: relative !important;
     justify-content: center !important;
@@ -327,7 +331,7 @@ img {
   #output-state .state-header .back-btn {
     position: absolute !important;
     left: 1rem !important;
-    margin-left: 0 !important; /* override any existing margin-left */
+    margin-left: 0 !important; /* override existing margin-left */
   }
   #output-state .state-header .state-title {
     margin: 0 auto !important;
@@ -341,17 +345,18 @@ img {
     overflow-x: auto !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x mandatory !important; /* “carousel” feeling */
     gap: 1rem !important;
   }
   .mini-pill-row .mini-pill {
     flex: 0 0 auto !important;
+    max-width: 80px !important; /* (2) max pill width */
+    font-size: 0.75rem !important; /* slightly smaller text to fit 5 pills */
+    text-align: center !important;
+    scroll-snap-align: center !important; /* each pill snaps to center */
   }
 
-  /* --- (1) EMAIL REPORT MODAL => bottom pop-up style on mobile --- */
-  /* 
-     We'll override #report-modal-content to appear as a bottom sheet.
-     If you want a “slide up” animation, you can add a transform transition.
-  */
+  /* --- BOTTOM SHEET MODAL ON MOBILE --- */
   #report-modal {
     position: fixed !important;
     top: 0 !important;
@@ -374,10 +379,11 @@ img {
     /* optional: “slide up” animation 
        transform: translateY(100%);
        transition: transform 0.3s ease; 
-       then toggle transform: translateY(0); in JS 
+       (toggle to translateY(0); in JS) 
     */
   }
 }
+
 
 
 
