@@ -120,7 +120,7 @@ function isValidEmail(str) {
 /*******************************************************
  * FETCH WITH TIMEOUT
  *******************************************************/
-async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
+async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2) {
   let attempt=0;
   while(attempt<=maxRetries){
     attempt++;
@@ -128,7 +128,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
     const { signal }=controller;
     const tid=setTimeout(()=>controller.abort(), timeout);
 
-    try{
+    try {
       const response=await fetch(url, {...options, signal});
       clearTimeout(tid);
       if(response.ok){
@@ -139,7 +139,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
       }
       // Retry if not OK
       await new Promise(r=>setTimeout(r,500));
-    }catch(err){
+    } catch(err) {
       clearTimeout(tid);
       if(err.name==="AbortError"){
         if(attempt>maxRetries){
@@ -160,7 +160,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
 /*******************************************************
  * FETCH AIRTABLE
  *******************************************************/
-async function fetchAirtableTable(tableName){
+async function fetchAirtableTable(tableName) {
   const resp=await fetchWithTimeout(
     `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
     {},
@@ -176,7 +176,7 @@ async function fetchAirtableTable(tableName){
 /*******************************************************
  * INIT APP
  *******************************************************/
-async function initializeApp(){
+async function initializeApp() {
   console.log("=== initializeApp() ===");
   try {
     const resp=await fetchWithTimeout(
@@ -197,18 +197,18 @@ async function initializeApp(){
       return acc;
     },{});
     console.log("loyaltyPrograms =>", loyaltyPrograms);
-  }catch(err){
+  } catch(err) {
     console.error("Error fetching Points Calc =>",err);
   }
 
-  try{
+  try {
     const useCasesData=await fetchAirtableTable("Real-World Use Cases");
     realWorldUseCases=useCasesData.reduce((acc, record)=>{
       acc[record.id]={ id:record.id, ...record.fields };
       return acc;
     },{});
     console.log("Real-World Use Cases =>", realWorldUseCases);
-  }catch(err){
+  } catch(err) {
     console.error("Error fetching Real-World =>",err);
   }
 
@@ -218,7 +218,7 @@ async function initializeApp(){
 /*******************************************************
  * BUILD POPULAR PROGRAMS
  *******************************************************/
-function buildTopProgramsSection(){
+function buildTopProgramsSection() {
   const container=document.getElementById("top-programs-grid");
   if(!container)return;
   const topRecords=Object.keys(loyaltyPrograms).filter(id=>{
@@ -330,14 +330,19 @@ function addProgramRow(recordId){
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
   if(!rid)return;
+  // Add
   chosenPrograms.push(rid);
   itemEl.remove();
+
+  // Clean up UI
   $("#program-search").val("");
   $("#program-preview").hide().empty();
   filterPrograms();
+
+  // Update displays
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
-  updateClearAllVisibility();
+  updateClearAllVisibility();  // <--- Make sure we show "Clear All" if at least 1 chosen
 }
 
 /*******************************************************
@@ -347,10 +352,9 @@ function toggleProgramSelection(boxEl) {
   const rid = boxEl.data("record-id");
   const idx = chosenPrograms.indexOf(rid);
   if (idx === -1) {
-    // Not chosen yet
+    // Not chosen yet => add
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
-    // Desktop => plus => check
     if (window.innerWidth >= 992) {
       boxEl.find(".add-btn").text("✓");
     }
@@ -364,8 +368,7 @@ function toggleProgramSelection(boxEl) {
   }
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
-  // new => ensure "Clear All" is correct
-  updateClearAllVisibility();
+  updateClearAllVisibility(); // <--- same as above
 }
 
 /*******************************************************
@@ -379,6 +382,7 @@ function updateChosenProgramsDisplay(){
     return;
   }
   $("#selected-programs-label").show();
+
   chosenPrograms.forEach(rid=>{
     const prog=loyaltyPrograms[rid];
     if(!prog)return;
@@ -416,38 +420,51 @@ function clearAllPrograms() {
   // 2) Unselect any .top-program-box that was "selected-state"
   $(".top-program-box.selected-state").each(function(){
     $(this).removeClass("selected-state");
-    // If desktop, revert the checkmark to plus
     if (window.innerWidth >= 992) {
       $(this).find(".add-btn").text("+");
     }
   });
 
-  // 3) Update the chosen display (which will hide the "Selected Programs" label if zero left)
+  // 3) Update the chosen display => hides “Selected Programs” label
   updateChosenProgramsDisplay();
 
-  // 4) Hide the "Next" button, since we have zero chosen programs
+  // 4) Hide the "Next" button
   $("#input-next-btn").hide();
 
-  // 5) Remove all program rows from #program-container (on the calculator state)
+  // 5) Remove all program rows from #program-container
   $("#program-container").empty();
 
-  // 6) Then call updateClearAllVisibility() to hide the button
+  // 6) Then call updateClearAllVisibility() => hide the button
   updateClearAllVisibility();
+}
+
+/*******************************************************
+ * SHOW/HIDE CLEAR-ALL
+ *******************************************************/
+function updateClearAllVisibility() {
+  const $btn = $("#clear-all-btn");
+  // If we have one or more chosen programs, show the button
+  const hasChosen = (chosenPrograms.length > 0);
+
+  if (hasChosen) {
+    $btn.stop(true, true).fadeIn(200);
+  } else {
+    $btn.stop(true, true).fadeOut(200);
+  }
 }
 
 /*******************************************************
  * FORMAT => auto commas
  *******************************************************/
 function formatNumberInput(el){
-  let raw=el.value.replace(/[^0-9]/g,"");
+  let raw = el.value.replace(/[^0-9]/g,"");
   if(!raw){
     el.value="";
     return;
   }
-  let num=parseInt(raw,10);
-  // Cap at 10 million
+  let num = parseInt(raw,10);
   if(num>10000000) num=10000000;
-  el.value=num.toLocaleString();
+  el.value = num.toLocaleString();
 }
 
 function calculateTotal(){
@@ -472,6 +489,54 @@ function gatherProgramData(){
     });
   });
   return data;
+}
+
+/*******************************************************
+ * BUILD OUTPUT => travel / cash
+ *******************************************************/
+function buildOutputRows(viewType){
+  const data=gatherProgramData();
+  $("#output-programs-list").empty();
+  let totalValue=0;
+  data.forEach(item=>{
+    const prog=loyaltyPrograms[item.recordId];
+    const logoUrl=prog?.["Brand Logo URL"]||"";
+    let rowVal=0;
+    if(viewType==="travel"){
+      rowVal=item.points*(prog?.["Travel Value"]||0);
+    } else {
+      rowVal=item.points*(prog?.["Cash Value"]||0);
+    }
+    totalValue+=rowVal;
+    const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
+    let rowHtml=`
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="logo" style="width:50px;">
+          <span class="program-name">${item.programName}</span>
+        </div>
+        <div class="output-value">${formattedVal}</div>
+      </div>
+    `;
+    // Travel => show usecase
+    if(viewType==="travel"){
+      rowHtml+=`
+        <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+    }
+    $("#output-programs-list").append(rowHtml);
+  });
+
+  const label=(viewType==="travel")?"Travel Value":"Cash Value";
+  const totalStr=`$${totalValue.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
+  $("#output-programs-list").append(`
+    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${totalStr}
+    </div>
+  `);
 }
 
 /*******************************************************
@@ -553,61 +618,11 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * BUILD OUTPUT => travel / cash
- *******************************************************/
-function buildOutputRows(viewType){
-  const data=gatherProgramData();
-  $("#output-programs-list").empty();
-  let totalValue=0;
-  data.forEach(item=>{
-    const prog=loyaltyPrograms[item.recordId];
-    const logoUrl=prog?.["Brand Logo URL"]||"";
-    let rowVal=0;
-    if(viewType==="travel"){
-      rowVal=item.points*(prog?.["Travel Value"]||0);
-    } else {
-      rowVal=item.points*(prog?.["Cash Value"]||0);
-    }
-    totalValue+=rowVal;
-    const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
-
-    let rowHtml=`
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>
-    `;
-
-    if(viewType==="travel"){
-      rowHtml+=`
-        <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  const label=(viewType==="travel")?"Travel Value":"Cash Value";
-  const totalStr=`$${totalValue.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
-  $("#output-programs-list").append(`
-    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>
-  `);
-}
-
-/*******************************************************
- * SHOW/HIDE REPORT MODAL
+ * MODAL => show/hide
  *******************************************************/
 function hideReportModal(){
   $("#report-modal").fadeOut(300);
 }
-
 function showReportModal(){
   $("#report-modal").fadeIn(300);
   $("#modal-email-error").hide().text("");
@@ -666,7 +681,6 @@ async function sendReportFromModal(){
     setTimeout(()=>{
       hideReportModal();
       sentMsgEl.hide();
-
       // Adjust CTA states
       $("#unlock-report-btn")
         .removeClass("cta-dark cta-light-border")
@@ -684,24 +698,9 @@ async function sendReportFromModal(){
 }
 
 /*******************************************************
- * HOW IT WORKS => step lines
- *******************************************************/
-function showHowItWorksStep(stepNum){
-  $(".hiw-step").hide();
-  $(`.hiw-step[data-step='${stepNum}']`).show();
-  $(".hiw-line").removeClass("active-line");
-  $(".hiw-line").each(function(idx){
-    if(idx<stepNum){
-      $(this).addClass("active-line");
-    }
-  });
-}
-
-/*******************************************************
  * DOC READY
  *******************************************************/
 $(document).ready(async function(){
-
   logSessionEvent("session_load");
 
   await fetchClientIP();
@@ -729,6 +728,7 @@ $(document).ready(async function(){
     $("#default-hero").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
+      // If user already picked something earlier, ensure these are correct:
       updateNextCTAVisibility();
       updateClearAllVisibility();
     });
@@ -785,18 +785,16 @@ $(document).ready(async function(){
     isTransitioning=true;
     logSessionEvent("input_next_clicked");
     
-    // Hide Input, show Calculator
     $("#input-state").hide();
     $("#calculator-state").fadeIn(()=>{
       isTransitioning=false;
       $("#to-output-btn").show();
     });
     
-    // Empty out any old rows, then add new for chosen programs
+    // Rebuild the program container from chosenPrograms
     $("#program-container").empty();
     chosenPrograms.forEach(rid => addProgramRow(rid));
 
-    // Make sure "Clear All" knows if we have rows
     updateClearAllVisibility();
   });
 
@@ -809,8 +807,6 @@ $(document).ready(async function(){
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
       $("#to-output-btn").hide();
-      
-      // If user had chosenPrograms on return, "Clear All" should appear in input:
       updateClearAllVisibility();
     });
   });
@@ -842,30 +838,18 @@ $(document).ready(async function(){
     });
   });
 
-  // Travel/Cash switch
+  // Switch between Travel / Cash
   $(".tc-switch-btn").on("click",function(){
     $(".tc-switch-btn").removeClass("active-tc");
     $(this).addClass("active-tc");
-    const viewType=$(this).data("view");
+    const viewType = $(this).data("view");
     buildOutputRows(viewType);
   });
 
-  // Clear all
-function updateClearAllVisibility() {
-  const $btn = $("#clear-all-btn");
-  // If we have one or more chosen programs, show the button
-  const hasChosen = (chosenPrograms.length > 0);
-
-  if (hasChosen) {
-    $btn.stop(true, true).fadeIn(200);
-  } else {
-    $btn.stop(true, true).fadeOut(200);
-  }
-}
-
-  // Program search => filter
+  // Real-time filter
   $("#program-search").on("input", filterPrograms);
 
+  // “Enter” => if only 1 result, pick it
   $(document).on("keypress","#program-search",function(e){
     if(e.key==="Enter" && $(".preview-item").length===1){
       logSessionEvent("program_search_enter");
@@ -873,32 +857,31 @@ function updateClearAllVisibility() {
     }
   });
 
+  // Toggle program from search
   $(document).on("click",".preview-item",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("program_preview_item_clicked",{ rid });
     toggleSearchItemSelection($(this));
   });
 
-  // Top program => toggle
+  // Toggle program from “Popular Programs”
   $(document).on("click",".top-program-box",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("top_program_box_clicked",{ rid });
     toggleProgramSelection($(this));
   });
 
-  // Remove row => recalc
+  // Remove single program row
   $(document).on("click",".remove-btn",function(){
     const rowEl = $(this).closest(".program-row");
     const rid   = rowEl.data("record-id");
     logSessionEvent("program_remove_clicked",{ rid });
     rowEl.remove();
     calculateTotal();
-
-    // Re-check whether "Clear All" should show or hide
     updateClearAllVisibility();
   });
 
-  // Output => expand/collapse usecase => only if travel
+  // Expand/collapse use case
   $(document).on("click",".output-row",function(){
     const activeView=$(".tc-switch-btn.active-tc").data("view");
     if(activeView!=="travel")return;
@@ -908,7 +891,7 @@ function updateClearAllVisibility() {
     else nextAcc.slideDown();
   });
 
-  // mini-pill => update use case
+  // mini-pill => change use case display
   $(document).on("click",".mini-pill",function(){
     const useCaseId=$(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked",{ useCaseId });
@@ -929,7 +912,7 @@ function updateClearAllVisibility() {
     container.find("p").text(newBody);
   });
 
-  // Unlock => modal
+  // Unlock => show email modal
   $("#unlock-report-btn").on("click",function(){
     logSessionEvent("unlock_report_clicked");
     showReportModal();
@@ -968,14 +951,9 @@ function updateClearAllVisibility() {
     $("#output-state").fadeIn();
   });
 
-  // FINAL: "Clear All" click
-$("#clear-all-btn").on("click", function() {
-  logSessionEvent("clear_all_clicked");
-  clearAllPrograms(); // that function handles everything, including updateClearAllVisibility()
-});
-
-
-  $("#explore-concierge-btn").on("click",function(){
-    window.open("https://www.legacypointsadvisors.com/pricing","_blank");
+  // “Clear All” => remove everything
+  $("#clear-all-btn").on("click", function(){
+    logSessionEvent("clear_all_clicked");
+    clearAllPrograms(); 
   });
 });
