@@ -402,11 +402,14 @@ function updateChosenProgramsDisplay(){
 /*******************************************************
  * NEXT CTA VISIBILITY
  *******************************************************/
-function updateNextCTAVisibility(){
-  if(chosenPrograms.length>0){
-    $("#input-next-btn").show();
+function updateNextCTAVisibility() {
+  const $nextBtn = $("#input-next-btn");
+  if (chosenPrograms.length > 0) {
+    // Enable
+    $nextBtn.removeClass("disabled-btn").prop("disabled", false);
   } else {
-    $("#input-next-btn").hide();
+    // Disable
+    $nextBtn.addClass("disabled-btn").prop("disabled", true);
   }
 }
 
