@@ -50,7 +50,6 @@ async function fetchClientIP() {
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return;
   try {
-    // If IPv6 => skip
     if (clientIP.includes(":")) {
       approximateLocation = null;
       return;
@@ -174,7 +173,11 @@ async function fetchAirtableTable(tableName){
 async function initializeApp(){
   console.log("=== initializeApp() ===");
   try {
-    const resp=await fetchWithTimeout("https://young-cute-neptune.glitch.me/fetchPointsCalcData", {}, 10000);
+    const resp=await fetchWithTimeout(
+      "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
+      {},
+      10000
+    );
     if(!resp.ok){
       throw new Error("Network not OK => " + resp.statusText);
     }
@@ -238,7 +241,7 @@ function buildTopProgramsSection(){
 }
 
 /*******************************************************
- * FILTER => program-search
+ * FILTER PROGRAMS
  *******************************************************/
 function filterPrograms(){
   if(!loyaltyPrograms || !Object.keys(loyaltyPrograms).length){
@@ -283,7 +286,7 @@ function filterPrograms(){
 }
 
 /*******************************************************
- * ADD PROGRAM ROW => calc
+ * ADD PROGRAM ROW
  *******************************************************/
 function addProgramRow(recordId){
   const prog=loyaltyPrograms[recordId];
@@ -293,7 +296,7 @@ function addProgramRow(recordId){
   const rowHTML=`
     <div class="program-row" data-record-id="${recordId}">
       <div style="display:flex; align-items:center; gap:0.75rem;">
-        ${logo? `<img src="${logo}" alt="${name} logo" style="width:50px;">`:""}
+        ${logo? `<img src="${logo}" alt="${name} logo">`:""}
         <span class="program-name">${name}</span>
       </div>
       <div style="display:flex; align-items:center; gap:1rem;">
@@ -314,7 +317,7 @@ function addProgramRow(recordId){
 }
 
 /*******************************************************
- * TOGGLE SEARCH ITEM => from preview
+ * TOGGLE SEARCH ITEM
  *******************************************************/
 function toggleSearchItemSelection(itemEl){
   const rid=itemEl.data("record-id");
@@ -330,24 +333,21 @@ function toggleSearchItemSelection(itemEl){
 }
 
 /*******************************************************
- * TOGGLE PROGRAM SELECTION => popular box
+ * TOGGLE PROGRAM => popular
  *******************************************************/
 function toggleProgramSelection(boxEl){
   const rid=boxEl.data("record-id");
   const idx=chosenPrograms.indexOf(rid);
   if(idx===-1){
-    // Add
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
-    // Desktop => plus => check
-    if(window.innerWidth >= 992){
+    if(window.innerWidth>=992){
       boxEl.find(".add-btn").text("✓");
     }
   } else {
-    // Remove
     chosenPrograms.splice(idx,1);
     boxEl.removeClass("selected-state");
-    if(window.innerWidth >= 992){
+    if(window.innerWidth>=992){
       boxEl.find(".add-btn").text("+");
     }
   }
@@ -360,7 +360,7 @@ function toggleProgramSelection(boxEl){
 }
 
 /*******************************************************
- * UPDATE CHOSEN PROGRAMS DISPLAY
+ * UPDATE CHOSEN PROGRAMS
  *******************************************************/
 function updateChosenProgramsDisplay(){
   const container=$("#chosen-programs-row");
@@ -379,7 +379,7 @@ function updateChosenProgramsDisplay(){
         <img 
           src="${logoUrl}" 
           alt="${prog["Program Name"]||"N/A"}" 
-          style="width:100%; height:auto; object-fit:contain;"
+          style="width:100%; height:auto;"
         />
       </div>
     `);
@@ -387,7 +387,7 @@ function updateChosenProgramsDisplay(){
 }
 
 /*******************************************************
- * UPDATE NEXT CTA VISIBILITY
+ * NEXT CTA
  *******************************************************/
 function updateNextCTAVisibility(){
   if(chosenPrograms.length>0){
@@ -416,7 +416,7 @@ function clearAllPrograms(){
   chosenPrograms=[];
   $(".top-program-box.selected-state").each(function(){
     $(this).removeClass("selected-state");
-    if(window.innerWidth >= 992){
+    if(window.innerWidth>=992){
       $(this).find(".add-btn").text("+");
     }
   });
@@ -427,9 +427,7 @@ function clearAllPrograms(){
 }
 
 /*******************************************************
- * FORMAT NUMBER => #7 (mobile) + #5 (desktop) => remove black border => done in CSS
-   #9 => reduce width => done in CSS
-   #11 => auto commas => done here
+ * FORMAT => auto commas
  *******************************************************/
 function formatNumberInput(el){
   let raw=el.value.replace(/[^0-9]/g,"");
@@ -439,7 +437,7 @@ function formatNumberInput(el){
   }
   let num=parseInt(raw,10);
   if(num>10000000) num=10000000;
-  el.value=num.toLocaleString(); // commas
+  el.value=num.toLocaleString();
 }
 function calculateTotal(){
   // optional
@@ -466,14 +464,13 @@ function gatherProgramData(){
 }
 
 /*******************************************************
- * BUILD USE CASE ACCORDION => #12 => single row + swipe
+ * USE CASE => build
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints){
   const program=loyaltyPrograms[recordId];
   if(!program){
     return `<div style="padding:1rem;">No data found.</div>`;
   }
-
   let matching=Object.values(realWorldUseCases).filter(uc=>{
     if(!uc.Recommended) return false;
     if(!uc["Points Required"]) return false;
@@ -482,10 +479,8 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     const linked=uc["Program Name"]||[];
     return linked.includes(recordId) && uc["Points Required"]<=userPoints;
   });
-  // Sort by redemption value => top 5
   matching.sort((a,b)=>(b["Redemption Value"]||0)-(a["Redemption Value"]||0));
   matching=matching.slice(0,5);
-  // reorder by points ascending
   matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
   if(!matching.length){
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
@@ -513,14 +508,13 @@ function buildUseCaseAccordionContent(recordId, userPoints){
       </div>
     `;
   });
-
   const first=matching[0];
   const imageURL=first["Use Case URL"]||"";
   const title=first["Use Case Title"]||"Untitled";
   const body=first["Use Case Body"]||"No description";
 
   return `
-    <div class="usecases-accordion-wrap" style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
+    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
       <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem;">
         ${pillsHTML}
       </div>
@@ -542,7 +536,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
 }
 
 /*******************************************************
- * BUILD OUTPUT ROWS => travel or cash
+ * BUILD OUTPUT => travel / cash
  *******************************************************/
 function buildOutputRows(viewType){
   const data=gatherProgramData();
@@ -559,7 +553,6 @@ function buildOutputRows(viewType){
     }
     totalValue+=rowVal;
     const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
-
     let rowHtml=`
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -578,8 +571,7 @@ function buildOutputRows(viewType){
     }
     $("#output-programs-list").append(rowHtml);
   });
-
-  const label=viewType==="travel"?"Travel Value":"Cash Value";
+  const label=(viewType==="travel")?"Travel Value":"Cash Value";
   const totalStr=`$${totalValue.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
   $("#output-programs-list").append(`
     <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
@@ -652,13 +644,8 @@ async function sendReportFromModal(){
       hideReportModal();
       sentMsgEl.hide();
 
-      // Swap “Unlock Full Report” => white, “Explore Services” => dark
-      $("#unlock-report-btn")
-        .removeClass("cta-dark cta-light-border")
-        .addClass("cta-light-border");
-      $("#explore-concierge-lower")
-        .removeClass("cta-dark cta-light-border")
-        .addClass("cta-dark");
+      $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
+      $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
     },700);
   }catch(err){
     console.error("Failed to send =>", err);
@@ -683,7 +670,7 @@ function showHowItWorksStep(stepNum){
 }
 
 /*******************************************************
- * DOC READY => transitions
+ * DOC READY
  *******************************************************/
 $(document).ready(async function(){
 
@@ -697,24 +684,20 @@ $(document).ready(async function(){
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
+  $(".left-column").hide(); // hidden by default
 
-  // Left column => hidden by default => only show if desktop once user clicks
-  $(".left-column").hide();
-
-  // HERO => GET STARTED
+  // Hero => GET STARTED
   $("#hero-get-started-btn").on("click",function(){
-    logSessionEvent("hero_get_started_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
-    if(window.innerWidth >= 992){
-      // show left col only on desktop
+    logSessionEvent("hero_get_started_clicked");
+    // Show left col only if desktop
+    if(window.innerWidth>=992){
       $(".left-column").show();
       $(".left-column").css({
-        background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
+        background:`url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
       });
     }
-
     $("#default-hero").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
@@ -723,19 +706,17 @@ $(document).ready(async function(){
     });
   });
 
-  // HERO => HOW IT WORKS
+  // Hero => HOW IT WORKS
   $("#hero-how-it-works-btn").on("click",function(){
-    logSessionEvent("hero_how_it_works_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
-    if(window.innerWidth >= 992){
+    logSessionEvent("hero_how_it_works_clicked");
+    if(window.innerWidth>=992){
       $(".left-column").show();
       $(".left-column").css({
-        background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
+        background:`url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
       });
     }
-
     $("#default-hero").hide();
     $("#how-it-works-state").fadeIn(()=>{
       isTransitioning=false;
@@ -743,14 +724,13 @@ $(document).ready(async function(){
     });
   });
 
-  // Steps => how it works
+  // Step transitions
   $("#hiw-continue-1").on("click",()=> showHowItWorksStep(2));
   $("#hiw-continue-2").on("click",()=> showHowItWorksStep(3));
   $("#hiw-final-start-btn").on("click",function(){
-    logSessionEvent("hiw_final_get_started");
     if(isTransitioning)return;
     isTransitioning=true;
-
+    logSessionEvent("hiw_final_get_started");
     $("#how-it-works-state").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
@@ -761,12 +741,10 @@ $(document).ready(async function(){
 
   // Input => back => hero
   $("#input-back-btn").on("click",function(){
-    logSessionEvent("input_back_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
+    logSessionEvent("input_back_clicked");
     $("#input-state").hide();
-    // hide left column again
     $(".left-column").hide();
     $("#default-hero").fadeIn(()=>{
       isTransitioning=false;
@@ -775,10 +753,9 @@ $(document).ready(async function(){
 
   // Input => next => calc
   $("#input-next-btn").on("click",function(){
-    logSessionEvent("input_next_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
+    logSessionEvent("input_next_clicked");
     $("#input-state").hide();
     $("#calculator-state").fadeIn(()=>{
       isTransitioning=false;
@@ -790,10 +767,9 @@ $(document).ready(async function(){
 
   // Calc => back => input
   $("#calc-back-btn").on("click",function(){
-    logSessionEvent("calc_back_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
+    logSessionEvent("calc_back_clicked");
     $("#calculator-state").hide();
     $("#input-state").fadeIn(()=>{
       isTransitioning=false;
@@ -803,10 +779,9 @@ $(document).ready(async function(){
 
   // Calc => next => output
   $("#to-output-btn").on("click",function(){
-    logSessionEvent("calc_next_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
+    logSessionEvent("calc_next_clicked");
     $("#calculator-state").hide();
     $("#output-state").fadeIn(()=>{
       isTransitioning=false;
@@ -820,31 +795,30 @@ $(document).ready(async function(){
 
   // Output => back => calc
   $("#output-back-btn").on("click",function(){
-    logSessionEvent("output_back_clicked");
     if(isTransitioning)return;
     isTransitioning=true;
-
+    logSessionEvent("output_back_clicked");
     $("#output-state").hide();
     $("#calculator-state").fadeIn(()=>{
       isTransitioning=false;
     });
   });
 
-  // Travel/Cash => pill
-  $(document).on("click",".tc-switch-btn",function(){
+  // Travel/Cash switch
+  $(".tc-switch-btn").on("click",function(){
     $(".tc-switch-btn").removeClass("active-tc");
     $(this).addClass("active-tc");
     const viewType=$(this).data("view");
     buildOutputRows(viewType);
   });
 
-  // Clear All
+  // Clear all
   $("#clear-all-btn").on("click",function(){
     logSessionEvent("clear_all_clicked");
     clearAllPrograms();
   });
 
-  // Program search => filter
+  // program search => filter
   $("#program-search").on("input", filterPrograms);
   $(document).on("keypress","#program-search",function(e){
     if(e.key==="Enter" && $(".preview-item").length===1){
@@ -858,14 +832,14 @@ $(document).ready(async function(){
     toggleSearchItemSelection($(this));
   });
 
-  // Popular Program => toggle
+  // top program => toggle
   $(document).on("click",".top-program-box",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("top_program_box_clicked",{ rid });
     toggleProgramSelection($(this));
   });
 
-  // Remove row => recalc
+  // remove row => recalc
   $(document).on("click",".remove-btn",function(){
     const rowEl=$(this).closest(".program-row");
     const rid=rowEl.data("record-id");
@@ -884,28 +858,25 @@ $(document).ready(async function(){
     else nextAcc.slideDown();
   });
 
-  // mini-pill => update use case (#13 => fix logic)
+  // mini-pill => update use case
   $(document).on("click",".mini-pill",function(){
     const useCaseId=$(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked",{ useCaseId });
-    const container=$(this).closest(".usecases-accordion-wrap");
-    // unselect siblings
+    const container=$(this).closest("div[style*='flex-direction:column']");
     $(this).siblings(".mini-pill").each(function(){
-      $(this).css("background-color","#f0f0f0").css("color","#333").removeClass("active");
+      $(this).css({backgroundColor:"#f0f0f0", color:"#333"}).removeClass("active");
     });
-    $(this).css("background-color","#1a2732").css("color","#fff").addClass("active");
+    $(this).css({backgroundColor:"#1a2732", color:"#fff"}).addClass("active");
 
     const uc=Object.values(realWorldUseCases).find(x=>x.id===useCaseId);
     if(!uc)return;
-    // Update image, title, body
-    const imageURL=uc["Use Case URL"]||"";
-    const title=uc["Use Case Title"]||"Untitled";
-    const body=uc["Use Case Body"]||"No description";
+    const newImg=uc["Use Case URL"]||"";
+    const newTitle=uc["Use Case Title"]||"Untitled";
+    const newBody=uc["Use Case Body"]||"No description";
 
-    const wrapper=$(this).closest(".usecases-accordion-wrap");
-    wrapper.find("img").attr("src", imageURL);
-    wrapper.find("h4").text(title);
-    wrapper.find("p").text(body);
+    container.find("img").attr("src",newImg);
+    container.find("h4").text(newTitle);
+    container.find("p").text(newBody);
   });
 
   // Unlock => modal
@@ -929,7 +900,7 @@ $(document).ready(async function(){
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 
-  // usecase => back => output
+  // Usecase => back => output
   $("#usecase-back-btn").on("click",function(){
     $("#usecase-state").hide();
     $("#output-state").fadeIn();
