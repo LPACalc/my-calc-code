@@ -410,18 +410,6 @@ function updateNextCTAVisibility(){
 /*******************************************************
  * CLEAR ALL
  *******************************************************/
-function updateClearAllVisibility(){
-  if($("#input-state").is(":visible")){
-    if(chosenPrograms.length>=1) $("#clear-all-btn").fadeIn();
-    else $("#clear-all-btn").fadeOut();
-  } else if($("#calculator-state").is(":visible")){
-    const rowCount=$("#program-container .program-row").length;
-    if(rowCount>=1) $("#clear-all-btn").fadeIn();
-    else $("#clear-all-btn").fadeOut();
-  } else {
-    $("#clear-all-btn").fadeOut();
-  }
-}
 
 function clearAllPrograms(){
   chosenPrograms=[];
