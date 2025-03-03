@@ -965,9 +965,9 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
-  padding: 0.5rem;      /* adds space inside the border */
   max-width: 100%;      /* or a fixed width if you prefer */
   box-sizing: border-box;
+  margin: 0 25px;
 }
 
 /* The input itself has no border, so the container’s border is always visible */
