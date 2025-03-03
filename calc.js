@@ -629,11 +629,10 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
  * MODAL => show/hide
  *******************************************************/
 function showReportModal() {
-  $("#report-modal").fadeIn(300);
+  $("#report-modal").addClass("show");
 }
-
 function hideReportModal() {
-  $("#report-modal").fadeOut(300);
+  $("#report-modal").removeClass("show");
 }
 
 /*******************************************************
