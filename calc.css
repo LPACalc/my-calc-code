@@ -13,6 +13,8 @@ html, body {
   font-family: "Inter", Arial, sans-serif;
   line-height: 1.5;
   color: #1D3A5F;
+    overflow-x: hidden; /* no horizontal scroll, but vertical is normal */
+
 }
 
 button {
@@ -207,6 +209,18 @@ img {
   .infobox-desktop-text {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
+  }
+
+  .mobile-sticky-cta {
+    position: sticky;
+    bottom: 0;
+    z-index: 9999;
+    
+    /* so it doesn't look transparent when stuck */
+    background-color: #fff;  
+    padding: 1rem;
+    text-align: center;
+    border-top: 1px solid #ccc;  /* optional visual line */
   }
 
   .started-search-area {
