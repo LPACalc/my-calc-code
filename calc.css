@@ -405,7 +405,7 @@ img {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh;
+  min-height: 75vh;
   text-align: center;
   color: #fff;
   padding: 0 1rem;
