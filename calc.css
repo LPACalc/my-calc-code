@@ -130,6 +130,7 @@ img {
  * MOBILE ONLY CHANGES => (max-width: 576px)
  *******************************************************/
 @media (max-width: 576px) {
+
   /* top-programs-grid => 2 columns, 3 rows => up to 6 boxes */
   .top-programs-grid {
     display: grid;
@@ -138,12 +139,25 @@ img {
     gap: 16px;
   }
 
-  .program-search-field {
-    padding: 1rem 2rem !important;
+  /* 1) Info cards => margin left-right + smaller padding for mobile */
+  .points-info-box.input-points-info,
+  .points-info-box.calc-points-info {
+    margin: 0 1rem !important;
+    padding: 1rem !important; /* from your original mobile snippet */
   }
 
-  .points-info-box {
-    padding: 1rem !important;
+  /* 2) Program search => margin left-right */
+  .started-search-area {
+    margin: 0 1rem !important;
+  }
+
+  /* 3) Keep the same design for the search bar, 
+        just narrower & centered within .started-search-area */
+  .program-search-field {
+    width: 100% !important; 
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 1rem 2rem !important; /* from original code */
   }
 
   /* Hide the plus button on mobile */
@@ -160,11 +174,13 @@ img {
     color: #fff !important;
   }
 
+  /* Clear-all button => keep it red on mobile */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
   }
 
+  /* Smaller redemption-option pills */
   .point-option {
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
@@ -175,10 +191,12 @@ img {
     white-space: nowrap;
   }
 
+  /* Narrower email input in the modal */
   #modal-email-input {
     width: 80% !important;
   }
 }
+
 
 /*******************************************************
  * HERO & CTA
