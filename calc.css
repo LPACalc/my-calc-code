@@ -805,3 +805,53 @@ margin-bottom:0.75rem;
   font-weight:600;
   text-align:center;
 }
+
+
+  @media (max-width: 768px) {
+  /* 1) Put "back arrow" + "Select Your Programs" on a single line */
+  #input-state .state-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-bottom: 1rem; /* add spacing below if needed */
+  }
+  /* Make sure the back button is on the far left, title next to it */
+  #input-state .state-header .back-btn {
+    margin-right: 8px; /* small spacing to separate from title */
+  }
+  #input-state .state-header h1 {
+    font-size: 1.4rem;
+    margin: 0; /* override any large margin for mobile */
+  }
+
+  /* 2) Info box => ensure full width below the header */
+  #input-state .points-info-box.input-points-info {
+    margin-bottom: 1rem; /* spacing below info card */
+  }
+
+  /* 3) Search bar => next line. Make it full width with some margin. */
+  #input-state .started-search-area {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  #input-state #program-search {
+    width: 100%;
+  }
+
+  /* 4) Popular Programs => 2 columns on mobile */
+  #input-state #top-programs-grid.top-programs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-gap: 1rem; /* spacing between items */
+  }
+
+  /* Optional: ensure the "Selected Programs" row and the "Next" button
+     appear neatly on mobile */
+  #input-state #chosen-programs-row {
+    margin-bottom: 1rem;
+  }
+  #input-state #input-next-btn {
+    width: 100%; /* make CTA fill width on mobile if desired */
+    margin-bottom: 1rem;
+  }
+}
