@@ -97,7 +97,7 @@ img {
   .sticky-next-btn {
     margin: 2rem auto;       /* keeps the button centered horizontally */
     padding: 1rem 6rem;      /* doubles the horizontal space from 3rem to 6rem */
-    display: block;          /* ensure it's actually displayed */
+  display: block !important;
   }
 }
 
@@ -560,7 +560,7 @@ img {
  * STICKY NEXT BTN
  *******************************************************/
 .sticky-next-btn {
-  display:none;
+  display: block !important;
   position:static;
   margin:2rem auto;
   padding:0.9rem 3rem;
