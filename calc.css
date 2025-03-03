@@ -215,13 +215,13 @@ img {
 
   
     
-    /* so it doesn't look transparent when stuck */
-    background-color: #fff;  
-    padding: 1rem;
-    text-align: center;
-    border-top: 1px solid #ccc;  /* optional visual line */
-  }
-
+ .mobile-sticky-cta {
+  /* so it doesn't look transparent when stuck */
+  background-color: #fff;
+  padding: 1rem;
+  text-align: center;
+  border-top: 1px solid #ccc;
+}
   .started-search-area {
     margin: 1rem 1rem !important;
   }
