@@ -454,9 +454,9 @@ function updateClearAllVisibility() {
   const hasChosen = (chosenPrograms.length > 0);
 
   if (hasChosen) {
-    $btn.stop(true, true).fadeIn(200);
+$btn.show();
   } else {
-    $btn.stop(true, true).fadeOut(200);
+$btn.hide();
   }
 }
 
