@@ -211,15 +211,10 @@ img {
     margin-bottom: 0 !important;
   }
 
-.mobile-sticky-cta {
-  position: sticky;
-  bottom: 0;
-  z-index: 9999;
-  background-color: #fff;
-  padding: 1rem;
-  text-align: center;
-  border-top: 1px solid #ccc; /* optional visual line */
-}
+
+
+
+  
     
     /* so it doesn't look transparent when stuck */
     background-color: #fff;  
