@@ -831,37 +831,38 @@ $(document).ready(async function(){
   });
 
   // Clear all
- function updateClearAllVisibility() {
-  const $btn = $("#clear-all-btn");
-  // Decide if we should show
-  let shouldShow = false;
+  function updateClearAllVisibility() {
+    const $btn = $("#clear-all-btn");
+    // Decide if we should show
+    let shouldShow = false;
 
-  if ($("#input-state").is(":visible") && chosenPrograms.length >= 1) {
-    shouldShow = true;
-  } 
-  else if ($("#calculator-state").is(":visible") 
-        && $("#program-container .program-row").length >= 1) {
-    shouldShow = true;
+    if ($("#input-state").is(":visible") && chosenPrograms.length >= 1) {
+      shouldShow = true;
+    } 
+    else if ($("#calculator-state").is(":visible") 
+          && $("#program-container .program-row").length >= 1) {
+      shouldShow = true;
+    }
+
+    if (shouldShow) {
+      // Stop any ongoing fade-out, then fade in
+      $btn.stop(true, true).fadeIn(200);
+    } else {
+      // Stop any ongoing fade-in, then fade out
+      $btn.stop(true, true).fadeOut(200);
+    }
   }
-
-  if (shouldShow) {
-    // Stop any ongoing fade-out, then fade in
-    $btn.stop(true, true).fadeIn(200);
-  } else {
-    // Stop any ongoing fade-in, then fade out
-    $btn.stop(true, true).fadeOut(200);
-  }
-}
-
 
   // Program search => filter
   $("#program-search").on("input", filterPrograms);
+
   $(document).on("keypress","#program-search",function(e){
     if(e.key==="Enter" && $(".preview-item").length===1){
       logSessionEvent("program_search_enter");
       $(".preview-item").click();
     }
   });
+
   $(document).on("click",".preview-item",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("program_preview_item_clicked",{ rid });
@@ -882,6 +883,9 @@ $(document).ready(async function(){
     logSessionEvent("program_remove_clicked",{ rid });
     rowEl.remove();
     calculateTotal();
+
+    // ADDED: Re-check whether "Clear All" should show or hide
+    updateClearAllVisibility();
   });
 
   // Output => expand/collapse usecase => only if travel
@@ -920,10 +924,12 @@ $(document).ready(async function(){
     logSessionEvent("unlock_report_clicked");
     showReportModal();
   });
+
   $("#modal-close-btn").on("click",function(){
     logSessionEvent("modal_close_clicked");
     hideReportModal();
   });
+
   $("#modal-send-btn").on("click",async function(){
     const emailInput=$("#modal-email-input").val().trim();
     logSessionEvent("modal_send_clicked",{ email:emailInput });
@@ -941,15 +947,19 @@ $(document).ready(async function(){
     $("#usecase-state").hide();
     $("#output-state").fadeIn();
   });
+
   $("#send-report-back-btn").on("click",function(){
     $("#send-report-state").hide();
     $("#output-state").fadeIn();
   });
+
   $("#go-back-btn").on("click",function(){
     $("#submission-takeover").hide();
     $("#output-state").fadeIn();
   });
+
   $("#explore-concierge-btn").on("click",function(){
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 });
+
