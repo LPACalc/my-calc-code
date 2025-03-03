@@ -633,7 +633,7 @@ function showReportModal() {
 function hideReportModal() {
   $("#report-modal").fadeOut(300);
 }
-
+  });
 /*******************************************************
  * SEND REPORT
  *******************************************************/
