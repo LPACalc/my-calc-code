@@ -397,6 +397,8 @@ img {
       (toggle to translateY(0) in your JS for open)
     
   }
+    .clear-all-btn {
+    margin-right: 1rem !important;
 
 }
 
@@ -408,7 +410,7 @@ img {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: url("http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg")
+background: url("https://cdn.mcauto-images-production.sendgrid.net/…");
     center center / cover no-repeat;
 }
 
