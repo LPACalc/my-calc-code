@@ -704,6 +704,22 @@ async function sendReportFromModal(){
   }
 }
 
+function showHowItWorksStep(stepNum) {
+  // Hide all hiw-step
+  $(".hiw-step").hide();
+  
+  // Show the one matching the stepNum
+  $(`.hiw-step[data-step='${stepNum}']`).show();
+
+  // Update the progress lines
+  $(".hiw-line").removeClass("active-line");
+  $(".hiw-line").each(function(idx){
+    if(idx < stepNum){
+      $(this).addClass("active-line");
+    }
+  });
+}
+
 /*******************************************************
  * DOC READY
  *******************************************************/
