@@ -131,6 +131,30 @@ img {
     text-align: left;
     margin-bottom: 1rem;
 }
+   .mini-pill-row-desktop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+
+  /* If you also want each pill’s inline style replaced, you can do: */
+  .mini-pill-row-desktop .mini-pill {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    padding: 6px 12px;
+    border-radius: 9999px;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+  }
+
+  /* Optional: style for the 'active' pill */
+  .mini-pill-row-desktop .mini-pill.active {
+    background-color: #1a2732;
+    color: #fff;
+  }
 }
 
 /*******************************************************
@@ -208,6 +232,11 @@ img {
     width: 80% !important;
   }
 
+  /* (2) .tip-text => 1rem left & right margin */
+  .tip-text {
+    margin: 1rem !important;
+  }
+
   /* --- POPULAR PROGRAMS / SELECT PROGRAMS --- */
 
   .popular-programs-heading {
@@ -281,31 +310,39 @@ img {
     width: 85px !important;
   }
 
-  /* --- (1) .tc-btn-row => 1rem left & right margin --- */
+  /* --- TRAVEL/CASH SWITCH + OUTPUT CONTAINER --- */
+
   .tc-btn-row {
     margin: 0 1rem !important;
   }
 
-  /* --- (2) #output-programs-container => 1rem left & right margin --- */
   #output-programs-container {
     margin: 0 1rem !important;
   }
 
-  /* --- (3) “mini pills” on a single line => new .mini-pill-row class --- */
+  /* (1) & (3) MINI PILLS on single line with horizontal swipe 
+     (like Tinder) => scrollable, no wrapping */
   .mini-pill-row {
     display: flex !important;
     flex-wrap: nowrap !important;
-    gap: 1rem !important;
     overflow-x: auto !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
-    justify-content: flex-start !important; /* or center, if you prefer */
+    gap: 1rem !important;
   }
+
+  /* Optionally reduce pill size to ensure they fit nicely on one line 
+     if you have 5 or more. Tweak as needed.
   .mini-pill-row .mini-pill {
-    flex: 0 0 auto !important; /* prevent wrapping */
-    margin-bottom: 0 !important; /* remove bottom margin if you like */
+    padding: 4px 8px !important;
+  } */
+
+  /* Ensure each pill won't wrap */
+  .mini-pill-row .mini-pill {
+    flex: 0 0 auto !important;
   }
 }
+
 
 
 
