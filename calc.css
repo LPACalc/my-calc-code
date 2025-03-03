@@ -960,24 +960,34 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   text-align:center;
 }
 
+/* Container that always has a 1px border */
 .email-field-container {
   border: 1px solid #ccc;
   border-radius: 4px;
-  padding: 0.5rem; /* add space so the text isn't pressed against the border */
   background-color: #fff;
-  /* Optional: fixed width or let it size to content */
+  padding: 0.5rem;      /* adds space inside the border */
+  max-width: 100%;      /* or a fixed width if you prefer */
+  box-sizing: border-box;
 }
 
-/* The input inside shouldn't have its own border/outlines */
+/* The input itself has no border, so the container’s border is always visible */
 .email-field-container input {
   border: none;
   outline: none;
+  background-color: transparent;
   width: 100%;
   font-size: 1rem;
+  color: #333;          /* Ensure normal text color */
+  box-sizing: border-box;
 }
 
+/* Ensure placeholder text is visible – not white on white */
+.email-field-container input::placeholder {
+  color: #999;          /* Adjust to your liking */
+}
+
+/* On focus (or if user is typing), highlight the container’s border */
 .email-field-container:focus-within {
-  border-color: #007bff; /* or some highlight color */
-  /* Optional: add a box-shadow for a subtle glow */
-  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+  border-color: #007bff;  /* highlight color */
+  box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
 }
