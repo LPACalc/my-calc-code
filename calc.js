@@ -406,10 +406,14 @@ function updateNextCTAVisibility() {
   const $nextBtn = $("#input-next-btn");
   if (chosenPrograms.length > 0) {
     // Enable
-    $nextBtn.removeClass("disabled-btn").prop("disabled", false);
+    $nextBtn
+      .removeClass("disabled-btn")
+      .prop("disabled", false); 
   } else {
     // Disable
-    $nextBtn.addClass("disabled-btn").prop("disabled", true);
+    $nextBtn
+      .addClass("disabled-btn")
+      .prop("disabled", true);
   }
 }
 
