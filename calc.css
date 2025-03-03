@@ -253,6 +253,10 @@ img {
     font-size: 1rem !important;
     font-weight: bold !important;
   }
+  .dollar-input-container{
+    padding: 0rem 0.7rem 0rem 0.4rem;
+    
+  }
 
   #selected-programs-label {
     margin-left: 1rem !important;
@@ -316,6 +320,7 @@ img {
 
   .points-input {
     width: 85px !important;
+    font-size:.8rem;
   }
 
   /* --- TRAVEL/CASH SWITCH + OUTPUT CONTAINER --- */
