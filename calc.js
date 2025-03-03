@@ -8,6 +8,7 @@ function generateSessionId() {
     return (Math.random() * 16 | 0).toString(16);
   });
 }
+
 function getOrCreateSessionId() {
   let stored = localStorage.getItem("pointsLensSessionId");
   if (!stored) {
@@ -16,6 +17,7 @@ function getOrCreateSessionId() {
   }
   return stored;
 }
+
 const sessionId = getOrCreateSessionId();
 console.log("Session ID:", sessionId);
 
@@ -47,9 +49,11 @@ async function fetchClientIP() {
     console.error("Error fetching IP =>", err);
   }
 }
+
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return;
   try {
+    // If IP is IPv6, skip
     if (clientIP.includes(":")) {
       approximateLocation = null;
       return;
@@ -97,6 +101,7 @@ function logSessionEvent(eventName, payload = {}) {
     keepalive: true
   }).catch(err => console.error("Failed to log event:", err));
 }
+
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
@@ -132,6 +137,7 @@ async function fetchWithTimeout(url, options={}, timeout=10000, maxRetries=2){
       if(attempt>maxRetries){
         throw new Error(`HTTP status: ${response.status}`);
       }
+      // Retry if not OK
       await new Promise(r=>setTimeout(r,500));
     }catch(err){
       clearTimeout(tid);
@@ -260,7 +266,8 @@ function filterPrograms(){
     if(!prog["Program Name"])return false;
     if(chosenPrograms.includes(id))return false;
     const inCalc=$(`#program-container .program-row[data-record-id='${id}']`).length>0;
-    return prog["Program Name"].toLowerCase().includes(val)&&!inCalc;
+    if(inCalc)return false;
+    return prog["Program Name"].toLowerCase().includes(val);
   });
   const limited=results.slice(0,5);
   if(!limited.length){
@@ -339,12 +346,15 @@ function toggleProgramSelection(boxEl){
   const rid=boxEl.data("record-id");
   const idx=chosenPrograms.indexOf(rid);
   if(idx===-1){
+    // Not chosen yet
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
+    // On desktop, change plus to check
     if(window.innerWidth>=992){
       boxEl.find(".add-btn").text("✓");
     }
   } else {
+    // Already chosen => remove
     chosenPrograms.splice(idx,1);
     boxEl.removeClass("selected-state");
     if(window.innerWidth>=992){
@@ -360,7 +370,7 @@ function toggleProgramSelection(boxEl){
 }
 
 /*******************************************************
- * UPDATE CHOSEN PROGRAMS
+ * UPDATE CHOSEN PROGRAMS DISPLAY
  *******************************************************/
 function updateChosenProgramsDisplay(){
   const container=$("#chosen-programs-row");
@@ -387,7 +397,7 @@ function updateChosenProgramsDisplay(){
 }
 
 /*******************************************************
- * NEXT CTA
+ * NEXT CTA VISIBILITY
  *******************************************************/
 function updateNextCTAVisibility(){
   if(chosenPrograms.length>0){
@@ -412,6 +422,7 @@ function updateClearAllVisibility(){
     $("#clear-all-btn").fadeOut();
   }
 }
+
 function clearAllPrograms(){
   chosenPrograms=[];
   $(".top-program-box.selected-state").each(function(){
@@ -436,11 +447,13 @@ function formatNumberInput(el){
     return;
   }
   let num=parseInt(raw,10);
+  // Cap at 10 million
   if(num>10000000) num=10000000;
   el.value=num.toLocaleString();
 }
+
 function calculateTotal(){
-  // optional
+  // Optionally do real-time calculations if desired
 }
 
 /*******************************************************
@@ -471,6 +484,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
   if(!program){
     return `<div style="padding:1rem;">No data found.</div>`;
   }
+  // Filter recommended use cases
   let matching=Object.values(realWorldUseCases).filter(uc=>{
     if(!uc.Recommended) return false;
     if(!uc["Points Required"]) return false;
@@ -479,9 +493,13 @@ function buildUseCaseAccordionContent(recordId, userPoints){
     const linked=uc["Program Name"]||[];
     return linked.includes(recordId) && uc["Points Required"]<=userPoints;
   });
+  // Sort by redemption value desc
   matching.sort((a,b)=>(b["Redemption Value"]||0)-(a["Redemption Value"]||0));
+  // Slice top 5
   matching=matching.slice(0,5);
+  // Then sort by points ascending
   matching.sort((a,b)=>(a["Points Required"]||0)-(b["Points Required"]||0));
+
   if(!matching.length){
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
@@ -508,6 +526,7 @@ function buildUseCaseAccordionContent(recordId, userPoints){
       </div>
     `;
   });
+
   const first=matching[0];
   const imageURL=first["Use Case URL"]||"";
   const title=first["Use Case Title"]||"Untitled";
@@ -553,6 +572,7 @@ function buildOutputRows(viewType){
     }
     totalValue+=rowVal;
     const formattedVal=`$${rowVal.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
+
     let rowHtml=`
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -562,6 +582,7 @@ function buildOutputRows(viewType){
         <div class="output-value">${formattedVal}</div>
       </div>
     `;
+
     if(viewType==="travel"){
       rowHtml+=`
         <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
@@ -569,8 +590,10 @@ function buildOutputRows(viewType){
         </div>
       `;
     }
+
     $("#output-programs-list").append(rowHtml);
   });
+
   const label=(viewType==="travel")?"Travel Value":"Cash Value";
   const totalStr=`$${totalValue.toLocaleString(undefined,{minimumFractionDigits:2, maximumFractionDigits:2})}`;
   $("#output-programs-list").append(`
@@ -586,6 +609,7 @@ function buildOutputRows(viewType){
 function hideReportModal(){
   $("#report-modal").fadeOut(300);
 }
+
 function showReportModal(){
   $("#report-modal").fadeIn(300);
   $("#modal-email-error").hide().text("");
@@ -618,6 +642,7 @@ async function sendReport(email){
   }
   return true;
 }
+
 async function sendReportFromModal(){
   const emailInput=$("#modal-email-input").val().trim();
   const errorEl=$("#modal-email-error");
@@ -644,8 +669,13 @@ async function sendReportFromModal(){
       hideReportModal();
       sentMsgEl.hide();
 
-      $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
-      $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
+      // Adjust CTA states
+      $("#unlock-report-btn")
+        .removeClass("cta-dark cta-light-border")
+        .addClass("cta-light-border");
+      $("#explore-concierge-lower")
+        .removeClass("cta-dark cta-light-border")
+        .addClass("cta-dark");
     },700);
   }catch(err){
     console.error("Failed to send =>", err);
@@ -684,7 +714,7 @@ $(document).ready(async function(){
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
-  $(".left-column").hide(); // hidden by default
+  $(".left-column").hide(); // hidden by default on load
 
   // Hero => GET STARTED
   $("#hero-get-started-btn").on("click",function(){
@@ -818,7 +848,7 @@ $(document).ready(async function(){
     clearAllPrograms();
   });
 
-  // program search => filter
+  // Program search => filter
   $("#program-search").on("input", filterPrograms);
   $(document).on("keypress","#program-search",function(e){
     if(e.key==="Enter" && $(".preview-item").length===1){
@@ -832,14 +862,14 @@ $(document).ready(async function(){
     toggleSearchItemSelection($(this));
   });
 
-  // top program => toggle
+  // Top program => toggle
   $(document).on("click",".top-program-box",function(){
     const rid=$(this).data("record-id");
     logSessionEvent("top_program_box_clicked",{ rid });
     toggleProgramSelection($(this));
   });
 
-  // remove row => recalc
+  // Remove row => recalc
   $(document).on("click",".remove-btn",function(){
     const rowEl=$(this).closest(".program-row");
     const rid=rowEl.data("record-id");
@@ -894,7 +924,7 @@ $(document).ready(async function(){
     await sendReportFromModal();
   });
 
-  // Explore => external
+  // Explore => external link
   $("#explore-concierge-lower").on("click",function(){
     logSessionEvent("explore_concierge_clicked");
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
