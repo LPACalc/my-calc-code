@@ -76,7 +76,7 @@ img {
 @media (min-width: 992px) {
   /* Show left column on desktop after triggered by JS (if needed) */
 
-  /* Program name -> bigger font */
+  /* Program name => bigger font */
   .program-row .program-name {
     font-size: 1.2rem !important;
   }
@@ -87,7 +87,7 @@ img {
   /* Next button => center => margin: 2rem auto */
   .sticky-next-btn {
     margin: 2rem auto !important;
-    padding: 1rem 6rem; /* Make it wider on desktop */
+    padding: 1rem 6rem;
     display: block !important;
   }
 
@@ -103,7 +103,7 @@ img {
     padding: 20px 40px;
     border: 1px solid #DFE5EB;
     margin: 1rem 0;
-    align-items: center; 
+    align-items: center;
     gap: 24px;
   }
 
@@ -133,18 +133,29 @@ img {
     margin-bottom: 1rem;
   }
 
-  /* Example desktop version of .mini-pill-row-desktop */
+  /* (1) When popular program is selected => circle is blue with white check */
+  .top-program-box.selected-state .add-btn {
+    background-color: #1a2732 !important; /* blue */
+    color: #fff !important;              /* white check */
+    border-color: #1a2732 !important;
+  }
+
+  /* (2) & (3) Desktop pills => bigger padding, font-size, centered row */
   .mini-pill-row-desktop {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center;
-    gap: 1rem;
+    justify-content: center !important; /* center the entire row */
+    gap: 1rem;                          /* keep a gap between pills */
   }
   .mini-pill-row-desktop .mini-pill {
     display: inline-block;
     margin-right: 8px;
     margin-bottom: 8px;
-    padding: 6px 12px;
+
+    /* updated size */
+    padding: 6px 30px !important;
+    font-size: 1rem !important;
+
     border-radius: 9999px;
     background-color: #f0f0f0;
     color: #333;
@@ -155,6 +166,7 @@ img {
     color: #fff;
   }
 }
+
 
 /*******************************************************
  * MOBILE ONLY CHANGES => (max-width: 576px)
