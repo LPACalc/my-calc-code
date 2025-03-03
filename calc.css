@@ -416,11 +416,11 @@ img {
     border-top-right-radius: 12px !important;
     background: #fff !important;
     padding: 1.5rem !important;
-    /* optional: “slide up” animation 
+    optional: “slide up” animation 
        transform: translateY(100%);
        transition: transform 0.3s ease; 
        (toggle to translateY(0); in JS) 
-    */
+    
   }
 }
 
