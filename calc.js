@@ -781,7 +781,7 @@ $(document).ready(async function(){
     });
     $("#program-container").empty();
     chosenPrograms.forEach(rid=>addProgramRow(rid));
-  });
+  
 
   
   // ADDED: check if Clear All should now be visible
