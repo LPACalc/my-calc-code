@@ -167,6 +167,15 @@ img {
   }
 }
 
+#modal-close-btn {
+  /* originally float:right; cursor:pointer; font-size:24px, etc. */
+  color: #1a2732;  /* Dark blue text */
+  /* If you want a hover color or effect: */
+}
+#modal-close-btn:hover {
+  opacity: 0.7;
+}
+
 
 /*******************************************************
  * MOBILE ONLY CHANGES => (max-width: 576px)
@@ -176,6 +185,12 @@ img {
   /* --- SHARED / GLOBAL MOBILE TWEAKS --- */
   .state-header {
     margin-top: 2.5rem !important;
+  }
+
+   .content-limiter {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 1rem !important; /* optional padding to keep some breathing room on the sides */
   }
 
   .back-btn {
