@@ -6,6 +6,7 @@
   padding: 0;
   box-sizing: border-box;
 }
+
 html, body {
   height: 100%;
   background-color: #F8FAFD;
@@ -13,12 +14,14 @@ html, body {
   line-height: 1.5;
   color: #1D3A5F;
 }
+
 button {
   cursor: pointer;
   border: none;
   background: none;
   outline: none;
 }
+
 img {
   display: block;
   max-width: 100%;
@@ -35,6 +38,7 @@ img {
   width: 100%;
   position: relative;
 }
+
 /* LEFT => hidden on mobile => show on desktop only upon user click */
 .left-column {
   display: none; 
@@ -44,6 +48,7 @@ img {
   justify-content: center;
   overflow: hidden;
 }
+
 #left-col-logo {
   position: absolute; 
   top: 50%;
@@ -51,11 +56,13 @@ img {
   transform: translate(-50%,-50%);
   width: 120px;
 }
+
 .right-column {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
+
 .container {
   flex: 1;
   display: flex;
@@ -66,32 +73,29 @@ img {
  * DESKTOP ONLY CHANGES => (min-width: 992px)
  *******************************************************/
 @media (min-width: 992px) {
-  /* 1) left-col-logo => fix so it stays in left column, not middle of right => 
-     We just ensure .left-column is absolutely or relatively positioned. 
-     We handle it in HTML or here. 
-     By default it's correct if we're not messing with it in JS. 
-     So nothing specific needed except ensuring the .left-column is shown only if JS sets display:block. */
+  /* Show left column on desktop only after triggered by JS 
+     (.left-column is initially hidden in JS) */
 
-  /* 2) On "Select Your Programs," check circles turn blue => .add-btn => background-color: #007bff when selected */
-  .top-program-box.selected-state .add-btn {
-    background-color: #007bff !important;
-    color: #fff !important;
+  /* Program name -> bigger font */
+  .program-row .program-name {
+    font-size: 1.2rem !important;
+  }
+  .program-row img {
+    width: 60px !important;
   }
 
-  /* 3) Next button => centered in right column => we do .sticky-next-btn => margin:0 auto; */
+  /* Next button => center => margin: 2rem auto */
   .sticky-next-btn {
     margin: 2rem auto !important;
   }
 
-  /* 4) clear all => red => .clear-all-btn => already red, but let's ensure it 
-     (We can do .clear-all-btn { background-color: #dc3545 } if needed) */
+  /* Clear all => red button => keep consistent */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
   }
 
-  /* 5) Re-add design elements for the info cards => 
-     .points-info-box => some padding, spacing, borders, etc. */
+  /* Points info boxes => more padding, border, etc. */
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
     padding: 20px 40px;
@@ -100,37 +104,20 @@ img {
     align-items: center; 
     gap: 24px;
   }
+
   .infobox-desktop-text {
     font-size: 1rem;
     line-height: 1.4;
   }
 
-  /* 6) black border around input => remove => .points-input => border:none, 
-     we already do that in general, so let's ensure. */
+  /* Remove black border from input => ensure no border */
   .points-input {
     border: none !important;
     outline: none !important;
+    width: 120px !important; /* bigger on desktop */
   }
 
-  /* 7) program-name => 1.2rem => .program-name, 
-        logo => 60px => .program-row img => width:60px */
-  .program-row .program-name {
-    font-size: 1.2rem !important;
-  }
-  .program-row img {
-    width: 60px !important;
-  }
-
-  /* 8) The "Enter Total" field => longer on desktop => .points-input => width: 120px? 
-     or something bigger. */
-  .points-input {
-    width: 120px !important;
-  }
-
-  /* 9) unlock full report modal => centered in the right column => 
-     we offset #report-modal-content from left:50% to about left: 62.5%. 
-     Or we can do the simpler approach => 
-     We'll just do left: 60% for approximate centering in the right column. */
+  /* Modal: center in the right column => offset left: ~60% */
   #report-modal-content {
     left: 60% !important;
     transform: translate(-50%,-50%);
@@ -141,8 +128,7 @@ img {
  * MOBILE ONLY CHANGES => (max-width: 576px)
  *******************************************************/
 @media (max-width: 576px) {
-  /* 1) top-programs-grid => 2 columns, 3 rows => grid-template-rows: repeat(3, auto)? 
-     That’s 6 total program boxes if you have them. */
+  /* top-programs-grid => 2 columns, 3 rows => up to 6 boxes */
   .top-programs-grid {
     display: grid;
     grid-template-columns: 1fr 1fr; 
@@ -150,68 +136,51 @@ img {
     gap: 16px;
   }
 
-  /* 2) search bar => side padding => we can do .started-search-area => 
-     or .program-search-field => padding-left / right etc. 
-     We'll add .program-search-field => additional horizontal padding. */
+  /* Search bar => more side padding */
   .program-search-field {
     padding: 1rem 2rem !important;
   }
 
-  /* 3) info card => padding left/right => .points-info-box => 
-     let's do a small padding for entire box => 1rem. */
+  /* Info box => smaller padding */
   .points-info-box {
     padding: 1rem !important;
   }
 
-  /* 4) popular programs => no circular plus => 
-     we already hide .add-btn or do not show it. 
-     If needed: .top-programs-box .add-btn { display: none } specifically on mobile. */
-  .top-programs-box .add-btn {
+  /* Hide the plus button on mobile */
+  .top-program-box .add-btn {
     display: none !important;
   }
 
-  /* 5) when clicking top program => dark blue background => white text => 
-     we do .top-programs-box.selected-state => background-color: #1a2732, color:#fff. */
-  .top-programs-box.selected-state {
+  /* Clicking top program => dark background => white text */
+  .top-program-box.selected-state {
     background-color: #1a2732 !important;
     border-color: #1a2732 !important;
   }
-  .top-programs-box.selected-state .top-program-label {
+  .top-program-box.selected-state .top-program-label {
     color: #fff !important;
   }
 
-  /* 6) clear all => red => we can ensure .clear-all-btn is red. 
-     It's already red, but let's do it here to avoid overriding desktop. */
+  /* Clear all => red */
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
   }
 
-  /* 7) The use case pills => smaller => fit in one row => 
-     We do a smaller font + horizontal scroll if many. */
+  /* Use case pills => smaller font */
   .point-option {
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
   }
-  /* Force them in one row => If more than 4, they can horizontally scroll. */
+  /* Force horizontal scroll if needed */
   .points-options {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;
   }
 
-  /* 8) user can swipe horizontally => 
-     we handled with overflow-x: auto on the container. 
-     That’s done above or in the “accordion.” 
-     We can do the same for .usecase-accordion if needed. 
-     Or .points-options. 
-     We have done so above. */
-
-  /* 9) On the email input modal => same width as subheader => 
-     We'll reduce the input width. */
+  /* Email modal input => narrower width */
   #modal-email-input {
-    width: 80% !important; /* or match subheader width if subheader is also 80%. 
-                               If you want narrower, do 70%. */
+    width: 80% !important;
   }
 }
 
@@ -225,6 +194,7 @@ img {
   background: url("http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg")
     center center / cover no-repeat;
 }
+
 .hero-inner {
   display: flex;
   flex-direction: column;
@@ -235,17 +205,20 @@ img {
   color: #fff;
   padding: 0 1rem;
 }
+
 .hero-cta-container {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 1rem;
 }
+
 .cta-btn {
   font-size: 1rem;
   font-weight: 600;
   padding: 0.75rem 1.5rem;
   transition: all 0.2s ease;
 }
+
 .cta-dark {
   background-color: #1a2732;
   color: #fff;
@@ -253,6 +226,7 @@ img {
 .cta-dark:hover {
   background-color: #141d28;
 }
+
 .cta-no-border {
   background-color: #fff;
   color: #1a2732;
@@ -260,6 +234,7 @@ img {
 .cta-no-border:hover {
   background-color: #e0e0e0;
 }
+
 .cta-light-border {
   background-color: #fff;
   color: #1a2732;
@@ -269,38 +244,44 @@ img {
   background-color: #1a2732;
   color: #fff;
 }
+
 .cta-round {
   border-radius: 9999px;
 }
 
 /*******************************************************
- * HOW IT WORKS => .hiw-desktop-margin => margin-top:4rem default
+ * HOW IT WORKS
  *******************************************************/
 .hiw-mobile-stack {
   padding: 0 20px 40px; 
   text-align: center;
 }
+
 .hiw-flex-container {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 2rem;
 }
+
 @media (max-width:576px){
   .hiw-flex-container {
     flex-direction: column;
   }
 }
+
 .hiw-main-image {
   width: 100%;
   border-radius: 8px;
 }
+
 .hiw-bottom-lines {
   display: flex;
   justify-content: center;
   margin-top: 4.5rem;
   gap: 8px;
 }
+
 .hiw-line {
   width: 60px;
   height: 4px;
@@ -308,6 +289,7 @@ img {
   border-radius: 2px;
   transition: background-color 0.3s;
 }
+
 .hiw-line.active-line {
   background-color: #1a2732;
 }
@@ -321,6 +303,7 @@ img {
   justify-content: center;
   margin-top: 4.5rem;
 }
+
 .state-header .state-title {
   margin: 0 auto;
   font-size: 1.5rem;
@@ -338,21 +321,24 @@ img {
   background:none;
   cursor:pointer;
 }
+
 .back-btn::before {
   content:"";
   display:inline-block;
-  width:24px; height:24px;
+  width:24px; 
+  height:24px;
   background:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
     no-repeat center center;
   background-size:24px 24px;
   transition:opacity 0.2s ease;
 }
+
 .back-btn:hover::before {
   opacity:0.7;
 }
 
 /*******************************************************
- * POINTS INFO BOX => 
+ * POINTS INFO BOX
  *******************************************************/
 .points-info-box {
   background-color:#f5f5f7;
@@ -362,6 +348,7 @@ img {
   align-items:flex-start;
   margin:1rem 0;
 }
+
 .info-icon {
   width:24px;
   height:24px;
@@ -369,6 +356,7 @@ img {
   margin-top:auto;
   margin-bottom:auto;
 }
+
 .infobox-desktop-text {
   font-size:0.9rem;
   line-height:1.4;
@@ -381,6 +369,7 @@ img {
   position:relative;
   margin:1rem 0;
 }
+
 .program-search-field {
   width:100%;
   border-radius:0.5rem;
@@ -388,6 +377,7 @@ img {
   padding:1rem;
   outline:none;
 }
+
 #program-preview {
   display:none;
   position:absolute;
@@ -398,6 +388,7 @@ img {
   border-radius:8px;
   z-index:9999;
 }
+
 .preview-item {
   padding:12px 16px;
   display:flex;
@@ -405,6 +396,7 @@ img {
   justify-content:space-between;
   cursor:pointer;
 }
+
 .preview-item:hover {
   background:#f8fafd;
 }
@@ -417,6 +409,7 @@ img {
   grid-template-columns:repeat(3,1fr);
   gap:16px;
 }
+
 .top-program-box {
   display:flex;
   align-items:center;
@@ -428,16 +421,20 @@ img {
   cursor:pointer;
   transition:box-shadow 0.2s ease;
 }
+
 .top-program-box:hover {
   box-shadow:0 2px 6px rgba(0,0,0,0.06);
 }
+
 .top-program-label {
   font-size:0.85rem;
   font-weight:600;
   color:#1a2732;
 }
+
 .add-btn {
-  width:24px; height:24px;
+  width:24px; 
+  height:24px;
   border:1px solid #aaa;
   border-radius:50%;
   background-color:transparent;
@@ -458,6 +455,7 @@ img {
   text-transform:uppercase;
   display:none;
 }
+
 .selected-programs-row {
   display:flex;
   align-items:center;
@@ -489,13 +487,15 @@ img {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:0.8rem 1rem; /* mobile default => #8 => 0.8rem 1rem */
+  padding:0.8rem 1rem; /* default mobile spacing */
 }
+
 .program-name {
   font-size:0.9rem;
   font-weight:600;
   color:#1D3A5F;
 }
+
 .remove-btn {
   background:none;
   color:#dc3545;
@@ -503,7 +503,7 @@ img {
 }
 
 /*******************************************************
- * DOLLAR INPUT => remove black border, bigger on desktop
+ * DOLLAR INPUT => remove black border
  *******************************************************/
 .dollar-input-container {
   border:1px solid #DFE5EB;
@@ -513,17 +513,18 @@ img {
   display:inline-flex;
   align-items:center;
 }
+
 .points-input {
   border:none;
   outline:none;
   background-color:transparent;
   font-size:1rem;
   padding:0.5rem 0;
-  width:70px; /* mobile default => #9 => smaller */
+  width:70px;
 }
 
 /*******************************************************
- * STICKY NEXT BTN => center => margin:2rem auto
+ * STICKY NEXT BTN
  *******************************************************/
 .sticky-next-btn {
   display:none;
@@ -533,7 +534,7 @@ img {
 }
 
 /*******************************************************
- * TRAVEL/CASH => .tc-btn-row => #14 => center
+ * TRAVEL/CASH => switch
  *******************************************************/
 .tc-btn-row {
   display:flex;
@@ -541,6 +542,7 @@ img {
   justify-content:center;
   margin:1rem 0;
 }
+
 .tc-switch-btn {
   padding:8px 16px;
   border-radius:9999px;
@@ -551,24 +553,26 @@ img {
   cursor:pointer;
   transition:background-color 0.2s ease;
 }
+
 .tc-switch-btn:hover {
   background-color:#2e4461;
   color:#fff;
 }
+
 .tc-switch-btn.active-tc {
   background-color:#1a2732;
   color:#fff;
 }
 
 /*******************************************************
- * OUT-CTA => .8rem on mobile
+ * OUT-CTA
  *******************************************************/
 .out-cta {
   font-size:1rem;
 }
 
 /*******************************************************
- * USECASES => pills => smaller on mobile => single row swipe
+ * USECASES => pills
  *******************************************************/
 .points-options {
   display:flex;
@@ -576,6 +580,7 @@ img {
   justify-content:center;
   gap:40px;
 }
+
 .point-option {
   font-size:16px;
   font-weight:600;
@@ -587,11 +592,13 @@ img {
   transition:background-color 0.2s;
   cursor:pointer;
 }
+
 .point-option.active,
 .point-option:hover {
   background-color:#1a2732;
   color:#fff;
 }
+
 .points-view {
   display:flex;
   align-items:flex-start;
@@ -599,10 +606,12 @@ img {
   flex-wrap:wrap;
   justify-content:center;
 }
+
 .points-view-img {
   flex:0 1 820px;
   max-width:820px;
 }
+
 .image-wrapper img {
   width:100%;
   height:auto;
@@ -610,20 +619,24 @@ img {
   border-radius:8px;
   box-shadow:0 2px 4px rgba(0,0,0,0.15);
 }
+
 .points-view-content {
   flex:1 1 300px;
   text-align:left;
 }
+
 .points-state-title {
   font-size:20px;
   font-weight:700;
   margin-bottom:10px;
 }
+
 .points-state-description {
   font-size:14px;
   line-height:1.4;
   max-width:400px;
 }
+
 .usecase-accordion,
 .usecase-accordion .mini-pill {
   overflow-x:auto;
@@ -653,7 +666,7 @@ img {
 }
 
 /*******************************************************
- * REPORT MODAL => #report-modal => 
+ * REPORT MODAL => #report-modal
  *******************************************************/
 #report-modal {
   display:none;
@@ -664,6 +677,7 @@ img {
   background:rgba(0,0,0,0.5);
   z-index:9999;
 }
+
 #report-modal-content {
   position:absolute;
   top:50%; left:50%;
@@ -675,12 +689,14 @@ img {
   padding:30px;
   box-sizing:border-box;
 }
+
 #modal-close-btn {
   float:right;
   font-size:24px;
   line-height:1;
   cursor:pointer;
 }
+
 #modal-email-error {
   color:red;
   font-size:14px;
@@ -688,61 +704,11 @@ img {
   text-align:center;
   display:none;
 }
+
 #email-sent-message {
   display:none;
   color:green;
   margin-top:10px;
   font-weight:600;
   text-align:center;
-}
-
-/*******************************************************
- * MEDIA QUERIES => DESKTOP vs MOBILE
- *******************************************************/
-
-/* DESKTOP => (min-width: 992px) => from #7, #8, #9, etc. */
-@media (min-width:992px){
-  /* (Reiterating the relevant changes) 
-     We'll compile them into the block above for clarity. 
-     But the final code is as shown in that block. 
-  */
-  .points-input {
-    width:120px !important; /* #8 => longer enter total field on desktop */
-  }
-  .program-row img {
-    width:60px !important; /* #7 => logo 60px on desktop */
-  }
-  .program-row .program-name {
-    font-size:1.2rem !important; /* #7 => 1.2rem */
-  }
-  /* Next button => center => margin:2rem auto => see .sticky-next-btn above. */
-  /* Clear all => red => done above. */
-  /* Unlock modal => center in right column => #report-modal-content => left:60% => see block above. */
-}
-
-/* MOBILE => (max-width:576px) => points 1..9 from your request. */
-@media (max-width:576px){
-  /* 1) top-programs-grid => 2 columns, 3 rows => done above => grid-template-columns:1fr 1fr 
-        grid-template-rows: repeat(3,auto) => see block above. */
-
-  /* 2) search bar => side padding => .program-search-field => 
-       done above => padding:1rem 2rem. */
-
-  /* 3) info card => left/right padding => .points-info-box => done above => 
-       points-info-box { padding:1rem !important; } */
-
-  /* 4) no circular plus => done => .top-programs-box .add-btn { display:none !important; } */
-
-  /* 5) clicking => dark blue => .top-program-box.selected-state => #1a2732 => done above. */
-
-  /* 6) clear all => red => done => .clear-all-btn => background:#dc3545. */
-
-  /* 7) use case pills => smaller => 
-       done => .point-option { font-size:0.8rem; ... }, 
-       .points-options => overflow-x:auto. */
-
-  /* 8) swipe => we have overflow-x on .points-options or .usecase-accordion. */
-
-  /* 9) email input modal => #modal-email-input => width:80%. 
-       done in block above => #modal-email-input { width:80% !important }. */
 }
