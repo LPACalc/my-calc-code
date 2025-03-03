@@ -410,19 +410,28 @@ function updateNextCTAVisibility(){
 /*******************************************************
  * CLEAR ALL
  *******************************************************/
+function clearAllPrograms() {
+  // Clear chosen programs
+  chosenPrograms = [];
 
-function clearAllPrograms(){
-  chosenPrograms=[];
+  // Unselect any .top-program-box that was “selected-state”
   $(".top-program-box.selected-state").each(function(){
     $(this).removeClass("selected-state");
-    if(window.innerWidth>=992){
+    if(window.innerWidth >= 992){
       $(this).find(".add-btn").text("+");
     }
   });
+
+  // Update the chosen display
   updateChosenProgramsDisplay();
+
+  // Hide the “Next” button, since no programs remain
   $("#input-next-btn").hide();
-  $("#clear-all-btn").hide();
+
+  // Remove any program rows
   $("#program-container").empty();
+
+  // Let updateClearAllVisibility() handle fading out the clear-all-btn
 }
 
 /*******************************************************
@@ -769,43 +778,41 @@ $(document).ready(async function(){
     });
   });
 
-// Input => next => calc
-$("#input-next-btn").on("click",function(){
-  if(isTransitioning)return;
-  isTransitioning=true;
-  logSessionEvent("input_next_clicked");
-  
-  // Hide Input, show Calculator
-  $("#input-state").hide();
-  $("#calculator-state").fadeIn(()=>{
-    isTransitioning=false;
-    $("#to-output-btn").show();
-  });
-  
-  // Empty out any old rows, then add new for chosen programs
-  $("#program-container").empty();
-  chosenPrograms.forEach(rid => addProgramRow(rid));
-
-  // Make sure "Clear All" knows if we have rows
-  updateClearAllVisibility();
-});
-
-
-// Calc => back => input
-$("#calc-back-btn").on("click",function(){
-  if(isTransitioning)return;
-  isTransitioning=true;
-  logSessionEvent("calc_back_clicked");
-  $("#calculator-state").hide();
-  $("#input-state").fadeIn(()=>{
-    isTransitioning=false;
-    $("#to-output-btn").hide();
+  // Input => next => calc
+  $("#input-next-btn").on("click",function(){
+    if(isTransitioning)return;
+    isTransitioning=true;
+    logSessionEvent("input_next_clicked");
     
-    // If user had chosenPrograms on return, "Clear All" should appear in input:
+    // Hide Input, show Calculator
+    $("#input-state").hide();
+    $("#calculator-state").fadeIn(()=>{
+      isTransitioning=false;
+      $("#to-output-btn").show();
+    });
+    
+    // Empty out any old rows, then add new for chosen programs
+    $("#program-container").empty();
+    chosenPrograms.forEach(rid => addProgramRow(rid));
+
+    // Make sure "Clear All" knows if we have rows
     updateClearAllVisibility();
   });
-});
 
+  // Calc => back => input
+  $("#calc-back-btn").on("click",function(){
+    if(isTransitioning)return;
+    isTransitioning=true;
+    logSessionEvent("calc_back_clicked");
+    $("#calculator-state").hide();
+    $("#input-state").fadeIn(()=>{
+      isTransitioning=false;
+      $("#to-output-btn").hide();
+      
+      // If user had chosenPrograms on return, "Clear All" should appear in input:
+      updateClearAllVisibility();
+    });
+  });
 
   // Calc => next => output
   $("#to-output-btn").on("click",function(){
@@ -890,13 +897,13 @@ $("#calc-back-btn").on("click",function(){
 
   // Remove row => recalc
   $(document).on("click",".remove-btn",function(){
-    const rowEl=$(this).closest(".program-row");
-    const rid=rowEl.data("record-id");
+    const rowEl = $(this).closest(".program-row");
+    const rid   = rowEl.data("record-id");
     logSessionEvent("program_remove_clicked",{ rid });
     rowEl.remove();
     calculateTotal();
 
-    // ADDED: Re-check whether "Clear All" should show or hide
+    // Re-check whether "Clear All" should show or hide
     updateClearAllVisibility();
   });
 
@@ -970,14 +977,14 @@ $("#calc-back-btn").on("click",function(){
     $("#output-state").fadeIn();
   });
 
+  // FINAL: "Clear All" click
   $("#clear-all-btn").on("click", function() {
-  logSessionEvent("clear_all_clicked");
-  clearAllPrograms();         // remove selected programs
-  updateClearAllVisibility(); // then re-check if it should be hidden
-});
+    logSessionEvent("clear_all_clicked");
+    clearAllPrograms();         // remove selected programs
+    updateClearAllVisibility(); // then re-check if it should be hidden
+  });
 
   $("#explore-concierge-btn").on("click",function(){
     window.open("https://www.legacypointsadvisors.com/pricing","_blank");
   });
 });
-
