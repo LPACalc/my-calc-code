@@ -425,6 +425,18 @@ img {
   transition:box-shadow 0.2s ease;
 }
 
+.top-program-box img {
+  width: 40px;
+  height: auto;
+}
+
+@media (min-width: 992px) {
+  .top-program-box img {
+    width: 60px;
+    height: auto;
+  }
+}
+
 .top-program-box:hover {
   box-shadow:0 2px 6px rgba(0,0,0,0.06);
 }
