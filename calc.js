@@ -854,7 +854,16 @@ $(document).ready(async function(){
   function updateClearAllVisibility() {
     const $btn = $("#clear-all-btn");
     // Decide if we should show
-    let shouldShow = false;
+    let shouldShow = false
+
+     if ($("#input-state").is(":visible") && chosenPrograms.length >= 1) {
+    shouldShow = true;
+  } else if (
+    $("#calculator-state").is(":visible") && 
+    $("#program-container .program-row").length >= 1
+  ) {
+    shouldShow = true;
+  }
 
      if (hasChosen) {
     $btn.stop(true, true).fadeIn(200);
