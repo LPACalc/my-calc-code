@@ -769,36 +769,43 @@ $(document).ready(async function(){
     });
   });
 
-  // Input => next => calc
-  $("#input-next-btn").on("click",function(){
-    if(isTransitioning)return;
-    isTransitioning=true;
-    logSessionEvent("input_next_clicked");
-    $("#input-state").hide();
-    $("#calculator-state").fadeIn(()=>{
-      isTransitioning=false;
-      $("#to-output-btn").show();
-    });
-    $("#program-container").empty();
-    chosenPrograms.forEach(rid=>addProgramRow(rid));
+// Input => next => calc
+$("#input-next-btn").on("click",function(){
+  if(isTransitioning)return;
+  isTransitioning=true;
+  logSessionEvent("input_next_clicked");
   
+  // Hide Input, show Calculator
+  $("#input-state").hide();
+  $("#calculator-state").fadeIn(()=>{
+    isTransitioning=false;
+    $("#to-output-btn").show();
+  });
+  
+  // Empty out any old rows, then add new for chosen programs
+  $("#program-container").empty();
+  chosenPrograms.forEach(rid => addProgramRow(rid));
 
-  
-  // ADDED: check if Clear All should now be visible
+  // Make sure "Clear All" knows if we have rows
   updateClearAllVisibility();
 });
 
-  // Calc => back => input
-  $("#calc-back-btn").on("click",function(){
-    if(isTransitioning)return;
-    isTransitioning=true;
-    logSessionEvent("calc_back_clicked");
-    $("#calculator-state").hide();
-    $("#input-state").fadeIn(()=>{
-      isTransitioning=false;
-      $("#to-output-btn").hide();
-    });
+
+// Calc => back => input
+$("#calc-back-btn").on("click",function(){
+  if(isTransitioning)return;
+  isTransitioning=true;
+  logSessionEvent("calc_back_clicked");
+  $("#calculator-state").hide();
+  $("#input-state").fadeIn(()=>{
+    isTransitioning=false;
+    $("#to-output-btn").hide();
+    
+    // If user had chosenPrograms on return, "Clear All" should appear in input:
+    updateClearAllVisibility();
   });
+});
+
 
   // Calc => next => output
   $("#to-output-btn").on("click",function(){
