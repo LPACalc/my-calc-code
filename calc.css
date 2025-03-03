@@ -138,12 +138,19 @@ img {
  *******************************************************/
 @media (max-width: 576px) {
 
+  /* --- (1) Shared/Global Mobile Tweaks --- */
+
   /* Trim down .state-header top margin */
   .state-header {
     margin-top: 2.5rem !important;
   }
 
-  /* Info cards => 1rem margin top/bottom/left/right */
+  /* .back-btn => 1rem left margin */
+  .back-btn {
+    margin-left: 1rem !important;
+  }
+
+  /* Info cards => 1rem margin around & smaller padding */
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
     margin: 1rem 1rem !important;
@@ -156,7 +163,7 @@ img {
   }
 
   /* Keep the same design for the search field, 
-     just narrower & no black outline on focus */
+     just full width & no black outline on focus */
   .program-search-field {
     width: 100% !important; 
     max-width: 100%;
@@ -166,55 +173,7 @@ img {
   .program-search-field:focus {
     outline: none !important;
     box-shadow: none !important;
-    border-color: transparent !important; /* no border highlight on focus */
-  }
-
-  /* .back-btn => 1rem left margin */
-  .back-btn {
-    margin-left: 1rem !important;
-  }
-
-  /* (1) .popular-programs-heading => margin-left: 1rem, font-size: 1rem, bold */
-  .popular-programs-heading {
-    margin-left: 1rem !important;
-    font-size: 1rem !important;
-    font-weight: bold !important;
-  }
-
-  /* (2) #selected-programs-label => 1rem left margin, font-size: 1rem, bold */
-  #selected-programs-label {
-    margin-left: 1rem !important;
-    font-size: 1rem !important;
-    font-weight: bold !important;
-  }
-
-  /* Popular programs => 2 columns x 3 rows, plus 1rem side margins & 0.5rem gap */
-  #top-programs-grid.top-programs-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    grid-template-rows: repeat(3, auto) !important;
-    margin: 0 1rem !important;
-    gap: 0.5rem !important;
-  }
-
-  /* .top-program-label => .75rem + line-height 1rem */
-  .top-program-label {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-  }
-
-  /* Hide the plus button on mobile */
-  .top-program-box .add-btn {
-    display: none !important;
-  }
-
-  /* Selected top program => dark background, white text */
-  .top-program-box.selected-state {
-    background-color: #1a2732 !important;
-    border-color: #1a2732 !important;
-  }
-  .top-program-box.selected-state .top-program-label {
-    color: #fff !important;
+    border-color: transparent !important; /* remove default focus border */
   }
 
   /* Clear-all button => remain red */
@@ -238,7 +197,74 @@ img {
   #modal-email-input {
     width: 80% !important;
   }
+
+
+  /* --- (2) Popular Programs Tweaks --- */
+
+  /* .popular-programs-heading => margin-left: 1rem, font-size:1rem, bold */
+  .popular-programs-heading {
+    margin-left: 1rem !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+  }
+
+  /* #selected-programs-label => 1rem left margin, font-size:1rem, bold */
+  #selected-programs-label {
+    margin-left: 1rem !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+  }
+
+  /* Popular programs => 2 columns x 3 rows, plus 1rem side margins & 0.5rem gap */
+  #top-programs-grid.top-programs-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: repeat(3, auto) !important;
+    margin: 0 1rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .top-program-label {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+
+  /* Hide the plus button on mobile */
+  .top-program-box .add-btn {
+    display: none !important;
+  }
+
+  .top-program-box.selected-state {
+    background-color: #1a2732 !important;
+    border-color: #1a2732 !important;
+  }
+  .top-program-box.selected-state .top-program-label {
+    color: #fff !important;
+  }
+
+
+  /* --- (3) “Input Miles & Points” => #calculator-state --- */
+
+  /* The same left margin approach for the “Input Your Points & Miles” page */
+  #calculator-state .state-header {
+    margin-top: 2.5rem !important; /* same as other screens */
+  }
+  /* The “back” button on the calculator state will already pick up .back-btn margin-left. */
+
+  /* Ensure the “calc-points-info” card has 1rem margins (already handled above) */
+
+  /* If you’d like the rows themselves to have margin/padding, you can do so here: */
+  #calculator-state .program-row {
+    margin: 0 1rem 1rem 1rem; /* 1rem left, right, and bottom */
+  }
+
+  /* Optionally make the .program-name smaller if you wish (example) */
+  /* .program-row .program-name {
+    font-size: 0.9rem !important;
+  } */
+
 }
+
 
 
 
