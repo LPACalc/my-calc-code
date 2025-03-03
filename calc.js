@@ -851,21 +851,11 @@ $(document).ready(async function(){
   });
 
   // Clear all
-  function updateClearAllVisibility() {
-    const $btn = $("#clear-all-btn");
-    // Decide if we should show
-    let shouldShow = false
+function updateClearAllVisibility() {
+  const $btn = $("#clear-all-btn");
+  const hasChosen = (chosenPrograms.length > 0);
 
-     if ($("#input-state").is(":visible") && chosenPrograms.length >= 1) {
-    shouldShow = true;
-  } else if (
-    $("#calculator-state").is(":visible") && 
-    $("#program-container .program-row").length >= 1
-  ) {
-    shouldShow = true;
-  }
-
-     if (hasChosen) {
+  if (hasChosen) {
     $btn.stop(true, true).fadeIn(200);
   } else {
     $btn.stop(true, true).fadeOut(200);
