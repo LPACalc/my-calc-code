@@ -92,6 +92,15 @@ img {
     margin: 2rem auto !important;
   }
 
+  /* Desktop only: make the button twice as wide and keep it centered */
+@media (min-width: 992px) {
+  .sticky-next-btn {
+    margin: 2rem auto;       /* keeps the button centered horizontally */
+    padding: 1rem 6rem;      /* doubles the horizontal space from 3rem to 6rem */
+    display: block;          /* ensure it's actually displayed */
+  }
+}
+
   /* Clear all => red button => keep consistent */
   .clear-all-btn {
     background-color: #dc3545 !important;
