@@ -314,52 +314,7 @@ img {
   background-color: #1a2732;
 }
 
-  /* Only affect screens up to 768px wide */
-@media only screen and (max-width: 768px) {
-
-  /* Make each HIW step flow vertically */
-  #how-it-works-state .hiw-step .hiw-flex-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;      /* centers both image & text */
-    text-align: center;       /* center the text */
-  }
-
-  /* Image on top */
-  #how-it-works-state .hiw-step .hiw-image-col {
-    order: 1;
-    margin-bottom: 1rem;
-  }
-
-  /* Title/subheader/CTA below image */
-  #how-it-works-state .hiw-step .hiw-text-col {
-    order: 2;
-    max-width: 100%; /* remove any desktop constraints */
-  }
-
-  /* Tweak the heading and paragraph sizes if desired */
-  #how-it-works-state .hiw-step .hiw-text-col h3 {
-    font-size: 1.2rem;
-    margin-bottom: 0.5rem;
-  }
-
-  #how-it-works-state .hiw-step .hiw-text-col p {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-
-  /* The "Continue" button stays under the subheader */
-  #how-it-works-state .hiw-step .hiw-text-col .hiw-continue-btn {
-    margin: 0 auto 1rem auto; /* center with spacing */
-  }
-
-  /* Finally the step tracker (the bottom lines) stays at the bottom */
-  /* Each line has .hiw-bottom-lines > .hiw-line, but you can shift that container if needed. */
-  #how-it-works-state .hiw-bottom-lines {
-    order: 3;
-    margin-top: 1rem;
-  }
-}
+ 
 
 /*******************************************************
  * STATE HEADERS => back + title
@@ -806,52 +761,95 @@ margin-bottom:0.75rem;
   text-align:center;
 }
 
+@media only screen and (max-width: 768px) {
 
-  @media (max-width: 768px) {
-  /* 1) Put "back arrow" + "Select Your Programs" on a single line */
-  #input-state .state-header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 1rem; /* add spacing below if needed */
+  /****************************************************
+   * HOW IT WORKS (HIW)
+   ****************************************************/
+  #how-it-works-state .hiw-step .hiw-flex-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
   }
-  /* Make sure the back button is on the far left, title next to it */
+
+  #how-it-works-state .hiw-image-col {
+    order: 1 !important;
+    margin-bottom: 1rem !important;
+  }
+
+  #how-it-works-state .hiw-text-col {
+    order: 2 !important;
+    max-width: 100% !important;
+  }
+
+  #how-it-works-state .hiw-text-col h3 {
+    font-size: 1.2rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  #how-it-works-state .hiw-text-col p {
+    font-size: 1rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  #how-it-works-state .hiw-text-col .hiw-continue-btn {
+    margin: 0 auto 1rem auto !important;
+  }
+
+  #how-it-works-state .hiw-bottom-lines {
+    order: 3 !important;
+    margin-top: 1rem !important;
+  }
+
+  /****************************************************
+   * SELECT YOUR PROGRAMS (#input-state)
+   ****************************************************/
+  /* 1) Title + back arrow in one line */
+  #input-state .state-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    margin-bottom: 1rem !important;
+  }
   #input-state .state-header .back-btn {
-    margin-right: 8px; /* small spacing to separate from title */
+    margin-right: 8px !important;
   }
   #input-state .state-header h1 {
-    font-size: 1.4rem;
-    margin: 0; /* override any large margin for mobile */
+    font-size: 1.4rem !important;
+    margin: 0 !important;
   }
 
-  /* 2) Info box => ensure full width below the header */
+  /* 2) Info box => full width below the header */
   #input-state .points-info-box.input-points-info {
-    margin-bottom: 1rem; /* spacing below info card */
+    margin-bottom: 1rem !important;
   }
 
-  /* 3) Search bar => next line. Make it full width with some margin. */
+  /* 3) Search bar => next line, full width */
   #input-state .started-search-area {
-    width: 100%;
-    margin-bottom: 1rem;
+    width: 100% !important;
+    margin-bottom: 1rem !important;
   }
   #input-state #program-search {
-    width: 100%;
+    width: 100% !important;
   }
 
-  /* 4) Popular Programs => 2 columns on mobile */
+  /* 4) Popular Programs => 2 columns */
   #input-state #top-programs-grid.top-programs-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-gap: 1rem; /* spacing between items */
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-gap: 1rem !important;
+    margin-bottom: 1rem !important;
   }
 
-  /* Optional: ensure the "Selected Programs" row and the "Next" button
-     appear neatly on mobile */
+  /* Extra: "Selected Programs" row and the “Next” button */
   #input-state #chosen-programs-row {
-    margin-bottom: 1rem;
+    margin-bottom: 1rem !important;
   }
   #input-state #input-next-btn {
-    width: 100%; /* make CTA fill width on mobile if desired */
-    margin-bottom: 1rem;
+    width: 100% !important;
+    margin-bottom: 1rem !important;
   }
+
 }
+
