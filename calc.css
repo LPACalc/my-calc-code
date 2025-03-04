@@ -243,7 +243,7 @@ img {
   .program-search-field:focus {
     outline: none !important;
     box-shadow: none !important;
-    border-color: dfe5eb ;
+    border-color: #dfe5eb ;
   }
 
   .clear-all-btn {
@@ -993,7 +993,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 
 /* On focus (or if user is typing), highlight the container’s border */
 .email-field-container:focus-within {
-  border-color: #007bff;  /* highlight color */
+  border-color: #DFE5EB;  /* highlight color */
   box-shadow: 0 0 0 2px #dfe5eb;
 }
 #chosen-wrapper {
