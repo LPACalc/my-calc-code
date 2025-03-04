@@ -431,14 +431,15 @@ function clearAllPrograms() {
   // 3) Update the chosen display => hides “Selected Programs” label
   updateChosenProgramsDisplay();
 
-  // 4) Hide the "Next" button
-  $("#input-next-btn").hide();
+  // 4) Remove the explicit .hide() on the Next button — we won’t hide it
+  // $("#input-next-btn").hide(); // Remove or comment out
 
-  // 5) Remove all program rows from #program-container
+  // 5) Remove all program rows
   $("#program-container").empty();
 
-  // 6) Then call updateClearAllVisibility() => hide the button
-  updateClearAllVisibility();
+  // 6) Call your visibility functions so the Next button reverts to disabled
+  updateNextCTAVisibility();     // ensures button is disabled if 0 chosen
+  updateClearAllVisibility();    // hides the Clear All button
 }
 
 /*******************************************************
