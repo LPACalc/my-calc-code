@@ -528,7 +528,7 @@ function buildOutputRows(viewType) {
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // Based on the current view, pick which value we display
+    // Based on the current view, pick which value to display
     let rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
@@ -583,10 +583,15 @@ function buildOutputRows(viewType) {
     </div>
   `);
 
-  // After building the rows, render our comparison chart
-  // (Make sure the <canvas id="valueComparisonChart"> is in your HTML.)
+  // 1) Render the bar chart (left canvas)
   renderValueComparisonChart(totalTravelValue, totalCashValue);
+
+  // 2) Render the pie chart (right canvas)
+  //    (Make sure you have a <canvas id="programSharePieChart"> in your HTML
+  //    and the renderPieChartProgramShare(data) function defined.)
+  renderPieChartProgramShare(data);
 }
+
 
 function renderValueComparisonChart(travelValue, cashValue) {
   const canvas = document.getElementById("valueComparisonChart");
@@ -730,6 +735,79 @@ function renderValueComparisonChart(travelValue, cashValue) {
   drawBar("Cash",   cashValue,  yCash,   colorCash);
 }
 
+
+
+function renderPieChartProgramShare(gatheredData) {
+  // The canvas element
+  const canvas = document.getElementById('programSharePieChart');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Gather total points across all chosen programs
+  let totalPoints = 0;
+  gatheredData.forEach(item => {
+    totalPoints += item.points;
+  });
+  if (totalPoints === 0) {
+    // If the user entered 0 for everything, skip
+    ctx.fillStyle = "#999";
+    ctx.font = "14px sans-serif";
+    ctx.fillText("No points entered.", canvas.width / 2 - 40, canvas.height / 2);
+    return;
+  }
+
+  // Center and radius for the pie chart
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+  const radius  = Math.min(canvas.width, canvas.height) * 0.4;
+
+  // Starting angle at 0 (3 o'clock position in canvas arc coordinates)
+  let startAngle = 0;
+
+  gatheredData.forEach(item => {
+    if (!item.points) return; // skip any 0-point entries
+
+    // Fraction of the circle that this program occupies
+    const fraction   = item.points / totalPoints;
+    const sliceAngle = fraction * 2 * Math.PI;
+    const endAngle   = startAngle + sliceAngle;
+
+    // Pull the program's color from your Airtable data:
+    // loyaltyPrograms[item.recordId]["Color"] (if not found, fallback to #cccccc)
+    let sliceColor = loyaltyPrograms[item.recordId]?.["Color"] || "#cccccc";
+
+    // Draw the slice
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);  
+    ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+    ctx.closePath();
+
+    ctx.fillStyle = sliceColor;
+    ctx.fill();
+
+    // Label: ProgramName + XX%
+    // We'll place it at the midpoint angle
+    const midAngle = startAngle + sliceAngle / 2;
+    const labelX   = centerX + (radius * 0.6) * Math.cos(midAngle);
+    const labelY   = centerY + (radius * 0.6) * Math.sin(midAngle);
+
+    const percent    = (fraction * 100).toFixed(0) + "%";
+    const progName   = item.programName || "Unknown";
+    const labelText  = `${percent} ${progName}`;
+
+    // Draw label text
+    ctx.fillStyle = "#000";
+    ctx.font      = "bold 14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(labelText, labelX, labelY);
+
+    // Update the startAngle for the next slice
+    startAngle = endAngle;
+  });
+}
 
 
 
