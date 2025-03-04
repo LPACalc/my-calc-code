@@ -100,11 +100,10 @@ function logSessionEvent(eventName, payload = {}) {
   if (userEmail) {
     eventData.email = userEmail;
   }
-fetch("https://young-cute-neptune.glitch.me/logEvent", {
+fetch("https://young-cute-neptune.glitch.me/proxyLogEvent", {
   method: "POST",
   headers: {
-    "Content-Type": "application/json",
-    "X-API-Key": "MySuperSecret123"
+    "Content-Type": "application/json"
   },
   body: JSON.stringify(eventData),
   keepalive: true
@@ -660,11 +659,10 @@ async function sendReport(email) {
   }));
   console.log("Sending =>", { email, programsToSend });
 
-const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
+const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
   method: "POST",
   headers: {
-    "Content-Type": "application/json",
-    "X-API-Key": "MySuperSecret123" // or read from somewhere safe
+    "Content-Type": "application/json"
   },
   body: JSON.stringify({ email, programs: programsToSend })
 });
@@ -999,6 +997,14 @@ $(document).ready(function () {
     logSessionEvent("modal_close_clicked");
     hideReportModal();
   });
+
+  // Listen for clicks on the overlay
+$("#report-modal").on("click", function (event) {
+  // If the clicked element is the overlay itself, and NOT the modal content, close the modal
+  if ($(event.target).attr("id") === "report-modal") {
+    hideReportModal();
+  }
+});
 
   $("#modal-send-btn").on("click", async function () {
     const emailInput = $("#modal-email-input").val().trim();
