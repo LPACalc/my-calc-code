@@ -507,23 +507,43 @@ function gatherProgramData() {
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
+
+  // Clear current rows
   $("#output-programs-list").empty();
-  let totalValue = 0;
+
+  // We'll track the scenario's total (for Travel vs. Cash labeling)
+  let scenarioTotal = 0;
+
+  // Also track the overall sums for Travel and Cash
+  let totalTravelValue = 0;
+  let totalCashValue   = 0;
+
   data.forEach((item) => {
-    const prog = loyaltyPrograms[item.recordId];
+    const prog    = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
+    const tVal    = item.points * (prog?.["Travel Value"] || 0);
+    const cVal    = item.points * (prog?.["Cash Value"] || 0);
+
+    // Accumulate overall totals
+    totalTravelValue += tVal;
+    totalCashValue   += cVal;
+
+    // For the *current* viewType, figure out which value to display
     let rowVal = 0;
     if (viewType === "travel") {
-      rowVal = item.points * (prog?.["Travel Value"] || 0);
+      rowVal = tVal;
     } else {
-      rowVal = item.points * (prog?.["Cash Value"] || 0);
+      rowVal = cVal;
     }
-    totalValue += rowVal;
+    scenarioTotal += rowVal;
+
+    // Format currency
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
+    // Build each row’s HTML
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -533,27 +553,38 @@ function buildOutputRows(viewType) {
         <div class="output-value">${formattedVal}</div>
       </div>
     `;
-    // Travel => show usecase
+
+    // If travel view => attach the hidden use-case accordion
     if (viewType === "travel") {
       rowHtml += `
-        <div class="usecase-accordion" style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
+        <div class="usecase-accordion" 
+             style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
     }
+
     $("#output-programs-list").append(rowHtml);
   });
 
-  const label = viewType === "travel" ? "Travel Value" : "Cash Value";
-  const totalStr = `$${totalValue.toLocaleString(undefined, {
+  // Final line labeling
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
+
+  // Append a “Total Value” row
   $("#output-programs-list").append(`
     <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
       ${label}: ${totalStr}
     </div>
   `);
+
+  // Now draw the horizontal bar chart comparing totalTravelValue vs. totalCashValue.
+  // Make sure you have a <canvas id="valueComparisonChart"> somewhere in #output-state
+  // (e.g. in the new #desktop-graphs-row block).
+  renderValueComparisonChart(totalTravelValue, totalCashValue);
 }
 
 /*******************************************************
