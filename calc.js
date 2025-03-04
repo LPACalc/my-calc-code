@@ -508,42 +508,37 @@ function gatherProgramData() {
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
 
-  // Clear current rows
+  // Clear out the existing output list
   $("#output-programs-list").empty();
 
-  // We'll track the scenario's total (for Travel vs. Cash labeling)
-  let scenarioTotal = 0;
-
-  // Also track the overall sums for Travel and Cash
-  let totalTravelValue = 0;
+  let scenarioTotal    = 0;  // The sum for whichever view (travel/cash) is displayed
+  let totalTravelValue = 0;  
   let totalCashValue   = 0;
 
+  // Loop through each chosen program
   data.forEach((item) => {
     const prog    = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
-    const tVal    = item.points * (prog?.["Travel Value"] || 0);
-    const cVal    = item.points * (prog?.["Cash Value"] || 0);
+
+    // Calculate Travel/Cash for this program
+    const tVal = item.points * (prog?.["Travel Value"] || 0);
+    const cVal = item.points * (prog?.["Cash Value"]   || 0);
 
     // Accumulate overall totals
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // For the *current* viewType, figure out which value to display
-    let rowVal = 0;
-    if (viewType === "travel") {
-      rowVal = tVal;
-    } else {
-      rowVal = cVal;
-    }
+    // Based on the current view, pick which value we display
+    let rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
-    // Format currency
+    // Format the displayed currency
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
-    // Build each row’s HTML
+    // Build each row in the output list
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -554,11 +549,18 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If travel view => attach the hidden use-case accordion
+    // If in “travel” view, also attach a hidden use-case accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion" 
-             style="display:none; border:1px solid #dce3eb; border-radius:6px; margin-bottom:12px; padding:1rem; overflow-x:auto;">
+             style="
+               display:none; 
+               border:1px solid #dce3eb; 
+               border-radius:6px; 
+               margin-bottom:12px; 
+               padding:1rem; 
+               overflow-x:auto;
+             ">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
@@ -567,108 +569,157 @@ function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Final line labeling
+  // Show a final "Total Value" line
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
 
-  // Append a “Total Value” row
   $("#output-programs-list").append(`
-    <div class="total-value-row" style="text-align:center; margin-top:1rem; font-weight:600;">
+    <div class="total-value-row" 
+         style="text-align:center; margin-top:1rem; font-weight:600;">
       ${label}: ${totalStr}
     </div>
   `);
 
-  // Now draw the horizontal bar chart comparing totalTravelValue vs. totalCashValue.
-  // Make sure you have a <canvas id="valueComparisonChart"> somewhere in #output-state
-  // (e.g. in the new #desktop-graphs-row block).
+  // After building the rows, render our comparison chart
+  // (Make sure the <canvas id="valueComparisonChart"> is in your HTML.)
   renderValueComparisonChart(totalTravelValue, totalCashValue);
 }
 
 function renderValueComparisonChart(travelValue, cashValue) {
-  const canvas = document.getElementById('valueComparisonChart');
+  const canvas = document.getElementById("valueComparisonChart");
   if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  
-  // Clear any old drawings
+
+  const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Colors for the bars
-  const colorTravel = '#1a2732'; // dark blue
-  const colorCash   = '#1d592f'; // dark green
+  // Colors
+  const colorTravel = "#1a2732";  // dark blue
+  const colorCash   = "#1d592f";  // dark green
 
-  // Figure out the max for our axis (a bit of padding)
-  const maxValue = Math.max(travelValue, cashValue) * 1.1 || 100;
+  // Decide a maximum domain for x-axis 
+  let maxVal = Math.max(travelValue, cashValue);
+  if (maxVal < 1) maxVal = 1; // avoid zero
+  // "Nice" increments: if max is under 1000 => use 100-step, else 500-step
+  const step = (maxVal <= 1000) ? 100 : 500;
+  // Round up to the next multiple of step
+  const axisMax = Math.ceil(maxVal / step) * step;
 
-  // Chart margins
+  // Basic margins
   const marginLeft   = 60;
   const marginRight  = 20;
   const marginTop    = 20;
-  const marginBottom = 20;
+  const marginBottom = 30;
 
   const chartWidth  = canvas.width  - marginLeft - marginRight;
   const chartHeight = canvas.height - marginTop  - marginBottom;
 
-  // Position of each bar
-  const barHeight = chartHeight / 4;
-  const yTravel   = marginTop;
-  const yCash     = marginTop + barHeight * 2;
+  // We have 2 bars: top = Travel, bottom = Cash
+  // We'll center them within the chart area
+  const totalBars = 2;
+  const spacing   = chartHeight / (totalBars + 1);
+  const barHeight = spacing * 0.6;   // thickness of each bar
+  // Y positions so they appear centered
+  const yTravel   = marginTop + (0 * spacing) + (spacing - barHeight) / 2;
+  const yCash     = marginTop + (1 * spacing) + (spacing - barHeight) / 2;
 
-  // Helper => data value => x-pixel
+  // xScale function => data value => pixel
   function xScale(val) {
-    return marginLeft + (val / maxValue) * chartWidth;
+    return marginLeft + (val / axisMax) * chartWidth;
   }
 
-  // Draw axes
-  ctx.strokeStyle = '#555';
+  // Draw Y-axis
+  ctx.strokeStyle = "#555";
   ctx.lineWidth   = 2;
-
-  // Y-axis
   ctx.beginPath();
   ctx.moveTo(marginLeft, marginTop);
   ctx.lineTo(marginLeft, marginTop + chartHeight);
   ctx.stroke();
 
-  // X-axis
+  // Draw X-axis
   ctx.beginPath();
   ctx.moveTo(marginLeft, marginTop + chartHeight);
   ctx.lineTo(marginLeft + chartWidth, marginTop + chartHeight);
   ctx.stroke();
 
-  // Travel bar
-  ctx.fillStyle = colorTravel;
-  ctx.fillRect(marginLeft, yTravel, xScale(travelValue) - marginLeft, barHeight);
+  // A helper to draw each bar
+  function drawBar(label, value, yPos, fillColor) {
+    // Bar length
+    const barLeft   = marginLeft;
+    const barRight  = xScale(value);
+    const barWidth  = barRight - barLeft;
 
-  // Cash bar
-  ctx.fillStyle = colorCash;
-  ctx.fillRect(marginLeft, yCash, xScale(cashValue) - marginLeft, barHeight);
+    // Fill the bar
+    ctx.fillStyle = fillColor;
+    ctx.fillRect(barLeft, yPos, barWidth, barHeight);
 
-  // Y-axis labels
-  ctx.fillStyle    = '#333';
-  ctx.font         = '16px sans-serif';
-  ctx.textAlign    = 'right';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('Travel', marginLeft - 8, yTravel + barHeight / 2);
-  ctx.fillText('Cash',   marginLeft - 8, yCash   + barHeight / 2);
+    // Draw a small tick line on the Y-axis above the bar
+    // so it looks anchored:
+    ctx.beginPath();
+    ctx.moveTo(marginLeft - 5, yPos);            // a small horizontal tick
+    ctx.lineTo(marginLeft,     yPos);
+    ctx.strokeStyle = "#555";
+    ctx.lineWidth   = 2;
+    ctx.stroke();
 
-  // Optional numeric ticks along the X-axis
-  ctx.textAlign    = 'center';
-  ctx.textBaseline = 'top';
-  for (let i = 0; i <= 2; i++) {
-    const val  = (i * maxValue) / 2;
-    const xPos = xScale(val);
-    ctx.fillText(`$${val.toFixed(0)}`, xPos, marginTop + chartHeight + 6);
+    // Render the label text (e.g. "Travel") along the axis
+    ctx.save();
+    ctx.fillStyle    = "#333";
+    ctx.font         = "14px sans-serif";
+    ctx.textAlign    = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, marginLeft - 8, yPos + barHeight / 2);
+    ctx.restore();
+
+    // Render the numeric value on or near the bar
+    const valStr    = `$${value.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+    ctx.font        = "bold 14px sans-serif";
+    const textWidth = ctx.measureText(valStr).width + 8; // some padding
+    // If bar is wide enough to fit the text inside:
+    if (barWidth > textWidth) {
+      // Draw text inside in white
+      ctx.fillStyle    = "#fff";
+      ctx.textAlign    = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(valStr, barLeft + 6, yPos + barHeight / 2);
+    } else {
+      // Draw text just outside the bar in black
+      ctx.fillStyle    = "#000";
+      ctx.textAlign    = "left";
+      ctx.textBaseline = "middle";
+      ctx.fillText(valStr, barRight + 4, yPos + barHeight / 2);
+    }
   }
 
-  // Optionally label the bars themselves
-  ctx.fillStyle    = '#fff';
-  ctx.textAlign    = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(`$${travelValue.toLocaleString()}`, marginLeft + 6, yTravel + barHeight / 2);
-  ctx.fillText(`$${cashValue.toLocaleString()}`,   marginLeft + 6, yCash   + barHeight / 2);
+  // Draw the two bars
+  drawBar("Travel", travelValue, yTravel, colorTravel);
+  drawBar("Cash",   cashValue,  yCash,   colorCash);
+
+  // Draw X-axis tick labels (0, step, 2*step, etc.)
+  ctx.fillStyle    = "#333";
+  ctx.textAlign    = "center";
+  ctx.textBaseline = "top";
+  ctx.font         = "12px sans-serif";
+
+  for (let tick = 0; tick <= axisMax; tick += step) {
+    const xPos = xScale(tick);
+    // The label
+    ctx.fillText(`$${tick}`, xPos, marginTop + chartHeight + 4);
+
+    // Optionally draw a thin grid line if you like:
+    /*
+    ctx.beginPath();
+    ctx.moveTo(xPos, marginTop);
+    ctx.lineTo(xPos, marginTop + chartHeight);
+    ctx.strokeStyle = "#eee";
+    ctx.stroke();
+    */
+  }
 }
+
+
 
 /*******************************************************
  * USE CASE => build
