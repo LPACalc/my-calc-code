@@ -100,13 +100,15 @@ function logSessionEvent(eventName, payload = {}) {
   if (userEmail) {
     eventData.email = userEmail;
   }
-  fetch("https://young-cute-neptune.glitch.me/logEvent", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(eventData),
-    keepalive: true
-  }).catch(err => console.error("Failed to log event:", err));
-}
+fetch("https://young-cute-neptune.glitch.me/logEvent", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "MySuperSecret123"
+  },
+  body: JSON.stringify(eventData),
+  keepalive: true
+});
 
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
@@ -658,11 +660,14 @@ async function sendReport(email) {
   }));
   console.log("Sending =>", { email, programsToSend });
 
-  const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, programs: programsToSend })
-  });
+const response = await fetch("https://young-cute-neptune.glitch.me/submitData", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "MySuperSecret123" // or read from somewhere safe
+  },
+  body: JSON.stringify({ email, programs: programsToSend })
+});
   if (!response.ok) {
     const result = await response.json();
     throw new Error(result.error || `HTTP ${response.status}`);
