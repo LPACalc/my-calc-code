@@ -33,6 +33,12 @@ let realWorldUseCases = [];
 let chosenPrograms = [];
 let isTransitioning = false;
 
+/**
+ * NEW FLAGS to handle loading state and user input
+ */
+let dataLoaded = false;           // becomes true after data loads
+let userClickedGetStarted = false; // if user clicks "Get Started" before data is loaded
+
 /*******************************************************
  * FETCH IP & LOCATION
  *******************************************************/
@@ -213,6 +219,10 @@ async function initializeApp() {
   }
 
   buildTopProgramsSection();
+
+  // Data is fully loaded
+  dataLoaded = true;
+  console.log("Data fully loaded => dataLoaded = true");
 }
 
 /*******************************************************
@@ -342,7 +352,7 @@ function toggleSearchItemSelection(itemEl) {
   // Update displays
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
-  updateClearAllVisibility(); // <--- Make sure we show "Clear All" if at least 1 chosen
+  updateClearAllVisibility();
 }
 
 /*******************************************************
@@ -431,15 +441,12 @@ function clearAllPrograms() {
   // 3) Update the chosen display => hides “Selected Programs” label
   updateChosenProgramsDisplay();
 
-  // 4) Remove the explicit .hide() on the Next button — we won’t hide it
-  // $("#input-next-btn").hide(); // Remove or comment out
-
-  // 5) Remove all program rows
+  // 4) Remove all program rows
   $("#program-container").empty();
 
-  // 6) Call your visibility functions so the Next button reverts to disabled
-  updateNextCTAVisibility();     // ensures button is disabled if 0 chosen
-  updateClearAllVisibility();    // hides the Clear All button
+  // 5) Update next button, etc.
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
 }
 
 /*******************************************************
@@ -495,7 +502,7 @@ function gatherProgramData() {
 }
 
 /*******************************************************
- * BUILD OUTPUT => travel / cash
+ * BUILD OUTPUT => TRAVEL / CASH
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
@@ -700,6 +707,9 @@ async function sendReportFromModal() {
   }
 }
 
+/*******************************************************
+ * SHOW HOW IT WORKS STEP
+ *******************************************************/
 function showHowItWorksStep(stepNum) {
   // Hide all hiw-step
   $(".hiw-step").hide();
@@ -720,12 +730,23 @@ function showHowItWorksStep(stepNum) {
  * DOC READY
  *******************************************************/
 $(document).ready(function () {
-  // 1) Kick off data loads in the background (instead of blocking the UI):
+  // 1) Kick off data loads in the background
   (async () => {
     try {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
       await initializeApp();
+
+      // dataLoaded is set to true within initializeApp,
+      // but let's reconfirm here:
+      dataLoaded = true;
+      console.log("Data fully loaded => dataLoaded = true (re-confirmed)");
+
+      // If user clicked "Get Started" while data was loading,
+      // transition them to input-state now
+      if (userClickedGetStarted) {
+        hideLoadingScreenAndShowInput();
+      }
     } catch (err) {
       console.error("Error while loading data =>", err);
     }
@@ -744,7 +765,27 @@ $(document).ready(function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("hero_get_started_clicked");
-    // Show left col only if desktop
+    userClickedGetStarted = true;
+
+    // If data is already loaded, go directly to input-state
+    if (dataLoaded) {
+      hideLoadingScreenAndShowInput();
+    } else {
+      // Hide normal hero elements, show loading screen
+      $("#hero-how-it-works-btn").hide();
+      $("#hero-get-started-btn").hide();
+      $(".hero-inner h1").hide();
+      $(".hero-inner h2").hide();
+      $(".hero-cta-container").hide();
+
+      // Show a custom loading screen
+      $("#loading-screen").show();
+      isTransitioning = false;
+    }
+  });
+
+  // This helper just hides the loading screen & shows input-state
+  function hideLoadingScreenAndShowInput() {
     if (window.innerWidth >= 992) {
       $(".left-column").show();
       $(".left-column").css({
@@ -752,12 +793,13 @@ $(document).ready(function () {
       });
     }
     $("#default-hero").hide();
+    $("#loading-screen").hide();
     $("#input-state").fadeIn(() => {
       isTransitioning = false;
       updateNextCTAVisibility();
       updateClearAllVisibility();
     });
-  });
+  }
 
   // Hero => HOW IT WORKS
   $("#hero-how-it-works-btn").on("click", function () {
@@ -785,11 +827,14 @@ $(document).ready(function () {
     isTransitioning = true;
     logSessionEvent("hiw_final_get_started");
     $("#how-it-works-state").hide();
-    $("#input-state").fadeIn(() => {
+
+    userClickedGetStarted = true;
+    if (dataLoaded) {
+      hideLoadingScreenAndShowInput();
+    } else {
+      $("#loading-screen").show();
       isTransitioning = false;
-      updateNextCTAVisibility();
-      updateClearAllVisibility();
-    });
+    }
   });
 
   // Input => back => hero
@@ -911,8 +956,11 @@ $(document).ready(function () {
     if (activeView !== "travel") return;
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
-    if (nextAcc.is(":visible")) nextAcc.slideUp();
-    else nextAcc.slideDown();
+    if (nextAcc.is(":visible")) {
+      nextAcc.slideUp();
+    } else {
+      nextAcc.slideDown();
+    }
   });
 
   // mini-pill => change use case display
@@ -986,4 +1034,3 @@ $(document).ready(function () {
     clearAllPrograms();
   });
 });
-
