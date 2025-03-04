@@ -841,16 +841,27 @@ $(document).ready(function () {
   });
 
   // Input => back => hero
-  $("#input-back-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("input_back_clicked");
-    $("#input-state").hide();
-    $(".left-column").hide();
-    $("#default-hero").fadeIn(() => {
-      isTransitioning = false;
-    });
+ input-back-btn").on("click", function () {
+  if (isTransitioning) return;
+  isTransitioning = true;
+  logSessionEvent("input_back_clicked");
+
+  // Hide the input state, left column, etc.
+  $("#input-state").hide();
+  $(".left-column").hide();
+
+  // IMPORTANT: re-show everything on the hero
+  $("#hero-how-it-works-btn").show();
+  $("#hero-get-started-btn").show();
+  $(".hero-inner h1").show();
+  $(".hero-inner h2").show();
+  $(".hero-cta-container").show();
+
+  // Finally fade the hero back in
+  $("#default-hero").fadeIn(() => {
+    isTransitioning = false;
   });
+});
 
   // Input => next => calc
   $("#input-next-btn").on("click", function () {
