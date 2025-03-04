@@ -109,7 +109,7 @@ fetch("https://young-cute-neptune.glitch.me/logEvent", {
   body: JSON.stringify(eventData),
   keepalive: true
 });
-
+}
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
