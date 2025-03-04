@@ -587,6 +587,89 @@ function buildOutputRows(viewType) {
   renderValueComparisonChart(totalTravelValue, totalCashValue);
 }
 
+function renderValueComparisonChart(travelValue, cashValue) {
+  const canvas = document.getElementById('valueComparisonChart');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  
+  // Clear any old drawings
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Colors for the bars
+  const colorTravel = '#1a2732'; // dark blue
+  const colorCash   = '#1d592f'; // dark green
+
+  // Figure out the max for our axis (a bit of padding)
+  const maxValue = Math.max(travelValue, cashValue) * 1.1 || 100;
+
+  // Chart margins
+  const marginLeft   = 60;
+  const marginRight  = 20;
+  const marginTop    = 20;
+  const marginBottom = 20;
+
+  const chartWidth  = canvas.width  - marginLeft - marginRight;
+  const chartHeight = canvas.height - marginTop  - marginBottom;
+
+  // Position of each bar
+  const barHeight = chartHeight / 4;
+  const yTravel   = marginTop;
+  const yCash     = marginTop + barHeight * 2;
+
+  // Helper => data value => x-pixel
+  function xScale(val) {
+    return marginLeft + (val / maxValue) * chartWidth;
+  }
+
+  // Draw axes
+  ctx.strokeStyle = '#555';
+  ctx.lineWidth   = 2;
+
+  // Y-axis
+  ctx.beginPath();
+  ctx.moveTo(marginLeft, marginTop);
+  ctx.lineTo(marginLeft, marginTop + chartHeight);
+  ctx.stroke();
+
+  // X-axis
+  ctx.beginPath();
+  ctx.moveTo(marginLeft, marginTop + chartHeight);
+  ctx.lineTo(marginLeft + chartWidth, marginTop + chartHeight);
+  ctx.stroke();
+
+  // Travel bar
+  ctx.fillStyle = colorTravel;
+  ctx.fillRect(marginLeft, yTravel, xScale(travelValue) - marginLeft, barHeight);
+
+  // Cash bar
+  ctx.fillStyle = colorCash;
+  ctx.fillRect(marginLeft, yCash, xScale(cashValue) - marginLeft, barHeight);
+
+  // Y-axis labels
+  ctx.fillStyle    = '#333';
+  ctx.font         = '16px sans-serif';
+  ctx.textAlign    = 'right';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Travel', marginLeft - 8, yTravel + barHeight / 2);
+  ctx.fillText('Cash',   marginLeft - 8, yCash   + barHeight / 2);
+
+  // Optional numeric ticks along the X-axis
+  ctx.textAlign    = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i <= 2; i++) {
+    const val  = (i * maxValue) / 2;
+    const xPos = xScale(val);
+    ctx.fillText(`$${val.toFixed(0)}`, xPos, marginTop + chartHeight + 6);
+  }
+
+  // Optionally label the bars themselves
+  ctx.fillStyle    = '#fff';
+  ctx.textAlign    = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(`$${travelValue.toLocaleString()}`, marginLeft + 6, yTravel + barHeight / 2);
+  ctx.fillText(`$${cashValue.toLocaleString()}`,   marginLeft + 6, yCash   + barHeight / 2);
+}
+
 /*******************************************************
  * USE CASE => build
  *******************************************************/
