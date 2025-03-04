@@ -841,7 +841,7 @@ $(document).ready(function () {
   });
 
   // Input => back => hero
- input-back-btn").on("click", function () {
+$("#input-back-btn").on("click", function () {
   if (isTransitioning) return;
   isTransitioning = true;
   logSessionEvent("input_back_clicked");
