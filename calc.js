@@ -719,12 +719,19 @@ function showHowItWorksStep(stepNum) {
 /*******************************************************
  * DOC READY
  *******************************************************/
-$(document).ready(async function () {
-  logSessionEvent("session_load");
+$(document).ready(function () {
+  // 1) Kick off data loads in the background (instead of blocking the UI):
+  (async () => {
+    try {
+      await fetchClientIP();
+      await fetchApproxLocationFromIP();
+      await initializeApp();
+    } catch (err) {
+      console.error("Error while loading data =>", err);
+    }
+  })();
 
-  await fetchClientIP();
-  await fetchApproxLocationFromIP();
-  await initializeApp();
+  logSessionEvent("session_load");
 
   // Hide everything except hero
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
@@ -946,17 +953,16 @@ $(document).ready(async function () {
     await sendReportFromModal();
   });
 
-  // Explore => external link
- $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
-  logSessionEvent("explore_concierge_clicked");
-  // Show the new services modal
-  $("#services-modal").addClass("show");
-});
+  // Explore => external link (services modal)
+  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
+    logSessionEvent("explore_concierge_clicked");
+    $("#services-modal").addClass("show");
+  });
 
-// Close button on the services modal
-$("#services-modal-close-btn").on("click", function () {
-  $("#services-modal").removeClass("show");
-});
+  // Close button on the services modal
+  $("#services-modal-close-btn").on("click", function () {
+    $("#services-modal").removeClass("show");
+  });
 
   // Usecase => back => output
   $("#usecase-back-btn").on("click", function () {
@@ -980,3 +986,4 @@ $("#services-modal-close-btn").on("click", function () {
     clearAllPrograms();
   });
 });
+
