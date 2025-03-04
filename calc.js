@@ -595,129 +595,141 @@ function renderValueComparisonChart(travelValue, cashValue) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Colors
-  const colorTravel = "#1a2732";  // dark blue
-  const colorCash   = "#1d592f";  // dark green
+  // Colors for the bars
+  const colorTravel = "#1a2732"; // dark blue
+  const colorCash   = "#1d592f"; // dark green
 
-  // Decide a maximum domain for x-axis 
+  // Find the maximum (avoid zero)
   let maxVal = Math.max(travelValue, cashValue);
-  if (maxVal < 1) maxVal = 1; // avoid zero
-  // "Nice" increments: if max is under 1000 => use 100-step, else 500-step
-  const step = (maxVal <= 1000) ? 100 : 500;
-  // Round up to the next multiple of step
-  const axisMax = Math.ceil(maxVal / step) * step;
+  if (maxVal < 1) maxVal = 1; // prevents 0/NaN
 
-  // Basic margins
+  // Basic margins => reduced bottom to bring bars closer to axis
   const marginLeft   = 60;
   const marginRight  = 20;
   const marginTop    = 20;
-  const marginBottom = 30;
+  const marginBottom = 20;
 
   const chartWidth  = canvas.width  - marginLeft - marginRight;
   const chartHeight = canvas.height - marginTop  - marginBottom;
 
-  // We have 2 bars: top = Travel, bottom = Cash
-  // We'll center them within the chart area
+  // We'll have 2 bars. Let's space them so they're closer to the x-axis at the bottom
+  // We’ll reserve some space for top, so let's do something like:
   const totalBars = 2;
-  const spacing   = chartHeight / (totalBars + 1);
-  const barHeight = spacing * 0.6;   // thickness of each bar
-  // Y positions so they appear centered
-  const yTravel   = marginTop + (0 * spacing) + (spacing - barHeight) / 2;
-  const yCash     = marginTop + (1 * spacing) + (spacing - barHeight) / 2;
+  const spacing   = chartHeight / (totalBars + 0.5); 
+  // 0.5 so the second bar is nearer to the bottom
+  const barHeight = spacing * 0.6; // thickness
 
-  // xScale function => data value => pixel
-  function xScale(val) {
-    return marginLeft + (val / axisMax) * chartWidth;
+  // Y positions => so there’s less gap below the bottom bar
+  const yTravel = marginTop + (0 * spacing);
+  const yCash   = marginTop + (1 * spacing);
+
+  // We'll show exactly 4 ticks along the x-axis: 0%, 1/3, 2/3, 3/3 of maxVal
+  // If you want them to be rounded, you can do so, but this is the simplest approach:
+  const tickCount = 3; // i=0..3 => 4 labels
+  const xTicks = [];
+  for (let i = 0; i <= tickCount; i++) {
+    xTicks.push((i / tickCount) * maxVal);
   }
 
-  // Draw Y-axis
+  // Convert data -> pixel
+  function xScale(val) {
+    return marginLeft + (val / maxVal) * chartWidth;
+  }
+
+  // Draw X-axis
   ctx.strokeStyle = "#555";
   ctx.lineWidth   = 2;
+  ctx.beginPath();
+  ctx.moveTo(marginLeft,  marginTop + chartHeight);
+  ctx.lineTo(marginLeft + chartWidth, marginTop + chartHeight);
+  ctx.stroke();
+
+  // Draw Y-axis
   ctx.beginPath();
   ctx.moveTo(marginLeft, marginTop);
   ctx.lineTo(marginLeft, marginTop + chartHeight);
   ctx.stroke();
 
-  // Draw X-axis
-  ctx.beginPath();
-  ctx.moveTo(marginLeft, marginTop + chartHeight);
-  ctx.lineTo(marginLeft + chartWidth, marginTop + chartHeight);
-  ctx.stroke();
+  // Axis labels => bigger, bold
+  ctx.font         = "bold 14px sans-serif";
+  ctx.fillStyle    = "#333";
+  ctx.textAlign    = "center";
+  ctx.textBaseline = "top";
 
-  // A helper to draw each bar
+  // Render the 4 x-axis tick labels
+  xTicks.forEach((tickVal) => {
+    const xPos = xScale(tickVal);
+
+    // Label
+    const labelStr = `$${Math.round(tickVal).toLocaleString()}`;
+    ctx.fillText(labelStr, xPos, marginTop + chartHeight + 2);
+
+    // (Optional) small vertical tick line:
+    ctx.beginPath();
+    ctx.moveTo(xPos, marginTop + chartHeight - 4);
+    ctx.lineTo(xPos, marginTop + chartHeight);
+    ctx.stroke();
+  });
+
+  // A helper to draw a single bar
   function drawBar(label, value, yPos, fillColor) {
-    // Bar length
-    const barLeft   = marginLeft;
-    const barRight  = xScale(value);
-    const barWidth  = barRight - barLeft;
+    const barLeft  = marginLeft;
+    const barRight = xScale(value);
+    const barWidth = barRight - barLeft;
 
     // Fill the bar
     ctx.fillStyle = fillColor;
     ctx.fillRect(barLeft, yPos, barWidth, barHeight);
 
-    // Draw a small tick line on the Y-axis above the bar
-    // so it looks anchored:
-    ctx.beginPath();
-    ctx.moveTo(marginLeft - 5, yPos);            // a small horizontal tick
-    ctx.lineTo(marginLeft,     yPos);
-    ctx.strokeStyle = "#555";
-    ctx.lineWidth   = 2;
-    ctx.stroke();
+    // Centered text horizontally within the bar
+    // If the bar is too narrow for text, we draw outside on the right in black.
+    const valStr = `$${value.toLocaleString(undefined, {maximumFractionDigits:2})}`;
 
-    // Render the label text (e.g. "Travel") along the axis
+    // We'll use a slightly bigger/bold font for the bar label
+    ctx.font = "bold 16px sans-serif";
+
+    // Measure the text
+    const textWidth = ctx.measureText(valStr).width;
+    // We'll have ~10px padding on each side, so let's say 20 total
+    const neededWidth = textWidth + 20;
+
+    // Y pos for text => middle of the bar
+    const textY = yPos + barHeight / 2;
+
+    if (barWidth >= neededWidth) {
+      // The bar is wide enough for the text inside
+      ctx.fillStyle    = "#fff";  // text color in bar
+      ctx.textAlign    = "center";
+      ctx.textBaseline = "middle";
+
+      // Center horizontally
+      const textX = barLeft + barWidth / 2;
+      ctx.fillText(valStr, textX, textY);
+    } else {
+      // Bar is too narrow => place text outside in black
+      ctx.fillStyle    = "#000";
+      ctx.textAlign    = "left";
+      ctx.textBaseline = "middle";
+
+      const textX = barRight + 6; // a small gap outside
+      ctx.fillText(valStr, textX, textY);
+    }
+
+    // Draw the label on the y-axis (e.g. "Travel" or "Cash")
     ctx.save();
     ctx.fillStyle    = "#333";
-    ctx.font         = "14px sans-serif";
+    ctx.font         = "bold 14px sans-serif";
     ctx.textAlign    = "right";
     ctx.textBaseline = "middle";
     ctx.fillText(label, marginLeft - 8, yPos + barHeight / 2);
     ctx.restore();
-
-    // Render the numeric value on or near the bar
-    const valStr    = `$${value.toLocaleString(undefined,{maximumFractionDigits:2})}`;
-    ctx.font        = "bold 14px sans-serif";
-    const textWidth = ctx.measureText(valStr).width + 8; // some padding
-    // If bar is wide enough to fit the text inside:
-    if (barWidth > textWidth) {
-      // Draw text inside in white
-      ctx.fillStyle    = "#fff";
-      ctx.textAlign    = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(valStr, barLeft + 6, yPos + barHeight / 2);
-    } else {
-      // Draw text just outside the bar in black
-      ctx.fillStyle    = "#000";
-      ctx.textAlign    = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(valStr, barRight + 4, yPos + barHeight / 2);
-    }
   }
 
-  // Draw the two bars
+  // Draw both bars
   drawBar("Travel", travelValue, yTravel, colorTravel);
   drawBar("Cash",   cashValue,  yCash,   colorCash);
-
-  // Draw X-axis tick labels (0, step, 2*step, etc.)
-  ctx.fillStyle    = "#333";
-  ctx.textAlign    = "center";
-  ctx.textBaseline = "top";
-  ctx.font         = "12px sans-serif";
-
-  for (let tick = 0; tick <= axisMax; tick += step) {
-    const xPos = xScale(tick);
-    // The label
-    ctx.fillText(`$${tick}`, xPos, marginTop + chartHeight + 4);
-
-    // Optionally draw a thin grid line if you like:
-    /*
-    ctx.beginPath();
-    ctx.moveTo(xPos, marginTop);
-    ctx.lineTo(xPos, marginTop + chartHeight);
-    ctx.strokeStyle = "#eee";
-    ctx.stroke();
-    */
-  }
 }
+
 
 
 
