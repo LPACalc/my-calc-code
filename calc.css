@@ -997,7 +997,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   box-shadow: 0 0 0 2px #b7b7b7;
 }
 #chosen-wrapper {
-  min-height: 100px; /* enough space to cover both heading + row */
+  min-height: 115px; /* enough space to cover both heading + row */
   /* optionally a background or something if you want to see the area */
   margin-bottom: 1rem; /* so there's space under it before the Next button */
 }
