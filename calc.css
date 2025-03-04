@@ -1056,4 +1056,33 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   height: 100%;
   border: none;
 }
+/* Two columns at 50% each for desktop view */
+#desktop-graphs-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem; /* optional spacing above chart */
+}
+
+/* Force each child to 50% width */
+#desktop-graphs-row .graph-left,
+#desktop-graphs-row .graph-right {
+  flex: 0 0 50%;
+  max-width: 50%;
+}
+
+/* Make the placeholder image scale nicely */
+#desktop-graphs-row .graph-right img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 400px; /* optional, to limit large images */
+  margin: 0 auto;   /* center horizontally if narrower than 100% */
+}
+
+/* Hide this entire row on small screens if you prefer: */
+@media (max-width: 992px) {
+  #desktop-graphs-row {
+    display: none;
+  }
+}
 
