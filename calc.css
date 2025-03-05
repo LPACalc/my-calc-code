@@ -1163,15 +1163,14 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   margin: 0 auto; /* center horizontally if narrower than parent */
 }
 
-/* On smaller screens, we can let them stack vertically */
-@media (max-width: 992px) {
-  /* Let each card be 100% wide => one on top of the other */
+@media (max-width: 576px) {
   .bar-chart-card,
   .pie-chart-card {
     flex: 0 0 100%;
     max-width: 100%;
-    margin-bottom: 1rem; /* space between them vertically */
+    margin-bottom: 1rem;
   }
+}
 }
 
 /*****************************************************************************
