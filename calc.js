@@ -611,149 +611,122 @@ function buildOutputRows(viewType) {
 }
 
 
-<canvas id="valueComparisonChart" width="400" height="280"></canvas>
+"use strict";
 
-<script>
-// Suppose you have variables travelValue, cashValue, and conciergeVal
-// from your existing logic
-const travelValue = 1500;
-const cashValue   = 900;
-const conciergeVal= travelValue > 1000 ? 125 : 99;
+// (All your existing code, e.g. sessionId stuff, data fetching, etc.)
 
-// Build a bar chart
-const barCtx = document.getElementById("valueComparisonChart").getContext("2d");
+function renderValueComparisonChart(travelValue, cashValue) {
+  // If the canvas is missing (or user is not on that screen), skip
+  const barCanvas = document.getElementById("valueComparisonChart");
+  if (!barCanvas) return;
 
-// Provide labels & data
-const barData = {
-  labels: ["Travel", "Cash", "Concierge"],
-  datasets: [
-    {
-      label: "Value",
-      data: [travelValue, cashValue, conciergeVal],
-      backgroundColor: ["#042940", "#005C53", "#D6D58E"] // or any colors you like
-    }
-  ]
-};
+  const conciergeVal = travelValue > 1000 ? 125 : 99;
+  const ctx = barCanvas.getContext("2d");
 
-const barConfig = {
-  type: "bar",
-  data: barData,
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: "Dollar Value"
-        }
+  // Build a bar chart config
+  const data = {
+    labels: ["Travel", "Cash", "Concierge"],
+    datasets: [
+      {
+        label: "Value",
+        data: [travelValue, cashValue, conciergeVal],
+        backgroundColor: ["#042940", "#005C53", "#D6D58E"]
       }
-    },
-    plugins: {
-      legend: { display: false }, // Hide legend if there's only one dataset
-      tooltip: {
-        callbacks: {
-          label: function(context) {
-            // Format as currency
-            const val = context.parsed.y || 0;
-            return "$" + val.toLocaleString();
-          }
-        }
-      }
-    }
-  }
-};
-
-// Create the bar chart
-const valueComparisonChart = new Chart(barCtx, barConfig);
-</script>
-
-
-
-
-
-
-
-
-
-<canvas id="programSharePieChart" width="400" height="280"></canvas>
-
-<script>
-// Suppose you have an array of data for each chosen program:
-// e.g. something like: 
-//   gatheredData = [
-//     { programName: "Amex MR", points: 50000, travelVal: 700, cashVal: 500 },
-//     { programName: "Chase UR", points: 40000, travelVal: 600, cashVal: 400 },
-//     { programName: "AA Miles", points: 30000, travelVal: 420, cashVal: 300 }
-//   ];
-// We'll just mock something here:
-
-const gatheredData = [
-  { programName: "Amex MR",  points: 50000, travelVal: 700, cashVal: 500 },
-  { programName: "Chase UR", points: 40000, travelVal: 600, cashVal: 400 },
-  { programName: "AA Miles", points: 30000, travelVal: 420, cashVal: 300 }
-];
-
-// Build the arrays for labels and data
-const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-if (totalPoints < 1) {
-  // If no points, you could hide the chart or show a "no data" message
-} else {
-  const donutLabels = gatheredData.map(x => x.programName);
-  const donutValues = gatheredData.map(x => x.points);
-
-  // Optional: pick background colors, one per slice
-  // If you have a color in your data, you can map them:
-  // e.g. x.color or some default
-  const donutColors = ["#5bc0eb", "#fde74c", "#9bc53d", "#e55934", "#fa7921"];
-
-  const donutData = {
-    labels: donutLabels,
-    datasets: [{
-      data: donutValues,
-      backgroundColor: donutColors,
-      // "hoverOffset" sets how far the slice pulls out on hover
-      hoverOffset: 10
-    }]
+    ]
   };
 
-  const donutConfig = {
-    type: "doughnut",
-    data: donutData,
+  const config = {
+    type: "bar",
+    data,
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      // Show % tooltips or raw points, etc.
-      plugins: {
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const label = context.label || "";
-              const value = context.parsed || 0;
-              const pct = ((value / totalPoints) * 100).toFixed(1) + "%";
-              return `${label}: ${value.toLocaleString()} pts (${pct})`;
-            }
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Dollar Value"
           }
-        },
-        legend: {
-          position: "bottom"
         }
       },
-      // Example: Turn the donut hole into a “responsive center label”
-      // using a Chart.js plugin approach
-      cutout: "55%", // thickness of the donut hole
-      onHover: function(evt, elements) {
-        // Change cursor to pointer on hover
-        evt.native?.target.style.cursor = elements.length ? "pointer" : "default";
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const val = context.parsed.y || 0;
+              return "$" + val.toLocaleString();
+            }
+          }
+        }
       }
     }
   };
 
-  const pieCtx = document.getElementById("programSharePieChart").getContext("2d");
-  const programSharePieChart = new Chart(pieCtx, donutConfig);
+  // Create or update
+  // If you’re creating multiple times, store the chart instance in a variable so you can destroy it first.
+  new Chart(ctx, config);
 }
-</script>
+
+function renderPieChartProgramShare(gatheredData) {
+  const pieCanvas = document.getElementById("programSharePieChart");
+  if (!pieCanvas) return;
+
+  const ctx = pieCanvas.getContext("2d");
+  const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
+  if (totalPoints < 1) {
+    // No data => you could clear the canvas or show a message
+    ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
+    return;
+  }
+
+  // Build arrays for labels & data
+  const donutLabels = gatheredData.map(x => x.programName);
+  const donutValues = gatheredData.map(x => x.points);
+
+  const data = {
+    labels: donutLabels,
+    datasets: [
+      {
+        data: donutValues,
+        backgroundColor: ["#5bc0eb", "#fde74c", "#9bc53d", "#e55934", "#fa7921"],
+        hoverOffset: 10
+      }
+    ]
+  };
+
+  const config = {
+    type: "doughnut",
+    data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "55%",
+      plugins: {
+        legend: {
+          position: "bottom"
+        },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const label = context.label || "";
+              const val = context.parsed || 0;
+              const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
+              return `${label}: ${val.toLocaleString()} pts (${pct})`;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  new Chart(ctx, config);
+}
+
+// Everything else in your code remains the same...
+// buildOutputRows(viewType) calls renderValueComparisonChart(...) and renderPieChartProgramShare(...)
+
 
 
 
