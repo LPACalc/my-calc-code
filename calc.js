@@ -611,7 +611,7 @@ function buildOutputRows(viewType) {
 }
 
 
-"use strict";
+
 
 // (All your existing code, e.g. sessionId stuff, data fetching, etc.)
 
