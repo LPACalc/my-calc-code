@@ -1178,6 +1178,20 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 }
 
+.bar-chart-card,
+.pie-chart-card {
+  position: relative; /* required for the canvas to size properly */
+  /* The inline style or a fixed CSS rule sets the height: 300px; */
+}
+
+.bar-chart-card canvas,
+.pie-chart-card canvas {
+  /* Force the canvas to fill the parent’s size */
+  width: 100% !important;
+  height: 100% !important;
+}
+
+
 /*****************************************************************************
  * END DASHBOARD / REPORT CSS
  ****************************************************************************/
