@@ -616,20 +616,19 @@ function buildOutputRows(viewType) {
 // (All your existing code, e.g. sessionId stuff, data fetching, etc.)
 
 function renderValueComparisonChart(travelValue, cashValue) {
-  // If the canvas is missing (or user is not on that screen), skip
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
 
   const conciergeVal = travelValue > 1000 ? 125 : 99;
-  const ctx = barCanvas.getContext("2d");
 
-  // Build a bar chart config
+  const ctx = barCanvas.getContext("2d");
   const data = {
     labels: ["Travel", "Cash", "Concierge"],
     datasets: [
       {
         label: "Value",
         data: [travelValue, cashValue, conciergeVal],
+        // You can choose one color for all bars, or separate them:
         backgroundColor: ["#042940", "#005C53", "#D6D58E"]
       }
     ]
@@ -639,23 +638,27 @@ function renderValueComparisonChart(travelValue, cashValue) {
     type: "bar",
     data,
     options: {
+      // The magic line: switch to horizontal
+      indexAxis: 'y',      
+
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        y: {
+        x: {
           beginAtZero: true,
           title: {
             display: true,
             text: "Dollar Value"
           }
         }
+        // The y-axis automatically becomes "vertical labels"
       },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
             label: function (context) {
-              const val = context.parsed.y || 0;
+              const val = context.parsed.x || 0;
               return "$" + val.toLocaleString();
             }
           }
@@ -664,8 +667,6 @@ function renderValueComparisonChart(travelValue, cashValue) {
     }
   };
 
-  // Create or update
-  // If you’re creating multiple times, store the chart instance in a variable so you can destroy it first.
   new Chart(ctx, config);
 }
 
