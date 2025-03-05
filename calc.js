@@ -523,12 +523,9 @@ function gatherProgramData() {
 
 
 function buildUseCaseSlides(allUseCases) {
-  // 1) Randomize the array (simple approach):
-  const shuffled = allUseCases.sort(() => Math.random() - 0.5);
-
-  // 2) For each use case in the array, create a slide
   let slideHTML = "";
-  shuffled.forEach(uc => {
+
+  allUseCases.forEach(uc => {
     const imageURL = uc["Use Case URL"] || "";
     const title    = uc["Use Case Title"] || "Untitled";
     const body     = uc["Use Case Body"]  || "No description";
@@ -536,48 +533,40 @@ function buildUseCaseSlides(allUseCases) {
 
     slideHTML += `
       <div class="swiper-slide">
-        <img 
-          src="${imageURL}" 
-          alt="Use Case" 
-          class="usecase-slide-image" 
-        />
+        <img src="${imageURL}" alt="Use Case" class="usecase-slide-image" />
         <div class="usecase-slide-content">
-          <div>
-            <h3 class="usecase-slide-title">${title}</h3>
-            <p class="usecase-slide-body">${body}</p>
-          </div>
-          <div class="usecase-slide-points">
-            Points Required: ${points.toLocaleString()}
-          </div>
+          <h3 class="usecase-slide-title">${title}</h3>
+          <p class="usecase-slide-body">${body}</p>
+          <p class="usecase-slide-points">Points Required: ${points.toLocaleString()}</p>
         </div>
       </div>
     `;
   });
 
-  // 3) Inject that HTML into the #useCaseSlides wrapper
   const slidesEl = document.getElementById("useCaseSlides");
   slidesEl.innerHTML = slideHTML;
 }
+
 
 let useCaseSwiper = null;
 
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
-    slidesPerView: 1,    // one slide at a time
-    spaceBetween: 0,     // or 10, or whatever small gap you like
+    direction: 'horizontal',
+    slidesPerView: 1,  // only 1 visible at a time
     loop: true,
     pagination: {
       el: '.swiper-pagination',
-      clickable: true,
+      clickable: true
     },
     navigation: {
       nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev',
+      prevEl: '.swiper-button-prev'
     },
     autoplay: {
       delay: 4000,
-      disableOnInteraction: false,
-    },
+      disableOnInteraction: false
+    }
   });
 }
 
