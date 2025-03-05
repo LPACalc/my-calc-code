@@ -446,24 +446,24 @@ function updateNextCTAVisibility() {
  * CLEAR ALL
  *******************************************************/
 function clearAllPrograms() {
-  // 1) Clear the chosenPrograms array
+  // 1) Reset your chosen arrays/maps
   chosenPrograms = [];
+  pointsMap = {};
 
-  // 2) Unselect any .top-program-box that was "selected-state"
+  // 2) Remove all program rows from the calculator
+  $("#program-container").empty();
+
+  // 3) Remove any "selected-state" classes & revert the "+" sign
   $(".top-program-box.selected-state").each(function () {
     $(this).removeClass("selected-state");
+    // Only show the “+” sign on desktop (as in your code)
     if (window.innerWidth >= 992) {
       $(this).find(".add-btn").text("+");
     }
   });
 
-  // 3) Update the chosen display => hides “Selected Programs” label
+  // 4) Update the chosen display, next-button, etc.
   updateChosenProgramsDisplay();
-
-  // 4) Remove all program rows
-  $("#program-container").empty();
-
-  // 5) Update next button, etc.
   updateNextCTAVisibility();
   updateClearAllVisibility();
 }
@@ -1341,7 +1341,6 @@ $("#input-back-btn").on("click", function () {
   // Expand/collapse use case
   $(document).on("click", ".output-row", function () {
     const activeView = $(".tc-switch-btn.active-tc").data("view");
-    if (activeView !== "travel") return;
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
     if (nextAcc.is(":visible")) {
