@@ -1197,45 +1197,51 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
  ****************************************************************************/
 
 
+/*******************************************************
+ * USE CASE SLIDER
+ *******************************************************/
+
+/* Outer “card” container for the slider */
 .usecase-slider-section {
-  margin: 2rem 0; /* or wherever you want spacing */
-}
-
-/* Parent container that sets the slider’s dimensions */
-.swiper-container {
-  width: 100%;
-  max-width: 400px;   /* or pick your desired width */
-  height: 500px;      /* or pick your desired height */
-  margin: 0 auto;     /* center it */
-}
-
-/* Each slide => a white rectangle with drop shadow */
-.swiper-slide {
-  background-color: #fff;
+  margin: 2rem auto; /* space above/below */
+  background: #fff;  /* white background */
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-
-  display: flex;             /* So we can control how the image + text stack up */
-  flex-direction: column;    /* Vertical layout */
-  justify-content: flex-start;
-  align-items: center;
-
-  /* If you’d prefer the slides to be individually scrollable, you can do: */
-  overflow: hidden;
-  /* or `overflow-y: auto;` to let text scroll within the slide if it’s too tall. */
+  padding: 1rem;
+  max-width: 600px;
 }
 
-.usecase-slide-image {
-  /* This block takes ~60% of the slide’s height */
-  flex: 0 0 60%;
+/* The Swiper container => sets overall dimensions */
+.swiper-container {
+  position: relative; /* so arrows can anchor inside */
   width: 100%;
-  object-fit: cover; 
-  border-top-left-radius: 8px;
-  border-top-right-radius: 8px;
+  max-width: 600px;
+  height: 500px;      /* adjust this to desired height */
+  margin: 0 auto;     /* center horizontally */
+  --swiper-navigation-size: 25px; /* arrow size */
 }
 
+/* Each slide => single use case */
+.swiper-slide {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* or center if you prefer */
+  overflow: hidden;
+}
+
+/* The top image in each slide */
+.usecase-slide-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+/* The text/content area below the image */
 .usecase-slide-content {
-  flex: 1; /* The remaining ~40% of vertical space */
+  flex: 1;
   padding: 1rem;
   text-align: center;
   display: flex;
@@ -1243,46 +1249,43 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   justify-content: space-between;
 }
 
+/* Title styling */
 .usecase-slide-title {
   font-size: 1.1rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
+/* Body styling */
 .usecase-slide-body {
   font-size: 0.9rem;
-  line-height: 1.3;
+  line-height: 1.4;
   margin-bottom: 1rem;
 }
 
+/* Points styling (smaller text) */
 .usecase-slide-points {
-  font-size: 0.75rem;
-  color: #666;
+  font-size: 0.8rem;
+  color: #555;
 }
 
-/* Force the container to be position: relative so the arrows can anchor to it. */
-.swiper-container {
-  position: relative;
-  width: 100%;
-  max-width: 600px; /* or whatever size you prefer */
-  margin: 0 auto;   /* center if you want */
-}
-
-/* Style the arrows so they're inside the container */
+/*******************************************************
+ * SWIPER ARROWS
+ *******************************************************/
 .swiper-button-next,
 .swiper-button-prev {
-  color: #333; /* or #fff, your choice */
-  top: 50%;
+  color: #333;        /* arrow color */
+  top: 50%;           /* center vertically */
   transform: translateY(-50%);
 }
 
-/* If you want them narrower, add e.g. */
+/* Right arrow on the right; left arrow on the left */
 .swiper-button-next {
   right: 10px;
   left: auto;
 }
-
 .swiper-button-prev {
   left: 10px;
   right: auto;
 }
+
