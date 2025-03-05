@@ -1260,3 +1260,29 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   color: #666;
 }
 
+/* Force the container to be position: relative so the arrows can anchor to it. */
+.swiper-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px; /* or whatever size you prefer */
+  margin: 0 auto;   /* center if you want */
+}
+
+/* Style the arrows so they're inside the container */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #333; /* or #fff, your choice */
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* If you want them narrower, add e.g. */
+.swiper-button-next {
+  right: 10px;
+  left: auto;
+}
+
+.swiper-button-prev {
+  left: 10px;
+  right: auto;
+}
