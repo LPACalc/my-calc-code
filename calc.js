@@ -1349,15 +1349,7 @@ $("#input-back-btn").on("click", function () {
     toggleProgramSelection($(this));
   });
 
-  // Remove single program row
-  $(document).on("click", ".remove-btn", function () {
-    const rowEl = $(this).closest(".program-row");
-    const rid = rowEl.data("record-id");
-    logSessionEvent("program_remove_clicked", { rid });
-    rowEl.remove();
-    calculateTotal();
-    updateClearAllVisibility();
-  });
+
 
   // Expand/collapse use case
   $(document).on("click", ".output-row", function () {
