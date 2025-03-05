@@ -446,27 +446,28 @@ function updateNextCTAVisibility() {
  * CLEAR ALL
  *******************************************************/
 function clearAllPrograms() {
-  // 1) Reset your chosen arrays/maps
+  // 1) Clear chosen arrays
   chosenPrograms = [];
   pointsMap = {};
 
-  // 2) Remove all program rows from the calculator
+  // 2) Remove program rows in the calculator
   $("#program-container").empty();
 
-  // 3) Remove any "selected-state" classes & revert the "+" sign
+  // 3) Remove the .selected-state from popular programs & reset “+” text (on desktop)
   $(".top-program-box.selected-state").each(function () {
     $(this).removeClass("selected-state");
-    // Only show the “+” sign on desktop (as in your code)
     if (window.innerWidth >= 992) {
       $(this).find(".add-btn").text("+");
     }
   });
 
-  // 4) Update the chosen display, next-button, etc.
+  // 4) Update displays, hide Clear All button, etc.
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
 }
+
+
 
 /*******************************************************
  * SHOW/HIDE CLEAR-ALL
@@ -613,23 +614,20 @@ function buildOutputRows(viewType) {
 
 
 
-// (All your existing code, e.g. sessionId stuff, data fetching, etc.)
-
 function renderValueComparisonChart(travelValue, cashValue) {
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
 
   const conciergeVal = travelValue > 1000 ? 125 : 99;
-
   const ctx = barCanvas.getContext("2d");
+
   const data = {
     labels: ["Travel", "Cash", "Concierge"],
     datasets: [
       {
         label: "Value",
         data: [travelValue, cashValue, conciergeVal],
-        // You can choose one color for all bars, or separate them:
-        backgroundColor: ["#042940", "#005C53", "#D6D58E"]
+        backgroundColor: ["#042940", "#005C53", "#D6D58E"] 
       }
     ]
   };
@@ -638,25 +636,28 @@ function renderValueComparisonChart(travelValue, cashValue) {
     type: "bar",
     data,
     options: {
-      // The magic line: switch to horizontal
-      indexAxis: 'y',      
+      // Horizontal bars:
+      indexAxis: 'y',
 
       responsive: true,
       maintainAspectRatio: false,
+
+      // Let Chart.js auto-scale. Don’t set “max: 100” or “suggestedMax: 100”:
       scales: {
         x: {
           beginAtZero: true,
+          // no max or suggestedMax here
           title: {
             display: true,
             text: "Dollar Value"
           }
         }
-        // The y-axis automatically becomes "vertical labels"
       },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
+            // For horizontal bars, the raw value is context.parsed.x
             label: function (context) {
               const val = context.parsed.x || 0;
               return "$" + val.toLocaleString();
@@ -670,6 +671,10 @@ function renderValueComparisonChart(travelValue, cashValue) {
   new Chart(ctx, config);
 }
 
+
+
+
+
 function renderPieChartProgramShare(gatheredData) {
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
@@ -677,7 +682,6 @@ function renderPieChartProgramShare(gatheredData) {
   const ctx = pieCanvas.getContext("2d");
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
   if (totalPoints < 1) {
-    // No data => you could clear the canvas or show a message
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
   }
@@ -686,12 +690,18 @@ function renderPieChartProgramShare(gatheredData) {
   const donutLabels = gatheredData.map(x => x.programName);
   const donutValues = gatheredData.map(x => x.points);
 
+  // Build an array of colors from each program’s “Color” field, defaulting to gray
+  const donutColors = gatheredData.map(item => {
+    const rec = loyaltyPrograms[item.recordId];
+    return rec && rec["Color"] ? rec["Color"] : "#cccccc";
+  });
+
   const data = {
     labels: donutLabels,
     datasets: [
       {
         data: donutValues,
-        backgroundColor: ["#5bc0eb", "#fde74c", "#9bc53d", "#e55934", "#fa7921"],
+        backgroundColor: donutColors,
         hoverOffset: 10
       }
     ]
@@ -703,18 +713,15 @@ function renderPieChartProgramShare(gatheredData) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "55%",
+      cutout: "55%", // donut hole
       plugins: {
-        legend: {
-          position: "bottom"
-        },
+        legend: { position: "bottom" },
         tooltip: {
           callbacks: {
             label: function (context) {
-              const label = context.label || "";
               const val = context.parsed || 0;
               const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
-              return `${label}: ${val.toLocaleString()} pts (${pct})`;
+              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
             }
           }
         }
@@ -724,9 +731,6 @@ function renderPieChartProgramShare(gatheredData) {
 
   new Chart(ctx, config);
 }
-
-// Everything else in your code remains the same...
-// buildOutputRows(viewType) calls renderValueComparisonChart(...) and renderPieChartProgramShare(...)
 
 
 
@@ -1161,24 +1165,27 @@ $(document).on("click", ".remove-btn", function() {
 
 // Define a proper clearAllPrograms() function
 function clearAllPrograms() {
-  // Reset arrays/maps
+  // 1) Clear chosen arrays
   chosenPrograms = [];
   pointsMap = {};
 
-  // Remove all program rows
+  // 2) Remove program rows in the calculator
   $("#program-container").empty();
 
-  // Also update your UI states
+  // 3) Remove the .selected-state from popular programs & reset “+” text (on desktop)
+  $(".top-program-box.selected-state").each(function () {
+    $(this).removeClass("selected-state");
+    if (window.innerWidth >= 992) {
+      $(this).find(".add-btn").text("+");
+    }
+  });
+
+  // 4) Update displays, hide Clear All button, etc.
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
 }
 
-// “Clear All” => remove everything
-$("#clear-all-btn").on("click", function () {
-  logSessionEvent("clear_all_clicked");
-  clearAllPrograms();
-});
 
 
   $(document).on("input", ".points-input", function() {
