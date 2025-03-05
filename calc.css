@@ -1105,7 +1105,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .chart-cards-row {
   display: flex;
   flex-wrap: wrap;   /* So on small screens they can stack */
-  gap: 1rem;         /* Space between cards */
+  gap: 5%;         /* Space between cards */
   margin-top: 1.5rem;
 }
 
@@ -1118,7 +1118,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 
   /* On desktop, let’s give it ~60% width */
   flex: 0 0 60%;
-  max-width: 60%;
+  max-width: 55%;
 
   /* Optional drop shadow: */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
