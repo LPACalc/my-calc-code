@@ -1130,3 +1130,72 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   color: #fff;
 }
 
+
+/* The outer container to center or fix spacing in the #output-state */
+#desktop-graphs-row.charts-card {
+  /* we rely on .charts-card-content inside to handle the card styling, 
+     but we leave this outer <div> so your layout doesn’t break. */
+}
+
+/* The white card that holds both charts */
+.charts-card-content {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;       /* Enough padding so bar chart, pie chart don’t overflow */
+  max-width: 100%;
+  margin: 0 auto;        /* center horizontally if needed */
+  box-sizing: border-box;
+}
+
+/* Title above the bar/pie row */
+.charts-title {
+  font-size: 1.25rem;
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+/* Horizontal row to hold bar chart (left) + pie chart (right) side by side */
+.charts-row {
+  display: flex;
+  flex-wrap: wrap; /* so on very small screens, it can wrap if needed */
+  gap: 1rem;
+}
+
+/* The left side (bar chart) => 60% width on larger screens */
+.bar-chart-section {
+  flex: 0 0 60%;
+  max-width: 60%;
+  /* If you want to ensure the canvas scales: 
+     remove the width/height on the <canvas> 
+     and do something like:
+       canvas {
+         width: 100%;
+         height: auto;
+       }
+  */
+}
+
+/* The right side (pie chart) => 40% width */
+.pie-chart-section {
+  flex: 0 0 40%;
+  max-width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* center heading, canvas if you like */
+}
+
+/* You might want a heading for the pie chart */
+.pie-chart-heading {
+  font-size: 1rem;
+  color: #333;          /* or #000 if you prefer, or #fff on a dark background */
+  margin-bottom: 1rem;
+  text-align: center;
+}
+canvas {
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
