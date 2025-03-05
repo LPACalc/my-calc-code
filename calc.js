@@ -32,6 +32,7 @@ let loyaltyPrograms = {};
 let realWorldUseCases = [];
 let chosenPrograms = [];
 let isTransitioning = false;
+let pointsMap = {};
 
 /**
  * NEW FLAGS to handle loading state and user input
@@ -309,6 +310,10 @@ function filterPrograms() {
 function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
+ // Check if we already have a stored value in pointsMap
+  const existingPoints = pointsMap[recordId] || 0;
+  const formattedPoints = existingPoints ? existingPoints.toLocaleString() : "";
+
   const logo = prog["Brand Logo URL"] || "";
   const name = prog["Program Name"] || "Unnamed Program";
   const rowHTML = `
@@ -1367,6 +1372,42 @@ $("#input-back-btn").on("click", function () {
     }
   });
 
+  // When user clicks the × remove button on a single row
+$(document).on("click", ".remove-btn", function() {
+  const rowEl   = $(this).closest(".program-row");
+  const recordId = rowEl.data("record-id");
+  
+  // Remove that row
+  rowEl.remove();
+
+  // Also remove it from pointsMap so it doesn’t linger
+  delete pointsMap[recordId];
+});
+
+// If “Clear All” is clicked, empty chosenPrograms and also:
+function clearAllPrograms() {
+  chosenPrograms = [];
+  pointsMap = {}; // reset everything
+  ...
+}
+
+
+  $(document).on("input", ".points-input", function() {
+  const rowEl   = $(this).closest(".program-row");
+  const recordId = rowEl.data("record-id");
+  // Get rid of commas & non-digits
+  let raw = $(this).val().replace(/[^0-9]/g, "");
+  if (!raw) {
+    pointsMap[recordId] = 0;
+    return;
+  }
+  let num = parseInt(raw, 10);
+  if (isNaN(num)) num = 0;
+
+  // Update pointsMap so we remember the user’s typed value
+  pointsMap[recordId] = num;
+});
+
   // mini-pill => change use case display
   $(document).on("click", ".mini-pill", function () {
     const useCaseId = $(this).data("usecaseId");
@@ -1423,6 +1464,8 @@ $("#report-modal").on("click", function (event) {
   $("#services-modal-close-btn").on("click", function () {
     $("#services-modal").removeClass("show");
   });
+
+  
 
   // Usecase => back => output
   $("#usecase-back-btn").on("click", function () {
