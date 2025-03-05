@@ -618,136 +618,132 @@ function renderValueComparisonChart(travelValue, cashValue) {
   const ctx = canvas.getContext("2d");
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // New colors
-  const colorTravel    = "#042940";  // travel
-  const colorCash      = "#005C53";  // cash
-  const colorConcierge = "#D6D58E";  // cost of concierge
+  // Colors
+  const colorTravel    = "#042940"; // Travel
+  const colorCash      = "#005C53"; // Cash
+  const colorConcierge = "#D6D58E"; // Concierge
 
-  // Determine “conciergeVal”
+  // Concierge => $125 if travel > 1000 else $99
   const conciergeVal = (travelValue > 1000) ? 125 : 99;
 
-  // Basic logic for max => we want to ensure we can see all 3 bars
-  // So check the largest of travelValue, cashValue, or conciergeVal
+  // Find the max among the three bars
   let maxVal = Math.max(travelValue, cashValue, conciergeVal);
-  if (maxVal < 1) maxVal = 1; // avoid 0
+  if (maxVal < 1) maxVal = 1;
 
-  // 4 ticks => same approach as before
+  // Step logic
   function pickStep(value) {
-    let baseStep = (value <= 150) ? 50 : 100;
-    while (3 * baseStep < value) {
-      baseStep += (value <= 150) ? 50 : 100;
-    }
-    return baseStep;
+    if (value < 50)    return 15;
+    if (value < 100)   return 25;
+    if (value < 500)   return 100;
+    if (value < 2000)  return 500;
+    return 2000; 
   }
   const step    = pickStep(maxVal);
-  const axisMax = 3 * step;
+  const axisMax = step * 3; // => 0, step, 2*step, 3*step
 
-  // Margins => we can keep them small
-  const marginLeft   = 40;
-  const marginRight  = 15;
-  const marginTop    = 8;
-  const marginBottom = 16;
+  // Chart layout
+  const marginLeft   = 100;
+  const marginRight  = 20;
+  const marginTop    = 20;
+  const marginBottom = 30;
 
   const chartWidth  = canvas.width  - marginLeft - marginRight;
   const chartHeight = canvas.height - marginTop  - marginBottom;
 
-  // Now we have 3 bars => set totalBars = 3. 
-  // We'll distribute them vertically. 
+  // 3 bars => Travel, Cash, Concierge
   const totalBars = 3;
-  // e.g. we can do chartHeight / (3 + 1) => 4 segments
-  const spacing   = chartHeight / (totalBars + 1); 
-  const barHeight = 20;
+  const rowSpacing = chartHeight / (totalBars + 1);
+  const barHeight  = rowSpacing * 0.4;
 
-  // Positions:
-  const yTravel    = marginTop + (1 * spacing) - barHeight/2;
-  const yCash      = marginTop + (2 * spacing) - barHeight/2;
-  const yConcierge = marginTop + (3 * spacing) - barHeight/2;
+  // y positions
+  const yTravel    = marginTop + rowSpacing - barHeight / 2;
+  const yCash      = marginTop + rowSpacing * 2 - barHeight / 2;
+  const yConcierge = marginTop + rowSpacing * 3 - barHeight / 2;
 
   function xScale(val) {
     return marginLeft + (val / axisMax) * chartWidth;
   }
 
-  // Draw axes
-  ctx.strokeStyle = "#555";
-  ctx.lineWidth   = 2;
-
-  // X-axis
-  ctx.beginPath();
-  ctx.moveTo(marginLeft,  marginTop + chartHeight);
-  ctx.lineTo(marginLeft + chartWidth, marginTop + chartHeight);
-  ctx.stroke();
-
-  // Y-axis
-  ctx.beginPath();
-  ctx.moveTo(marginLeft, marginTop);
-  ctx.lineTo(marginLeft, marginTop + chartHeight);
-  ctx.stroke();
-
-  // 4 Ticks => 0, step, 2×step, 3×step
-  ctx.font         = "bold 12px sans-serif";
-  ctx.fillStyle    = "#333";
-  ctx.textAlign    = "center";
-  ctx.textBaseline = "top";
-
+  // Draw vertical grid lines for each tick
+  ctx.strokeStyle = "#ddd";
+  ctx.lineWidth   = 1;
   for (let i = 0; i <= 3; i++) {
     const val  = i * step;
     const xPos = xScale(val);
-    const labelStr = `$${val.toLocaleString()}`;
-    ctx.fillText(labelStr, xPos, marginTop + chartHeight + 2);
-
-    // minor tick
     ctx.beginPath();
-    ctx.moveTo(xPos, marginTop + chartHeight - 4);
+    ctx.moveTo(xPos, marginTop);
     ctx.lineTo(xPos, marginTop + chartHeight);
     ctx.stroke();
   }
 
-  // We'll define a helper to draw each bar
-  function drawBar(label, value, yPos, fillColor) {
+  // X-axis labels => 0.. step..2step..3step
+  ctx.font         = "12px sans-serif";
+  ctx.fillStyle    = "#333";
+  ctx.textAlign    = "center";
+  ctx.textBaseline = "top";
+  for (let i = 0; i <= 3; i++) {
+    const val  = i * step;
+    const xPos = xScale(val);
+    // 2 decimals is optional here, but typically integer steps are fine:
+    ctx.fillText(`$${val}`, xPos, marginTop + chartHeight + 4);
+  }
+
+  // Helper => draw bar
+  function drawBar(yPos, barValue, fillColor) {
     const barLeft  = marginLeft;
-    const barRight = xScale(value);
+    const barRight = xScale(barValue);
     const barWidth = barRight - barLeft;
 
-    // fill
     ctx.fillStyle = fillColor;
     ctx.fillRect(barLeft, yPos, barWidth, barHeight);
 
-    // text
-    const valStr   = `$${value.toLocaleString(undefined, { maximumFractionDigits:3 })}`;
-    ctx.font       = "bold 14px sans-serif";
-    const textW    = ctx.measureText(valStr).width + 10;
-    const textXmid = barLeft + barWidth / 2;
-    const textY    = yPos + barHeight / 2;
+    // 2-decimal string
+    const valStr = `$${barValue.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+    ctx.font = "bold 14px sans-serif";
+    const textW = ctx.measureText(valStr).width + 10;
+    const textX = barLeft + barWidth / 2;
+    const textY = yPos + barHeight / 2;
 
     if (barWidth >= textW) {
-      // White inside
+      // White text inside
       ctx.fillStyle    = "#fff";
       ctx.textAlign    = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(valStr, textXmid, textY);
+      ctx.fillText(valStr, textX, textY);
     } else {
-      // Outside
+      // Black text outside
       ctx.fillStyle    = "#000";
       ctx.textAlign    = "left";
       ctx.textBaseline = "middle";
       ctx.fillText(valStr, barRight + 4, textY);
     }
-
-    // Label on the left
-    ctx.save();
-    ctx.fillStyle    = "#333";
-    ctx.font         = "bold 12px sans-serif";
-    ctx.textAlign    = "right";
-    ctx.textBaseline = "middle";
-    ctx.fillText(label, marginLeft - 4, yPos + (barHeight / 2));
-    ctx.restore();
   }
 
-  // Finally, draw all 3 bars
-  drawBar("Travel",    travelValue,   yTravel,    colorTravel);
-  drawBar("Cash",      cashValue,     yCash,      colorCash);
-  drawBar("Concierge", conciergeVal,  yConcierge, colorConcierge);
+  // Helper => left label
+  function drawBarLabel(label, yPos) {
+    ctx.font         = "14px sans-serif";
+    ctx.fillStyle    = "#333";
+    ctx.textAlign    = "right";
+    ctx.textBaseline = "middle";
+    ctx.fillText(label, marginLeft - 8, yPos + barHeight / 2);
+  }
+
+  // Travel
+  drawBarLabel("Travel", yTravel);
+  drawBar(yTravel, travelValue, colorTravel);
+
+  // Cash
+  drawBarLabel("Cash", yCash);
+  drawBar(yCash, cashValue, colorCash);
+
+  // Concierge
+  drawBarLabel("Concierge", yConcierge);
+  drawBar(yConcierge, conciergeVal, colorConcierge);
 }
+
 
 
 
