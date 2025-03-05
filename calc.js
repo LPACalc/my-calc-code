@@ -613,8 +613,8 @@ function buildOutputRows(viewType) {
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // Based on the current view, pick which value to display
-    let rowVal = (viewType === "travel") ? tVal : cVal;
+    // Decide which value to display based on travel/cash view
+    const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
     // Format the displayed currency
@@ -623,7 +623,7 @@ function buildOutputRows(viewType) {
       maximumFractionDigits: 2
     })}`;
 
-    // Build each row in the output list
+    // Build each row’s HTML
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -634,10 +634,10 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If in “travel” view, also attach a hidden use-case accordion
+    // If in travel view, attach the hidden use-case accordion
     if (viewType === "travel") {
       rowHtml += `
-        <div class="usecase-accordion" 
+        <div class="usecase-accordion"
              style="
                display:none; 
                border:1px solid #dce3eb; 
@@ -651,25 +651,7 @@ function buildOutputRows(viewType) {
       `;
     }
 
-    function buildOutputRows(viewType) {
-  // (Your existing chart + pie code)
-
-  // Then build the list of all possible recommended use cases for all programs:
-  const allUseCases = gatherAllRecommendedUseCases(); // your own logic
-
-  // If you want the slider to show only for “travel” view or always, you can decide:
-  if (viewType === "travel") {
-    buildUseCaseSlides(allUseCases);
-    if (!useCaseSwiper) {
-      initUseCaseSwiper();
-    } else {
-      // If the swiper already exists, just update it:
-      useCaseSwiper.update();
-    }
-  }
-}
-
-
+    // Append this block to #output-programs-list
     $("#output-programs-list").append(rowHtml);
   });
 
@@ -687,142 +669,25 @@ function buildOutputRows(viewType) {
     </div>
   `);
 
-  // 1) Render the bar chart (left canvas)
+  // Render the bar chart
   renderValueComparisonChart(totalTravelValue, totalCashValue);
 
-  // 2) Render the pie chart (right canvas)
-  //    (Make sure you have a <canvas id="programSharePieChart"> in your HTML
-  //    and the renderPieChartProgramShare(data) function defined.)
+  // Render the pie chart
   renderPieChartProgramShare(data);
-}
 
+  // If we’re in travel view, build & show the swiper slides
+  if (viewType === "travel") {
+    // gatherAllRecommendedUseCases() is your own helper for collecting them
+    const allUseCases = gatherAllRecommendedUseCases();
+    buildUseCaseSlides(allUseCases);
 
-
-
-function renderValueComparisonChart(travelValue, cashValue) {
-  const barCanvas = document.getElementById("valueComparisonChart");
-  if (!barCanvas) return;
-
-  const conciergeVal = travelValue > 1000 ? 125 : 99;
-  const ctx = barCanvas.getContext("2d");
-
-  const data = {
-    labels: ["Travel", "Cash", "Concierge"],
-    datasets: [
-      {
-        label: "Value",
-        data: [travelValue, cashValue, conciergeVal],
-        backgroundColor: ["#042940", "#005C53", "#D6D58E"] 
-      }
-    ]
-  };
-
-  const config = {
-    type: "bar",
-    data,
-    options: {
-      // Horizontal bars:
-      indexAxis: 'y',
-
-      responsive: true,
-      maintainAspectRatio: false,
-
-      // Let Chart.js auto-scale. Don’t set “max: 100” or “suggestedMax: 100”:
-      scales: {
-        x: {
-          beginAtZero: true,
-          // no max or suggestedMax here
-          title: {
-            display: true,
-            text: "Dollar Value"
-          }
-        }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            // For horizontal bars, the raw value is context.parsed.x
-            label: function (context) {
-              const val = context.parsed.x || 0;
-              return "$" + val.toLocaleString();
-            }
-          }
-        }
-      }
+    if (!useCaseSwiper) {
+      initUseCaseSwiper();
+    } else {
+      useCaseSwiper.update();
     }
-  };
-
-  new Chart(ctx, config);
-}
-
-
-
-
-
-function renderPieChartProgramShare(gatheredData) {
-  const pieCanvas = document.getElementById("programSharePieChart");
-  if (!pieCanvas) return;
-
-  const ctx = pieCanvas.getContext("2d");
-  const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-  if (totalPoints < 1) {
-    ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
-    return;
   }
-
-  // Build arrays for labels & data
-  const donutLabels = gatheredData.map(x => x.programName);
-  const donutValues = gatheredData.map(x => x.points);
-
-  // Build an array of colors from each program’s “Color” field, defaulting to gray
-  const donutColors = gatheredData.map(item => {
-    const rec = loyaltyPrograms[item.recordId];
-    return rec && rec["Color"] ? rec["Color"] : "#cccccc";
-  });
-
-  const data = {
-    labels: donutLabels,
-    datasets: [
-      {
-        data: donutValues,
-        backgroundColor: donutColors,
-        hoverOffset: 10
-      }
-    ]
-  };
-
-  const config = {
-    type: "doughnut",
-    data,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "55%", // donut hole
-      plugins: {
-        legend: { position: "bottom" },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const val = context.parsed || 0;
-              const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
-              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  new Chart(ctx, config);
 }
-
-
-
-
-
-
-
 
 /*******************************************************
  * USE CASE => build
