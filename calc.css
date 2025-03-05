@@ -1090,12 +1090,20 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   }
 }
 
+/*****************************************************************************
+ * DASHBOARD / REPORT CSS
+ * ---------------------------------------------------------------------------
+ * This section handles the layout & styling for the bar chart card and 
+ * the pie chart card, displayed side by side on desktop and stacked on 
+ * smaller screens. 
+ ****************************************************************************/
+
 /* The parent row that holds two separate cards side by side */
 .chart-cards-row {
   display: flex;
   flex-wrap: wrap;   /* So on small screens they can stack */
   gap: 1rem;         /* Space between cards */
-  margin-top: 1.5rem; 
+  margin-top: 1.5rem;
 }
 
 /* Bar Chart Card */
@@ -1142,7 +1150,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   margin-bottom: 1rem;
   font-size: 1.25rem;
   color: #333;
-  text-align: center; 
+  text-align: center;
 }
 
 /* Make canvases scale nicely within each card */
@@ -1152,17 +1160,23 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   width: 100%;
   height: auto;
   max-width: 100%;
-  margin: 0 auto;    /* center horizontally if narrower than parent */
+  margin: 0 auto; /* center horizontally if narrower than parent */
 }
 
 /* On smaller screens, we can let them stack vertically */
 @media (max-width: 992px) {
   /* Let each card be 100% wide => one on top of the other */
-  .bar-chart-card, .pie-chart-card {
+  .bar-chart-card,
+  .pie-chart-card {
     flex: 0 0 100%;
     max-width: 100%;
     margin-bottom: 1rem; /* space between them vertically */
   }
 }
+
+/*****************************************************************************
+ * END DASHBOARD / REPORT CSS
+ ****************************************************************************/
+
 
 
