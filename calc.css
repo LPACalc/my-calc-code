@@ -1090,112 +1090,79 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   }
 }
 
-#desktop-graphs-row {
+/* The parent row that holds two separate cards side by side */
+.chart-cards-row {
   display: flex;
-  gap: 1rem;
-  /* If you want it hidden on small screens, keep your existing media queries. */
+  flex-wrap: wrap;   /* So on small screens they can stack */
+  gap: 1rem;         /* Space between cards */
+  margin-top: 1.5rem; 
 }
 
-/* The “card” for the bar chart => 60% wide, white, radius */
+/* Bar Chart Card */
 .bar-chart-card {
-  flex: 0 0 60%;
-  max-width: 60%;
   background: #fff;
   border-radius: 8px;
-  padding: 1rem;
+  padding: 1.5rem;
   box-sizing: border-box;
-}
 
-/* Title inside the bar-chart-card */
-.bar-card-title {
-  margin-top: 0;
-  margin-bottom: 1rem; /* spacing above the canvas */
-  font-size: 1.25rem;
-  color: #333;
-  text-align: center;  /* or left, if you prefer */
-}
-
-/* The pie chart => 40% */
-.pie-chart-container {
-  flex: 0 0 40%;
-  max-width: 40%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
-}
-
-/* If you want the pie heading in white, you can do this: */
-.pie-chart-container h3 {
-  color: #fff;
-}
-
-
-/* The outer container to center or fix spacing in the #output-state */
-#desktop-graphs-row.charts-card {
-  /* we rely on .charts-card-content inside to handle the card styling, 
-     but we leave this outer <div> so your layout doesn’t break. */
-}
-
-/* The white card that holds both charts */
-.charts-card-content {
-  background-color: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;       /* Enough padding so bar chart, pie chart don’t overflow */
-  max-width: 100%;
-  margin: 0 auto;        /* center horizontally if needed */
-  box-sizing: border-box;
-}
-
-/* Title above the bar/pie row */
-.charts-title {
-  font-size: 1.25rem;
-  text-align: center;
-  margin-top: 0;
-  margin-bottom: 1rem;
-  color: #333;
-}
-
-/* Horizontal row to hold bar chart (left) + pie chart (right) side by side */
-.charts-row {
-  display: flex;
-  flex-wrap: wrap; /* so on very small screens, it can wrap if needed */
-  gap: 1rem;
-}
-
-/* The left side (bar chart) => 60% width on larger screens */
-.bar-chart-section {
+  /* On desktop, let’s give it ~60% width */
   flex: 0 0 60%;
   max-width: 60%;
-  /* If you want to ensure the canvas scales: 
-     remove the width/height on the <canvas> 
-     and do something like:
-       canvas {
-         width: 100%;
-         height: auto;
-       }
-  */
+
+  /* Optional drop shadow: */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* The right side (pie chart) => 40% width */
-.pie-chart-section {
+/* Title in bar chart card */
+.bar-card-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #333;
+  text-align: center; /* or left if you prefer */
+}
+
+/* Pie Chart Card */
+.pie-chart-card {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+
+  /* The other 40% on desktop */
   flex: 0 0 40%;
   max-width: 40%;
-  display: flex;
-  flex-direction: column;
-  align-items: center; /* center heading, canvas if you like */
+
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* You might want a heading for the pie chart */
-.pie-chart-heading {
-  font-size: 1rem;
-  color: #333;          /* or #000 if you prefer, or #fff on a dark background */
+/* Title in the pie chart card */
+.pie-card-title {
+  margin-top: 0;
   margin-bottom: 1rem;
-  text-align: center;
+  font-size: 1.25rem;
+  color: #333;
+  text-align: center; 
 }
-canvas {
+
+/* Make canvases scale nicely within each card */
+.bar-chart-card canvas,
+.pie-chart-card canvas {
+  display: block;
   width: 100%;
   height: auto;
   max-width: 100%;
+  margin: 0 auto;    /* center horizontally if narrower than parent */
 }
+
+/* On smaller screens, we can let them stack vertically */
+@media (max-width: 992px) {
+  /* Let each card be 100% wide => one on top of the other */
+  .bar-chart-card, .pie-chart-card {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 1rem; /* space between them vertically */
+  }
+}
+
 
