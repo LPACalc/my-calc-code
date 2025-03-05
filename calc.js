@@ -311,20 +311,14 @@ function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
 
-  // Check if we already have a stored value in pointsMap
   const existingPoints = pointsMap[recordId] || 0;
-  // Format them for display (with commas)
   const formattedPoints = existingPoints ? existingPoints.toLocaleString() : "";
 
-  const logo = prog["Brand Logo URL"] || "";
-  const name = prog["Program Name"] || "Unnamed Program";
-
-  // NOTE the  value="${formattedPoints}"  in <input>:
   const rowHTML = `
     <div class="program-row" data-record-id="${recordId}">
       <div style="display:flex; align-items:center; gap:0.75rem;">
-        ${logo ? `<img src="${logo}" alt="${name} logo">` : ""}
-        <span class="program-name">${name}</span>
+        <!-- Possibly show a program logo -->
+        <span class="program-name">${prog["Program Name"] || "Unnamed Program"}</span>
       </div>
       <div style="display:flex; align-items:center; gap:1rem;">
         <div class="dollar-input-container">
@@ -334,17 +328,17 @@ function addProgramRow(recordId) {
             class="points-input"
             placeholder="Enter Total"
             oninput="formatNumberInput(this); calculateTotal()"
-            value="${formattedPoints}"  <!-- IMPORTANT -->
+            value="${formattedPoints}"
           />
         </div>
         <button class="remove-btn">×</button>
       </div>
     </div>
   `;
+
   $("#program-container").append(rowHTML);
   calculateTotal();
 }
-
 
 /*******************************************************
  * TOGGLE SEARCH ITEM
