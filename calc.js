@@ -603,55 +603,51 @@ function renderValueComparisonChart(travelValue, cashValue) {
   if (!canvas) return;
 
   const ctx = canvas.getContext("2d");
+  // CLEAR
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Colors
   const colorTravel = "#1a2732"; // dark blue
   const colorCash   = "#1d592f"; // dark green
 
-  // Determine max so we know how wide the bars go
+  // Determine max
   let maxVal = Math.max(travelValue, cashValue);
   if (maxVal < 1) maxVal = 1; // avoid 0
 
-  // We want the axis to show 4 ticks: 0, step, 2×step, 3×step
-  // and the largest label must be >= maxVal.
-  // Step must be a multiple of 50 or 100. We’ll do a simple approach:
+  // We want 4 ticks: 0, step, 2×step, 3×step (like before)
   function pickStep(value) {
-    // If below 150, use 50; otherwise use 100
     let baseStep = (value <= 150) ? 50 : 100;
-    // Increase baseStep until 3×baseStep >= value
     while (3 * baseStep < value) {
       baseStep += (value <= 150) ? 50 : 100;
     }
     return baseStep;
   }
-  const step    = pickStep(maxVal);
-  const axisMax = 3 * step;   // 4 ticks => 0..step..2step..3step
+  const step = pickStep(maxVal);
+  const axisMax = 3 * step;
 
-  // Basic margins
-  const marginLeft   = 60;
+  // *** Adjusted margins to reduce chart height/whitespace
+  const marginLeft   = 50;
   const marginRight  = 20;
-  const marginTop    = 20;
-  const marginBottom = 30;
+  const marginTop    = 10;  // smaller top
+  const marginBottom = 20;  // smaller bottom
 
   const chartWidth  = canvas.width  - marginLeft - marginRight;
   const chartHeight = canvas.height - marginTop  - marginBottom;
 
-  // We have 2 bars => center them in the vertical space
-  // e.g. first bar near mid‐top, second near mid‐bottom
+  // We have 2 bars, place them closer together
   const totalBars = 2;
-  // We'll divide the chartHeight into 3 equal segments => place a bar in segment #1 and #2
-  const segment    = chartHeight / (totalBars + 1);
-  const barHeight  = 40; // fixed thickness
-  const yTravel    = marginTop + segment - barHeight / 2;
-  const yCash      = marginTop + 2 * segment - barHeight / 2;
+  // We can just do half the chart for each bar
+  // or a small spacing
+  const spacing   = chartHeight / (totalBars + 1); 
+  const barHeight = 30; // each bar is 30px tall
+  const yTravel   = marginTop + spacing - barHeight / 2;
+  const yCash     = marginTop + 2*spacing - barHeight / 2;
 
-  // Convert data => X pixel
   function xScale(val) {
     return marginLeft + (val / axisMax) * chartWidth;
   }
 
-  // Draw x‐axis
+  // X-axis
   ctx.strokeStyle = "#555";
   ctx.lineWidth   = 2;
   ctx.beginPath();
@@ -659,78 +655,78 @@ function renderValueComparisonChart(travelValue, cashValue) {
   ctx.lineTo(marginLeft + chartWidth, marginTop + chartHeight);
   ctx.stroke();
 
-  // Draw y‐axis
+  // Y-axis
   ctx.beginPath();
   ctx.moveTo(marginLeft, marginTop);
   ctx.lineTo(marginLeft, marginTop + chartHeight);
   ctx.stroke();
 
-  // X‐axis ticks => 0, step, 2×step, 3×step
-  ctx.font         = "bold 14px sans-serif";
+  // Ticks => 0, step, 2step, 3step
+  ctx.font         = "bold 12px sans-serif";
   ctx.fillStyle    = "#333";
   ctx.textAlign    = "center";
   ctx.textBaseline = "top";
 
   for (let i = 0; i <= 3; i++) {
-    const val  = i * step;
+    const val = i * step;
     const xPos = xScale(val);
-
-    // Label
-    const labelStr = `$${val}`;
+    // Format with commas
+    const labelStr = `$${val.toLocaleString()}`;
     ctx.fillText(labelStr, xPos, marginTop + chartHeight + 2);
 
-    // Minor tick mark
+    // small tick
     ctx.beginPath();
-    ctx.moveTo(xPos, marginTop + chartHeight - 5);
+    ctx.moveTo(xPos, marginTop + chartHeight - 4);
     ctx.lineTo(xPos, marginTop + chartHeight);
     ctx.stroke();
   }
 
-  // Helper => draw one bar (with text centered if wide enough)
+  // Helper => draw bar
   function drawBar(label, value, yPos, fillColor) {
     const barLeft  = marginLeft;
     const barRight = xScale(value);
     const barWidth = barRight - barLeft;
 
-    // Draw the bar
     ctx.fillStyle = fillColor;
     ctx.fillRect(barLeft, yPos, barWidth, barHeight);
 
-    // Decide text inside or outside
-    const valStr   = `$${value.toLocaleString(undefined, {maximumFractionDigits:2})}`;
-    ctx.font       = "bold 16px sans-serif";
-    const textW    = ctx.measureText(valStr).width + 20;
-    const textXmid = barLeft + barWidth / 2;
-    const textY    = yPos + barHeight / 2;
+    // Decide text
+    const valStr = `$${value.toLocaleString()}`;
+    ctx.font     = "bold 14px sans-serif";
+
+    // measure text
+    const textW  = ctx.measureText(valStr).width + 10;
+    const textX  = barLeft + barWidth / 2;
+    const textY  = yPos + barHeight/2;
 
     if (barWidth >= textW) {
-      // Center text in white
+      // white text inside
       ctx.fillStyle    = "#fff";
       ctx.textAlign    = "center";
       ctx.textBaseline = "middle";
-      ctx.fillText(valStr, textXmid, textY);
+      ctx.fillText(valStr, textX, textY);
     } else {
-      // Show text outside in black
+      // black text outside
       ctx.fillStyle    = "#000";
       ctx.textAlign    = "left";
       ctx.textBaseline = "middle";
-      ctx.fillText(valStr, barRight + 6, textY);
+      ctx.fillText(valStr, barRight + 4, textY);
     }
 
-    // Label on the left for “Travel” or “Cash”
+    // label on left
     ctx.save();
     ctx.fillStyle    = "#333";
-    ctx.font         = "bold 14px sans-serif";
+    ctx.font         = "bold 12px sans-serif";
     ctx.textAlign    = "right";
     ctx.textBaseline = "middle";
-    ctx.fillText(label, marginLeft - 8, yPos + barHeight / 2);
+    ctx.fillText(label, marginLeft - 6, yPos + barHeight/2);
     ctx.restore();
   }
 
-  // Draw both bars
   drawBar("Travel", travelValue, yTravel, colorTravel);
   drawBar("Cash",   cashValue,  yCash,   colorCash);
 }
+
 
 
 
@@ -739,59 +735,51 @@ function renderPieChartProgramShare(gatheredData) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  // We'll store slice info so we can handle hover:
-  let slices = []; // each slice => { startAngle, endAngle, midAngle, fraction, color, ... }
+  let slices = [];
 
-  // 1) Compute total points, plus each program’s Travel/Cash
+  // 1) total points
   let totalPoints = 0;
-  gatheredData.forEach(item => {
-    totalPoints += item.points;
-  });
+  gatheredData.forEach(item => { totalPoints += item.points; });
   if (totalPoints < 1) {
     // No points => blank chart
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "14px sans-serif";
     ctx.fillStyle = "#999";
     ctx.fillText("No points entered.", canvas.width/2 - 40, canvas.height/2);
-    // Also remove old listeners
     canvas.onmousemove = null;
     canvas.onmouseleave = null;
     return;
   }
 
-  // We also might want each program’s travelVal + cashVal, so we can show them in the tooltip
+  // 2) also get travel/cash for each
   gatheredData.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
-    if (prog) {
-      item.travelVal = item.points * (prog["Travel Value"] || 0);
-      item.cashVal   = item.points * (prog["Cash Value"]   || 0);
-    } else {
+    if (!prog) {
       item.travelVal = 0;
       item.cashVal   = 0;
+    } else {
+      item.travelVal = item.points * (prog["Travel Value"] || 0);
+      item.cashVal   = item.points * (prog["Cash Value"]   || 0);
     }
   });
 
-  // 2) We'll write a function that draws the entire pie, optionally highlighting a given index
   function drawPie(highlightIndex = -1) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
+    const centerX = canvas.width/2;
+    const centerY = canvas.height/2;
     const radius  = Math.min(centerX, centerY) * 0.8;
 
+    slices = [];
     let startAngle = 0;
-    slices = []; // clear, re‐populate
-
-    // Build slices
     gatheredData.forEach((item, idx) => {
-      if (item.points < 1) return; // skip zero or near zero
-
-      const fraction = item.points / totalPoints;
+      if (item.points < 1) return;
+      const fraction   = item.points / totalPoints;
       const sliceAngle = fraction * 2 * Math.PI;
       const endAngle   = startAngle + sliceAngle;
       const midAngle   = startAngle + sliceAngle / 2;
 
-      // If there's a "Color" field from Airtable, use it; else fallback
+      // color
       let sliceColor = "#cccccc";
       const prog = loyaltyPrograms[item.recordId];
       if (prog?.["Color"]) {
@@ -809,21 +797,17 @@ function renderPieChartProgramShare(gatheredData) {
         travelVal: item.travelVal,
         cashVal: item.cashVal
       });
-
       startAngle = endAngle;
     });
 
-    // Actually draw each slice
+    // draw slices
     slices.forEach((s, i) => {
       const isHighlighted = (i === highlightIndex);
-      // If highlighted, shift outward a bit
       const offset = isHighlighted ? 10 : 0;
 
-      // We'll move the center a bit in the direction of the midAngle if highlighted
       const cx = centerX + offset * Math.cos(s.midAngle);
       const cy = centerY + offset * Math.sin(s.midAngle);
 
-      // Draw the slice
       ctx.beginPath();
       ctx.moveTo(cx, cy);
       ctx.arc(cx, cy, radius, s.startAngle, s.endAngle);
@@ -832,52 +816,46 @@ function renderPieChartProgramShare(gatheredData) {
       ctx.fillStyle = s.color;
       ctx.fill();
 
-      // Label => just the XX% in white
+      // Show XX% in white
       const percentStr = (s.fraction * 100).toFixed(0) + "%";
       ctx.fillStyle    = "#fff";
       ctx.font         = "bold 14px sans-serif";
       ctx.textAlign    = "center";
       ctx.textBaseline = "middle";
 
-      // We’ll place it around 0.65 * radius from the center
       const labelR = radius * 0.65;
-      const lx = cx + labelR * Math.cos(s.midAngle);
-      const ly = cy + labelR * Math.sin(s.midAngle);
+      const lx     = cx + labelR * Math.cos(s.midAngle);
+      const ly     = cy + labelR * Math.sin(s.midAngle);
       ctx.fillText(percentStr, lx, ly);
     });
   }
 
-  // 3) Draw the chart initially (no highlight)
+  // draw initially
   drawPie(-1);
 
-  // 4) Tooltip: We need to re‐draw on mousemove => highlight the slice under the cursor
+  // onmousemove => highlight/tooltip
   canvas.onmousemove = function(e) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    // Find which slice (if any) the user is inside
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-
-    // Distance from center
+    const centerX = canvas.width/2;
+    const centerY = canvas.height/2;
     const dx = mouseX - centerX;
     const dy = mouseY - centerY;
-    const distFromCenter = Math.sqrt(dx*dx + dy*dy);
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    const maxRadius = Math.min(centerX, centerY)*0.8;
 
-    // Check if inside the main pie radius (~0.8 * halfCanvas)
-    const maxRadius = Math.min(centerX, centerY) * 0.8;
-    if (distFromCenter > maxRadius) {
-      // Not inside pie => no highlight
+    if (dist > maxRadius) {
+      // outside the pie
       drawPie(-1);
       return;
     }
 
-    // Angle of the mouse position
+    // angle
     let angle = Math.atan2(dy, dx);
-    if (angle < 0) angle += 2 * Math.PI; // keep it 0..2π
+    if (angle < 0) angle += 2*Math.PI;
 
-    // Find which slice the angle belongs to
     let foundIndex = -1;
     slices.forEach((s, i) => {
       if (angle >= s.startAngle && angle < s.endAngle) {
@@ -885,38 +863,50 @@ function renderPieChartProgramShare(gatheredData) {
       }
     });
 
-    // Redraw with highlight if needed
     drawPie(foundIndex);
 
-    // If we found a slice, draw a tooltip
+    // If we found a slice, show tooltip
     if (foundIndex !== -1) {
       const s = slices[foundIndex];
 
-      // We'll create a small white box near the mouse
-      const travelStr = `$${s.travelVal.toFixed(2)}`;
-      const cashStr   = `$${s.cashVal.toFixed(2)}`;
+      // Build your new layout:
+      //  1) Program name (centered, bold)
+      //  2) "Points %:  XX"
+      //  3) "Travel Value: $XX"
+      //  4) "Cash Value: $XX"
+      // We do “XX%” => (s.fraction*100).toFixed(1) or (0)
+      const fractionPct = (s.fraction * 100).toFixed(1) + "%";
+
+      // We'll do 4 lines:
       const textLines = [
-        s.programName,
-        `${(s.fraction*100).toFixed(1)}% of Points`,
-        `Travel Value: ${travelStr}`,
-        `Cash Value: ${cashStr}`
+        { text: s.programName, align: "center", bold: true },
+        { text: `Points %: ${fractionPct}`, align: "left", bold: true },
+        { text: `Travel Value: $${s.travelVal.toFixed(2)}`, align: "left", bold: true },
+        { text: `Cash Value: $${s.cashVal.toFixed(2)}`,    align: "left", bold: true }
       ];
 
-      // Measure box
-      ctx.font = "13px sans-serif";
+      // measure
+      ctx.font = "14px sans-serif";
       let maxWidth = 0;
       textLines.forEach(line => {
-        const w = ctx.measureText(line).width;
+        // temporarily set bold if needed
+        const measureFont = line.bold ? "bold 14px sans-serif" : "14px sans-serif";
+        ctx.font = measureFont;
+        const w = ctx.measureText(line.text).width;
         if (w > maxWidth) maxWidth = w;
       });
-      const lineHeight   = 16;
-      const boxPadding   = 8;
-      const boxWidth     = maxWidth + boxPadding*2;
-      const boxHeight    = lineHeight * textLines.length + boxPadding*2;
 
-      // Position box near mouse, but don’t go off‐canvas
+      // revert
+      ctx.font = "14px sans-serif";
+
+      const lineHeight = 18;
+      const padding    = 8;
+      let boxWidth     = maxWidth + padding*2;
+      let boxHeight    = lineHeight * textLines.length + padding*2;
+
       let boxX = mouseX + 10;
       let boxY = mouseY + 10;
+      // ensure it’s on-canvas
       if (boxX + boxWidth > canvas.width) {
         boxX = canvas.width - boxWidth - 5;
       }
@@ -924,29 +914,36 @@ function renderPieChartProgramShare(gatheredData) {
         boxY = canvas.height - boxHeight - 5;
       }
 
-      // Draw white box w/ border
+      // Draw white box
       ctx.fillStyle = "#fff";
       ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
       ctx.strokeStyle = "#333";
       ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
 
-      // Render text lines
-      ctx.fillStyle    = "#000";
-      ctx.textAlign    = "left";
-      ctx.textBaseline = "top";
-      let ty = boxY + boxPadding;
+      // Render lines
+      let yCursor = boxY + padding;
       textLines.forEach(line => {
-        ctx.fillText(line, boxX + boxPadding, ty);
-        ty += lineHeight;
+        // set bold if needed
+        ctx.font = line.bold ? "bold 14px sans-serif" : "14px sans-serif";
+
+        if (line.align === "center") {
+          ctx.textAlign = "center";
+          ctx.fillText(line.text, boxX + boxWidth/2, yCursor);
+        } else {
+          ctx.textAlign = "left";
+          ctx.fillText(line.text, boxX + padding, yCursor);
+        }
+        yCursor += lineHeight;
       });
     }
   };
 
-  // When mouse leaves => no highlight
+  // remove highlight on leave
   canvas.onmouseleave = function() {
     drawPie(-1);
   };
 }
+
 
 
 
