@@ -587,6 +587,52 @@ function initUseCaseSwiper() {
   });
 }
 
+function gatherAllRecommendedUseCases() {
+  // 1) Figure out how many points the user has in each chosen program.
+  //    gatherProgramData() returns an array of { recordId, programName, points }.
+  const userProgramPoints = {};
+  const programData = gatherProgramData(); // already available in your code
+  programData.forEach(item => {
+    userProgramPoints[item.recordId] = item.points || 0;
+  });
+
+  // 2) We'll accumulate all relevant use cases in an array, removing duplicates.
+  const results = [];
+  const usedIds = new Set();
+
+  // 3) Loop through each chosen program, matching use cases
+  chosenPrograms.forEach(programId => {
+    // how many points the user has in this particular program
+    const userPoints = userProgramPoints[programId] || 0;
+
+    // 4) For each Real-World Use Case, see if it’s valid
+    Object.values(realWorldUseCases).forEach(uc => {
+      if (!uc.Recommended) return; // only recommended
+      if (!uc["Points Required"]) return; // no required points => skip
+      if (!uc["Use Case Title"] || !uc["Use Case Body"]) return; // incomplete => skip
+
+      // Must belong to this program
+      const linkedPrograms = uc["Program Name"] || [];
+      if (!linkedPrograms.includes(programId)) return;
+
+      // The user must have enough points
+      if (userPoints < uc["Points Required"]) return;
+
+      // No duplicates
+      if (!usedIds.has(uc.id)) {
+        usedIds.add(uc.id);
+        results.push(uc);
+      }
+    });
+  });
+
+  // 5) Randomize the final array
+  results.sort(() => Math.random() - 0.5);
+
+  return results;
+}
+
+
 /*******************************************************
  * BUILD OUTPUT => TRAVEL / CASH
  *******************************************************/
