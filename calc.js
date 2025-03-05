@@ -521,6 +521,72 @@ function gatherProgramData() {
   return data;
 }
 
+
+function buildUseCaseSlides(allUseCases) {
+  // 1) Randomize the array (simple approach):
+  const shuffled = allUseCases.sort(() => Math.random() - 0.5);
+
+  // 2) For each use case in the array, create a slide
+  let slideHTML = "";
+  shuffled.forEach(uc => {
+    const imageURL = uc["Use Case URL"] || "";
+    const title    = uc["Use Case Title"] || "Untitled";
+    const body     = uc["Use Case Body"]  || "No description";
+    const points   = uc["Points Required"] || 0;
+
+    slideHTML += `
+      <div class="swiper-slide">
+        <img 
+          src="${imageURL}" 
+          alt="Use Case" 
+          class="usecase-slide-image" 
+        />
+        <div class="usecase-slide-content">
+          <div>
+            <h3 class="usecase-slide-title">${title}</h3>
+            <p class="usecase-slide-body">${body}</p>
+          </div>
+          <div class="usecase-slide-points">
+            Points Required: ${points.toLocaleString()}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  // 3) Inject that HTML into the #useCaseSlides wrapper
+  const slidesEl = document.getElementById("useCaseSlides");
+  slidesEl.innerHTML = slideHTML;
+}
+
+let useCaseSwiper = null;
+
+function initUseCaseSwiper() {
+  useCaseSwiper = new Swiper('#useCaseSwiper', {
+    // Basic config:
+    direction: 'horizontal',   // or 'vertical' if you prefer vertical swiping
+    loop: true,                // makes it loop endlessly
+    slidesPerView: 1,          // 1 slide at a time
+    spaceBetween: 20,
+    
+    // If you want pagination or arrows:
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev',
+    },
+
+    // Add any other desired options, like autoplay:
+    autoplay: {
+      delay: 4000,   // 4 seconds
+      disableOnInteraction: false,
+    },
+  });
+}
+
 /*******************************************************
  * BUILD OUTPUT => TRAVEL / CASH
  *******************************************************/
@@ -584,6 +650,25 @@ function buildOutputRows(viewType) {
         </div>
       `;
     }
+
+    function buildOutputRows(viewType) {
+  // (Your existing chart + pie code)
+
+  // Then build the list of all possible recommended use cases for all programs:
+  const allUseCases = gatherAllRecommendedUseCases(); // your own logic
+
+  // If you want the slider to show only for “travel” view or always, you can decide:
+  if (viewType === "travel") {
+    buildUseCaseSlides(allUseCases);
+    if (!useCaseSwiper) {
+      initUseCaseSwiper();
+    } else {
+      // If the swiper already exists, just update it:
+      useCaseSwiper.update();
+    }
+  }
+}
+
 
     $("#output-programs-list").append(rowHtml);
   });
