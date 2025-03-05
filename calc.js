@@ -311,14 +311,27 @@ function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
 
+  // Points persistence (already in place):
   const existingPoints = pointsMap[recordId] || 0;
   const formattedPoints = existingPoints ? existingPoints.toLocaleString() : "";
+
+  // Pull the program’s logo URL, if it exists:
+  const logoUrl = prog["Brand Logo URL"] || "";
+  const programName = prog["Program Name"] || "Unnamed Program";
 
   const rowHTML = `
     <div class="program-row" data-record-id="${recordId}">
       <div style="display:flex; align-items:center; gap:0.75rem;">
-        <!-- Possibly show a program logo -->
-        <span class="program-name">${prog["Program Name"] || "Unnamed Program"}</span>
+        ${
+          logoUrl
+            ? `<img 
+                 src="${logoUrl}" 
+                 alt="${programName} logo"
+                 style="width:50px; height:auto;"
+               />`
+            : ""
+        }
+        <span class="program-name">${programName}</span>
       </div>
       <div style="display:flex; align-items:center; gap:1rem;">
         <div class="dollar-input-container">
@@ -335,10 +348,10 @@ function addProgramRow(recordId) {
       </div>
     </div>
   `;
-
   $("#program-container").append(rowHTML);
   calculateTotal();
 }
+
 
 /*******************************************************
  * TOGGLE SEARCH ITEM
