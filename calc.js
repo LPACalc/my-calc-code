@@ -753,57 +753,68 @@ function renderPieChartProgramShare(gatheredData) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  let slices = [];
-
-  // 1) total points
+  // 1) Calculate total points
   let totalPoints = 0;
   gatheredData.forEach(item => { totalPoints += item.points; });
+
+  // 2) If user has 0 points, show "No data" message
   if (totalPoints < 1) {
-    // No points => blank chart
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.font = "14px sans-serif";
     ctx.fillStyle = "#999";
-    ctx.fillText("No points entered.", canvas.width/2 - 40, canvas.height/2);
+    ctx.fillText("No points entered.", canvas.width / 2 - 40, canvas.height / 2);
+    // Remove any mouse handlers
     canvas.onmousemove = null;
     canvas.onmouseleave = null;
     return;
   }
 
-  // 2) also get travel/cash for each
+  // 3) Also gather travel/cash values for each
   gatheredData.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) {
       item.travelVal = 0;
-      item.cashVal   = 0;
+      item.cashVal = 0;
     } else {
       item.travelVal = item.points * (prog["Travel Value"] || 0);
       item.cashVal   = item.points * (prog["Cash Value"]   || 0);
     }
   });
 
-  function drawPie(highlightIndex = -1) {
+  // We'll maintain a global array of slices
+  let slices = [];
+
+  // Redraw everything, including hovered highlight
+  function drawDonut(highlightIndex = -1) {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const centerX = canvas.width/2;
-    const centerY = canvas.height/2;
-    const radius  = Math.min(centerX, centerY) * 0.8;
+    // Center and radius
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    // Slightly larger radius so donut is bigger in the container
+    const outerRadius = Math.min(centerX, centerY) * 0.9;
+    const innerRadius = outerRadius * 0.55; // Adjust for donut thickness
 
-    slices = [];
     let startAngle = 0;
+    slices = []; // Reset slices array
+
+    // Build slice geometry
     gatheredData.forEach((item, idx) => {
-      if (item.points < 1) return;
+      if (item.points < 1) return; // skip zero
       const fraction   = item.points / totalPoints;
       const sliceAngle = fraction * 2 * Math.PI;
       const endAngle   = startAngle + sliceAngle;
       const midAngle   = startAngle + sliceAngle / 2;
 
-      // color
+      // If you stored a custom color for each program, you can use that;
+      // else pick something consistent or random
       let sliceColor = "#cccccc";
       const prog = loyaltyPrograms[item.recordId];
       if (prog?.["Color"]) {
         sliceColor = prog["Color"];
       }
 
+      // Push data into slices array
       slices.push({
         index: idx,
         startAngle,
@@ -815,65 +826,97 @@ function renderPieChartProgramShare(gatheredData) {
         travelVal: item.travelVal,
         cashVal: item.cashVal
       });
+
       startAngle = endAngle;
     });
 
-    // draw slices
+    // Draw each slice as part of a “donut” shape
     slices.forEach((s, i) => {
-      const isHighlighted = (i === highlightIndex);
-      const offset = isHighlighted ? 10 : 0;
+      const isHovered = (i === highlightIndex);
+      // Slight “explode” offset if hovered
+      const offset = isHovered ? 10 : 0;
 
+      // Compute shift in the direction of the midAngle
       const cx = centerX + offset * Math.cos(s.midAngle);
       const cy = centerY + offset * Math.sin(s.midAngle);
 
       ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, radius, s.startAngle, s.endAngle);
+      // Outer arc
+      ctx.arc(cx, cy, outerRadius, s.startAngle, s.endAngle, false);
+      // Inner arc in reverse
+      ctx.arc(cx, cy, innerRadius, s.endAngle, s.startAngle, true);
       ctx.closePath();
 
       ctx.fillStyle = s.color;
       ctx.fill();
-
-      // Show XX% in white
-      const percentStr = (s.fraction * 100).toFixed(0) + "%";
-      ctx.fillStyle    = "#000";
-      ctx.font         = "bold 14px sans-serif";
-      ctx.textAlign    = "center";
-      ctx.textBaseline = "middle";
-
-      const labelR = radius * 0.65;
-      const lx     = cx + labelR * Math.cos(s.midAngle);
-      const ly     = cy + labelR * Math.sin(s.midAngle);
-      ctx.fillText(percentStr, lx, ly);
     });
+
+    // If we are hovering a slice, draw text in the donut hole
+    if (highlightIndex !== -1) {
+      const slice = slices[highlightIndex];
+      const pctStr = (slice.fraction * 100).toFixed(1) + "%";
+
+      // We’ll draw up to four lines in the center
+      // (1) Program Name
+      // (2) Percentage
+      // (3) Travel Value
+      // (4) Cash Value
+      const lines = [
+        slice.programName,
+        `Share: ${pctStr}`,
+        `Travel: $${slice.travelVal.toFixed(2)}`,
+        `Cash:   $${slice.cashVal.toFixed(2)}`
+      ];
+
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillStyle = "#000";
+
+      // Start them slightly above center so all lines fit
+      // ~ lineHeight of 18 px
+      const lineHeight = 18;
+      let centerYStart = centerY - (lineHeight * (lines.length - 1)) / 2;
+
+      // Bold the program name; normal for the rest
+      ctx.font = "bold 14px sans-serif";
+      ctx.fillText(lines[0], centerX, centerYStart);
+
+      ctx.font = "14px sans-serif";
+      lines.slice(1).forEach((line, index) => {
+        const y = centerYStart + (lineHeight * (index + 1));
+        ctx.fillText(line, centerX, y);
+      });
+    }
   }
 
-  // draw initially
-  drawPie(-1);
+  // Initial draw with no highlight
+  drawDonut(-1);
 
-  // onmousemove => highlight/tooltip
-  canvas.onmousemove = function(e) {
+  // Mousemove => figure out which slice is hovered
+  canvas.onmousemove = function (e) {
     const rect = canvas.getBoundingClientRect();
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    const centerX = canvas.width/2;
-    const centerY = canvas.height/2;
-    const dx = mouseX - centerX;
-    const dy = mouseY - centerY;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    const maxRadius = Math.min(centerX, centerY)*0.8;
+    const dx = mouseX - canvas.width / 2;
+    const dy = mouseY - canvas.height / 2;
+    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist > maxRadius) {
-      // outside the pie
-      drawPie(-1);
+    // If outside the outer donut ring or inside the inner ring, no hover
+    const center = Math.min(canvas.width, canvas.height) / 2;
+    const outerRadius = center * 0.9;
+    const innerRadius = outerRadius * 0.55;
+
+    if (dist > outerRadius || dist < innerRadius) {
+      drawDonut(-1);
       return;
     }
 
-    // angle
+    // Convert mouse angle
     let angle = Math.atan2(dy, dx);
-    if (angle < 0) angle += 2*Math.PI;
+    if (angle < 0) angle += 2 * Math.PI;
 
+    // Find slice
     let foundIndex = -1;
     slices.forEach((s, i) => {
       if (angle >= s.startAngle && angle < s.endAngle) {
@@ -881,86 +924,15 @@ function renderPieChartProgramShare(gatheredData) {
       }
     });
 
-    drawPie(foundIndex);
-
-    // If we found a slice, show tooltip
-    if (foundIndex !== -1) {
-      const s = slices[foundIndex];
-
-      // Build your new layout:
-      //  1) Program name (centered, bold)
-      //  2) "Points %:  XX"
-      //  3) "Travel Value: $XX"
-      //  4) "Cash Value: $XX"
-      // We do “XX%” => (s.fraction*100).toFixed(1) or (0)
-      const fractionPct = (s.fraction * 100).toFixed(1) + "%";
-
-      // We'll do 4 lines:
-      const textLines = [
-        { text: s.programName, align: "center", bold: true },
-        { text: `Points %: ${fractionPct}`, align: "left", bold: true },
-        { text: `Travel Value: $${s.travelVal.toFixed(2)}`, align: "left", bold: true },
-        { text: `Cash Value: $${s.cashVal.toFixed(2)}`,    align: "left", bold: true }
-      ];
-
-      // measure
-      ctx.font = "14px sans-serif";
-      let maxWidth = 0;
-      textLines.forEach(line => {
-        // temporarily set bold if needed
-        const measureFont = line.bold ? "bold 14px sans-serif" : "14px sans-serif";
-        ctx.font = measureFont;
-        const w = ctx.measureText(line.text).width;
-        if (w > maxWidth) maxWidth = w;
-      });
-
-      // revert
-      ctx.font = "14px sans-serif";
-
-      const lineHeight = 18;
-      const padding    = 8;
-      let boxWidth     = maxWidth + padding*2;
-      let boxHeight    = lineHeight * textLines.length + padding*2;
-
-      let boxX = mouseX + 10;
-      let boxY = mouseY + 10;
-      // ensure it’s on-canvas
-      if (boxX + boxWidth > canvas.width) {
-        boxX = canvas.width - boxWidth - 5;
-      }
-      if (boxY + boxHeight > canvas.height) {
-        boxY = canvas.height - boxHeight - 5;
-      }
-
-      // Draw white box
-      ctx.fillStyle = "#fff";
-      ctx.fillRect(boxX, boxY, boxWidth, boxHeight);
-      ctx.strokeStyle = "#333";
-      ctx.strokeRect(boxX, boxY, boxWidth, boxHeight);
-
-      // Render lines
-      let yCursor = boxY + padding;
-      textLines.forEach(line => {
-        // set bold if needed
-        ctx.font = line.bold ? "bold 14px sans-serif" : "14px sans-serif";
-
-        if (line.align === "center") {
-          ctx.textAlign = "center";
-          ctx.fillText(line.text, boxX + boxWidth/2, yCursor);
-        } else {
-          ctx.textAlign = "left";
-          ctx.fillText(line.text, boxX + padding, yCursor);
-        }
-        yCursor += lineHeight;
-      });
-    }
+    drawDonut(foundIndex);
   };
 
-  // remove highlight on leave
-  canvas.onmouseleave = function() {
-    drawPie(-1);
+  // Mouse leaves => no slice hovered
+  canvas.onmouseleave = function () {
+    drawDonut(-1);
   };
 }
+
 
 
 
