@@ -177,6 +177,9 @@ img {
 #modal-close-btn:hover {
   opacity: 0.7;
 }
+   .output-state-bg {
+background-color: #f5f5f5 !important; 
+    }
 
 
 /*******************************************************
