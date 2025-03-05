@@ -561,6 +561,8 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   align-items: center;
   justify-content: center;
   margin-top: 4.5rem;
+  padding: 1rem;
+  background=color: #fff;
 }
 .state-header .state-title {
   margin: 0 auto;
