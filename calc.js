@@ -611,327 +611,150 @@ function buildOutputRows(viewType) {
 }
 
 
-function renderValueComparisonChart(travelValue, cashValue) {
-  const canvas = document.getElementById("valueComparisonChart");
-  if (!canvas) return;
+<canvas id="valueComparisonChart" width="400" height="280"></canvas>
 
-  const ctx = canvas.getContext("2d");
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+<script>
+// Suppose you have variables travelValue, cashValue, and conciergeVal
+// from your existing logic
+const travelValue = 1500;
+const cashValue   = 900;
+const conciergeVal= travelValue > 1000 ? 125 : 99;
 
-  // Colors
-  const colorTravel    = "#042940";
-  const colorCash      = "#005C53";
-  const colorConcierge = "#D6D58E";
+// Build a bar chart
+const barCtx = document.getElementById("valueComparisonChart").getContext("2d");
 
-  // Concierge logic => $125 if travel>1000 else $99
-  const conciergeVal = (travelValue > 1000) ? 125 : 99;
-
-  // Figure out max
-  let maxVal = Math.max(travelValue, cashValue, conciergeVal);
-  if (maxVal < 1) maxVal = 1;
-
-  // Pick step
-  function pickStep(v) {
-    if (v < 50)    return 15;
-    if (v < 100)   return 25;
-    if (v < 500)   return 100;
-    if (v < 2000)  return 500;
-    return 2000;
-  }
-  const step = pickStep(maxVal);
-  const axisMax = step * 3; // 0.. step.. 2step.. 3step
-
-  // Chart margins
-  const marginLeft   = 100;
-  const marginRight  = 20;
-  const marginTop    = 30;   // slightly smaller top
-  const marginBottom = 30;   // slightly smaller bottom
-
-  const chartWidth  = canvas.width  - marginLeft - marginRight;
-  const chartHeight = canvas.height - marginTop  - marginBottom;
-
-  // We have 3 bars => let’s try spacing them more tightly
-  const totalBars  = 3;
-  // Instead of dividing by totalBars+1, let’s just do totalBars + 0.5 or so
-  const rowSpacing = chartHeight / (totalBars + 0.5);
-  const barHeight  = rowSpacing * 0.45;  // Slightly bigger fraction
-
-  // y positions
-  // If you want them all more compressed, you can shift them up a bit by adjusting the offset
-  const yTravel    = marginTop + (rowSpacing * 0.5) - (barHeight / 2);
-  const yCash      = marginTop + (rowSpacing * 1.5) - (barHeight / 2);
-  const yConcierge = marginTop + (rowSpacing * 2.5) - (barHeight / 2);
-
-  function xScale(val) {
-    return marginLeft + (val / axisMax) * chartWidth;
-  }
-
-  // Draw vertical grid lines
-  ctx.strokeStyle = "#ddd";
-  ctx.lineWidth   = 1;
-  for (let i = 0; i <= 3; i++) {
-    const val = i * step;
-    const xPos = xScale(val);
-    ctx.beginPath();
-    ctx.moveTo(xPos, marginTop);
-    ctx.lineTo(xPos, marginTop + chartHeight);
-    ctx.stroke();
-  }
-
-  // X-axis labels
-  ctx.font         = "12px sans-serif";
-  ctx.fillStyle    = "#333";
-  ctx.textAlign    = "center";
-  ctx.textBaseline = "top";
-  for (let i = 0; i <= 3; i++) {
-    const val = i * step;
-    const xPos = xScale(val);
-    ctx.fillText(`$${val}`, xPos, marginTop + chartHeight + 4);
-  }
-
-  // Helper => draw bar
-  function drawBar(yPos, barValue, fillColor) {
-    const barLeft  = marginLeft;
-    const barRight = xScale(barValue);
-    const barWidth = barRight - barLeft;
-
-    ctx.fillStyle = fillColor;
-    ctx.fillRect(barLeft, yPos, barWidth, barHeight);
-
-    // 2 decimal places
-    const valStr = `$${barValue.toLocaleString(undefined, {
-      minimumFractionDigits:2,
-      maximumFractionDigits:2
-    })}`;
-    ctx.font     = "bold 14px sans-serif";
-    const textW  = ctx.measureText(valStr).width + 10;
-    const textX  = barLeft + barWidth/2;
-    const textY  = yPos + barHeight/2;
-
-    if (barWidth >= textW) {
-      ctx.fillStyle    = "#fff";
-      ctx.textAlign    = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillText(valStr, textX, textY);
-    } else {
-      ctx.fillStyle    = "#000";
-      ctx.textAlign    = "left";
-      ctx.textBaseline = "middle";
-      ctx.fillText(valStr, barRight + 4, textY);
+// Provide labels & data
+const barData = {
+  labels: ["Travel", "Cash", "Concierge"],
+  datasets: [
+    {
+      label: "Value",
+      data: [travelValue, cashValue, conciergeVal],
+      backgroundColor: ["#042940", "#005C53", "#D6D58E"] // or any colors you like
     }
-  }
+  ]
+};
 
-  // Helper => left label
-  function drawBarLabel(label, yPos) {
-    ctx.font         = "14px sans-serif";
-    ctx.fillStyle    = "#333";
-    ctx.textAlign    = "right";
-    ctx.textBaseline = "middle";
-    ctx.fillText(label, marginLeft - 8, yPos + (barHeight/2));
-  }
-
-  // Draw bars
-  drawBarLabel("Travel",    yTravel);
-  drawBar(yTravel,    travelValue,    colorTravel);
-
-  drawBarLabel("Cash",      yCash);
-  drawBar(yCash,      cashValue,      colorCash);
-
-  drawBarLabel("Concierge", yConcierge);
-  drawBar(yConcierge, conciergeVal,   colorConcierge);
-}
-
-
-
-
-
-
-
-
-function renderPieChartProgramShare(gatheredData) {
-  const canvas = document.getElementById('programSharePieChart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-
-  // 1) Calculate total points
-  let totalPoints = 0;
-  gatheredData.forEach(item => { totalPoints += item.points; });
-
-  // 2) If user has 0 points, show "No data" message
-  if (totalPoints < 1) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.font = "14px sans-serif";
-    ctx.fillStyle = "#999";
-    ctx.fillText("No points entered.", canvas.width / 2 - 40, canvas.height / 2);
-    // Remove any mouse handlers
-    canvas.onmousemove = null;
-    canvas.onmouseleave = null;
-    return;
-  }
-
-  // 3) Also gather travel/cash values for each
-  gatheredData.forEach(item => {
-    const prog = loyaltyPrograms[item.recordId];
-    if (!prog) {
-      item.travelVal = 0;
-      item.cashVal = 0;
-    } else {
-      item.travelVal = item.points * (prog["Travel Value"] || 0);
-      item.cashVal   = item.points * (prog["Cash Value"]   || 0);
-    }
-  });
-
-  // We'll maintain a global array of slices
-  let slices = [];
-
-  // Redraw everything, including hovered highlight
-  function drawDonut(highlightIndex = -1) {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    // Center and radius
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    // Slightly larger radius so donut is bigger in the container
-    const outerRadius = Math.min(centerX, centerY) * 0.9;
-    const innerRadius = outerRadius * 0.55; // Adjust for donut thickness
-
-    let startAngle = 0;
-    slices = []; // Reset slices array
-
-    // Build slice geometry
-    gatheredData.forEach((item, idx) => {
-      if (item.points < 1) return; // skip zero
-      const fraction   = item.points / totalPoints;
-      const sliceAngle = fraction * 2 * Math.PI;
-      const endAngle   = startAngle + sliceAngle;
-      const midAngle   = startAngle + sliceAngle / 2;
-
-      // If you stored a custom color for each program, you can use that;
-      // else pick something consistent or random
-      let sliceColor = "#cccccc";
-      const prog = loyaltyPrograms[item.recordId];
-      if (prog?.["Color"]) {
-        sliceColor = prog["Color"];
+const barConfig = {
+  type: "bar",
+  data: barData,
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: "Dollar Value"
+        }
       }
-
-      // Push data into slices array
-      slices.push({
-        index: idx,
-        startAngle,
-        endAngle,
-        midAngle,
-        fraction,
-        color: sliceColor,
-        programName: item.programName,
-        travelVal: item.travelVal,
-        cashVal: item.cashVal
-      });
-
-      startAngle = endAngle;
-    });
-
-    // Draw each slice as part of a “donut” shape
-    slices.forEach((s, i) => {
-      const isHovered = (i === highlightIndex);
-      // Slight “explode” offset if hovered
-      const offset = isHovered ? 10 : 0;
-
-      // Compute shift in the direction of the midAngle
-      const cx = centerX + offset * Math.cos(s.midAngle);
-      const cy = centerY + offset * Math.sin(s.midAngle);
-
-      ctx.beginPath();
-      // Outer arc
-      ctx.arc(cx, cy, outerRadius, s.startAngle, s.endAngle, false);
-      // Inner arc in reverse
-      ctx.arc(cx, cy, innerRadius, s.endAngle, s.startAngle, true);
-      ctx.closePath();
-
-      ctx.fillStyle = s.color;
-      ctx.fill();
-    });
-
-    // If we are hovering a slice, draw text in the donut hole
-    if (highlightIndex !== -1) {
-      const slice = slices[highlightIndex];
-      const pctStr = (slice.fraction * 100).toFixed(1) + "%";
-
-      // We’ll draw up to four lines in the center
-      // (1) Program Name
-      // (2) Percentage
-      // (3) Travel Value
-      // (4) Cash Value
-      const lines = [
-        slice.programName,
-        `Share: ${pctStr}`,
-        `Travel: $${slice.travelVal.toFixed(2)}`,
-        `Cash:   $${slice.cashVal.toFixed(2)}`
-      ];
-
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-      ctx.fillStyle = "#000";
-
-      // Start them slightly above center so all lines fit
-      // ~ lineHeight of 18 px
-      const lineHeight = 18;
-      let centerYStart = centerY - (lineHeight * (lines.length - 1)) / 2;
-
-      // Bold the program name; normal for the rest
-      ctx.font = "bold 14px sans-serif";
-      ctx.fillText(lines[0], centerX, centerYStart);
-
-      ctx.font = "14px sans-serif";
-      lines.slice(1).forEach((line, index) => {
-        const y = centerYStart + (lineHeight * (index + 1));
-        ctx.fillText(line, centerX, y);
-      });
+    },
+    plugins: {
+      legend: { display: false }, // Hide legend if there's only one dataset
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            // Format as currency
+            const val = context.parsed.y || 0;
+            return "$" + val.toLocaleString();
+          }
+        }
+      }
     }
   }
+};
 
-  // Initial draw with no highlight
-  drawDonut(-1);
+// Create the bar chart
+const valueComparisonChart = new Chart(barCtx, barConfig);
+</script>
 
-  // Mousemove => figure out which slice is hovered
-  canvas.onmousemove = function (e) {
-    const rect = canvas.getBoundingClientRect();
-    const mouseX = e.clientX - rect.left;
-    const mouseY = e.clientY - rect.top;
 
-    const dx = mouseX - canvas.width / 2;
-    const dy = mouseY - canvas.height / 2;
-    const dist = Math.sqrt(dx * dx + dy * dy);
 
-    // If outside the outer donut ring or inside the inner ring, no hover
-    const center = Math.min(canvas.width, canvas.height) / 2;
-    const outerRadius = center * 0.9;
-    const innerRadius = outerRadius * 0.55;
 
-    if (dist > outerRadius || dist < innerRadius) {
-      drawDonut(-1);
-      return;
-    }
 
-    // Convert mouse angle
-    let angle = Math.atan2(dy, dx);
-    if (angle < 0) angle += 2 * Math.PI;
 
-    // Find slice
-    let foundIndex = -1;
-    slices.forEach((s, i) => {
-      if (angle >= s.startAngle && angle < s.endAngle) {
-        foundIndex = i;
-      }
-    });
 
-    drawDonut(foundIndex);
+
+
+<canvas id="programSharePieChart" width="400" height="280"></canvas>
+
+<script>
+// Suppose you have an array of data for each chosen program:
+// e.g. something like: 
+//   gatheredData = [
+//     { programName: "Amex MR", points: 50000, travelVal: 700, cashVal: 500 },
+//     { programName: "Chase UR", points: 40000, travelVal: 600, cashVal: 400 },
+//     { programName: "AA Miles", points: 30000, travelVal: 420, cashVal: 300 }
+//   ];
+// We'll just mock something here:
+
+const gatheredData = [
+  { programName: "Amex MR",  points: 50000, travelVal: 700, cashVal: 500 },
+  { programName: "Chase UR", points: 40000, travelVal: 600, cashVal: 400 },
+  { programName: "AA Miles", points: 30000, travelVal: 420, cashVal: 300 }
+];
+
+// Build the arrays for labels and data
+const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
+if (totalPoints < 1) {
+  // If no points, you could hide the chart or show a "no data" message
+} else {
+  const donutLabels = gatheredData.map(x => x.programName);
+  const donutValues = gatheredData.map(x => x.points);
+
+  // Optional: pick background colors, one per slice
+  // If you have a color in your data, you can map them:
+  // e.g. x.color or some default
+  const donutColors = ["#5bc0eb", "#fde74c", "#9bc53d", "#e55934", "#fa7921"];
+
+  const donutData = {
+    labels: donutLabels,
+    datasets: [{
+      data: donutValues,
+      backgroundColor: donutColors,
+      // "hoverOffset" sets how far the slice pulls out on hover
+      hoverOffset: 10
+    }]
   };
 
-  // Mouse leaves => no slice hovered
-  canvas.onmouseleave = function () {
-    drawDonut(-1);
+  const donutConfig = {
+    type: "doughnut",
+    data: donutData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      // Show % tooltips or raw points, etc.
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const label = context.label || "";
+              const value = context.parsed || 0;
+              const pct = ((value / totalPoints) * 100).toFixed(1) + "%";
+              return `${label}: ${value.toLocaleString()} pts (${pct})`;
+            }
+          }
+        },
+        legend: {
+          position: "bottom"
+        }
+      },
+      // Example: Turn the donut hole into a “responsive center label”
+      // using a Chart.js plugin approach
+      cutout: "55%", // thickness of the donut hole
+      onHover: function(evt, elements) {
+        // Change cursor to pointer on hover
+        evt.native?.target.style.cursor = elements.length ? "pointer" : "default";
+      }
+    }
   };
+
+  const pieCtx = document.getElementById("programSharePieChart").getContext("2d");
+  const programSharePieChart = new Chart(pieCtx, donutConfig);
 }
+</script>
+
 
 
 
