@@ -1090,3 +1090,43 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   }
 }
 
+#desktop-graphs-row {
+  display: flex;
+  gap: 1rem;
+  /* If you want it hidden on small screens, keep your existing media queries. */
+}
+
+/* The “card” for the bar chart => 60% wide, white, radius */
+.bar-chart-card {
+  flex: 0 0 60%;
+  max-width: 60%;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+/* Title inside the bar-chart-card */
+.bar-card-title {
+  margin-top: 0;
+  margin-bottom: 1rem; /* spacing above the canvas */
+  font-size: 1.25rem;
+  color: #333;
+  text-align: center;  /* or left, if you prefer */
+}
+
+/* The pie chart => 40% */
+.pie-chart-container {
+  flex: 0 0 40%;
+  max-width: 40%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+/* If you want the pie heading in white, you can do this: */
+.pie-chart-container h3 {
+  color: #fff;
+}
+
