@@ -587,6 +587,127 @@ function initUseCaseSwiper() {
   });
 }
 
+// -----------------------------------------
+// Render the Horizontal Bar Chart
+// -----------------------------------------
+function renderValueComparisonChart(travelValue, cashValue) {
+  const barCanvas = document.getElementById("valueComparisonChart");
+  if (!barCanvas) return;
+
+  // Optional extra data point for 'Concierge' or anything else:
+  const conciergeVal = travelValue > 1000 ? 125 : 99;
+  const ctx = barCanvas.getContext("2d");
+
+  const data = {
+    labels: ["Travel", "Cash", "Concierge"],
+    datasets: [
+      {
+        label: "Value",
+        data: [travelValue, cashValue, conciergeVal],
+        // You can remove or change these “backgroundColor” entries if you want them all the same
+        backgroundColor: ["#042940", "#005C53", "#D6D58E"]
+      }
+    ]
+  };
+
+  const config = {
+    type: "bar",
+    data,
+    options: {
+      // Let’s do horizontal bars by flipping the axis
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Dollar Value"
+          }
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const val = context.parsed.x || 0;
+              return "$" + val.toLocaleString();
+            }
+          }
+        }
+      }
+    }
+  };
+
+  new Chart(ctx, config);
+}
+
+// -----------------------------------------
+// Render the Pie / Doughnut Chart
+// -----------------------------------------
+function renderPieChartProgramShare(gatheredData) {
+  const pieCanvas = document.getElementById("programSharePieChart");
+  if (!pieCanvas) return;
+
+  const ctx = pieCanvas.getContext("2d");
+
+  // Sum up total user points for all chosen programs
+  const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
+  if (totalPoints < 1) {
+    // If the user has 0 points, no chart to show
+    ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
+    return;
+  }
+
+  // Build arrays for the chart
+  const donutLabels = gatheredData.map(x => x.programName);
+  const donutValues = gatheredData.map(x => x.points);
+
+  // If you saved a "Color" per program in your loyaltyPrograms object, use it; otherwise default
+  const donutColors = gatheredData.map(item => {
+    const rec = loyaltyPrograms[item.recordId];
+    return rec && rec["Color"] ? rec["Color"] : "#cccccc";
+  });
+
+  const data = {
+    labels: donutLabels,
+    datasets: [
+      {
+        data: donutValues,
+        backgroundColor: donutColors,
+        hoverOffset: 10
+      }
+    ]
+  };
+
+  const config = {
+    type: "doughnut",
+    data,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: "55%", // how large the donut hole is
+      plugins: {
+        legend: { position: "bottom" },
+        tooltip: {
+          callbacks: {
+            label: function (context) {
+              const val = context.parsed || 0;
+              const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
+              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
+            }
+          }
+        }
+      }
+    }
+  };
+
+  new Chart(ctx, config);
+}
+
+
 function gatherAllRecommendedUseCases() {
   // 1) Figure out how many points the user has in each chosen program.
   //    gatherProgramData() returns an array of { recordId, programName, points }.
