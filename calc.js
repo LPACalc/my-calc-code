@@ -563,13 +563,9 @@ let useCaseSwiper = null;
 
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
-    // Basic config:
-    direction: 'horizontal',   // or 'vertical' if you prefer vertical swiping
-    loop: true,                // makes it loop endlessly
-    slidesPerView: 1,          // 1 slide at a time
-    spaceBetween: 20,
-    
-    // If you want pagination or arrows:
+    slidesPerView: 1,    // one slide at a time
+    spaceBetween: 0,     // or 10, or whatever small gap you like
+    loop: true,
     pagination: {
       el: '.swiper-pagination',
       clickable: true,
@@ -578,14 +574,13 @@ function initUseCaseSwiper() {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev',
     },
-
-    // Add any other desired options, like autoplay:
     autoplay: {
-      delay: 4000,   // 4 seconds
+      delay: 4000,
       disableOnInteraction: false,
     },
   });
 }
+
 
 // -----------------------------------------
 // Render the Horizontal Bar Chart
