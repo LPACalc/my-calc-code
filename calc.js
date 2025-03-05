@@ -1372,7 +1372,7 @@ $("#input-back-btn").on("click", function () {
     }
   });
 
-  // When user clicks the × remove button on a single row
+// Remove single program row
 $(document).on("click", ".remove-btn", function() {
   const rowEl   = $(this).closest(".program-row");
   const recordId = rowEl.data("record-id");
@@ -1384,12 +1384,26 @@ $(document).on("click", ".remove-btn", function() {
   delete pointsMap[recordId];
 });
 
-// If “Clear All” is clicked, empty chosenPrograms and also:
+// Define a proper clearAllPrograms() function
 function clearAllPrograms() {
+  // Reset arrays/maps
   chosenPrograms = [];
-  pointsMap = {}; // reset everything
-  ...
+  pointsMap = {};
+
+  // Remove all program rows
+  $("#program-container").empty();
+
+  // Also update your UI states
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
 }
+
+// “Clear All” => remove everything
+$("#clear-all-btn").on("click", function () {
+  logSessionEvent("clear_all_clicked");
+  clearAllPrograms();
+});
 
 
   $(document).on("input", ".points-input", function() {
