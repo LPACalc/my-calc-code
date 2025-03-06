@@ -554,6 +554,7 @@ let useCaseSwiper = null;
 
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
+      slidesPerView: 1,
     direction: 'horizontal',
     slidesPerView: 1,  // only 1 visible at a time
     loop: true,
