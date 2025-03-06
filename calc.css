@@ -1,6 +1,5 @@
-
 /*******************************************************
- * BASE RESETS
+ * 1) BASE RESETS
  *******************************************************/
 * {
   margin: 0;
@@ -14,8 +13,7 @@ html, body {
   font-family: "Inter", Arial, sans-serif;
   line-height: 1.5;
   color: #1D3A5F;
-    overflow-x: hidden; /* no horizontal scroll, but vertical is normal */
-
+  overflow-x: hidden; /* no horizontal scroll, but vertical is normal */
 }
 
 button {
@@ -32,7 +30,7 @@ img {
 }
 
 /*******************************************************
- * PAGE LAYOUT => left + right
+ * 2) PAGE LAYOUT => LEFT + RIGHT
  *******************************************************/
 .page-wrap {
   display: flex;
@@ -52,7 +50,6 @@ img {
   justify-content: center;
   overflow: hidden;
 }
-
 #left-col-logo {
   position: absolute;
   top: 50%;
@@ -66,14 +63,15 @@ img {
   display: flex;
   flex-direction: column;
 }
-
 .container {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
-/* The overlay (similar to #report-modal, but for “Explore All” ) */
+/*******************************************************
+ * 3) “ALL PROGRAMS” MODAL
+ *******************************************************/
 #all-programs-modal {
   position: fixed;
   top: 0; 
@@ -82,13 +80,11 @@ img {
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
   z-index: 9999;     
-  display: none;     /* Hidden by default. We'll add .show to open it */
+  display: none; /* “.show” => display block */
 }
-
-/* The content box => bottom sheet on mobile. On desktop, you can keep it hidden or style differently. */
 #all-programs-modal-content {
   position: absolute;
-  top: 50%;  /* default for desktop, but we’ll override for mobile */
+  top: 50%;  /* default for desktop */
   left: 50%;
   transform: translate(-50%, -50%);
   background: #fff;
@@ -101,13 +97,9 @@ img {
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
-
-/* “Show” class => display the overlay */
 #all-programs-modal.show {
   display: block;
 }
-
-/* The close button in top-right corner */
 #all-programs-close-btn {
   float: right;
   font-size: 24px;
@@ -121,34 +113,29 @@ img {
 /* The scrollable list inside the modal */
 .all-programs-list {
   margin-top: 1rem;
-  max-height: calc(100vh - 160px); /* ensure it’s scrollable if many programs */
+  max-height: calc(100vh - 160px);
   overflow-y: auto;
   padding-right: 0.5rem; /* optional for scrollbar spacing */
 }
 
-/* Each row in the “all programs” list */
+/* Each row in “All Programs” modal */
 .all-program-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.7rem;
   border-bottom: 1px solid #dce3eb;
-  cursor: pointer; /* entire row is clickable or just the circle? up to you */
+  cursor: pointer;
 }
-
-/* Left side => logo + program name */
 .all-program-row .row-left {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
-
 .all-program-row img {
   width: 40px;
   height: auto;
 }
-
-/* The circle on the right => same style as your popular “.add-btn” */
 .all-program-row .circle-btn {
   width: 24px;
   height: 24px;
@@ -161,20 +148,16 @@ img {
   justify-content: center;
   font-weight: bold;
 }
-
-/* If selected => highlight background or circle color? Up to you. 
-   Let's mimic the “top-program-box.selected-state .add-btn” approach:
-*/
 .all-program-row.selected-state .circle-btn {
   background-color: #1a2732;
   border-color: #1a2732;
   color: #fff;
 }
 
-/* Show the Explore All button only on mobile */
+/* Mobile => bottom sheet approach */
 @media (max-width: 576px) {
   .explore-all-btn {
-    display: inline-block !important;
+    display: inline-block !important; 
     background-color: #f0f0f0;
     color: #333;
     font-size: 0.9rem;
@@ -182,8 +165,6 @@ img {
     margin-left: 0.5rem;
     border-radius: 6px;
   }
-
-  /* Turn the modal content into a bottom sheet */
   #all-programs-modal-content {
     top: auto !important;
     bottom: 0 !important;
@@ -194,24 +175,18 @@ img {
     border-radius: 12px 12px 0 0 !important;
     transition: transform 0.5s ease;
   }
-
   #all-programs-modal.show #all-programs-modal-content {
     transform: translateY(0);
   }
 }
 
-/* If you want the same bottom-sheet approach on desktop, remove 
-   the above “top: auto” + “bottom: 0” inside the media query. 
-   Or keep it as is to do a center modal on bigger screens. */
-
-
 /*******************************************************
- * DESKTOP ONLY CHANGES => (min-width: 992px)
+ * 4) DESKTOP ONLY => (min-width: 992px)
  *******************************************************/
 @media (min-width: 992px) {
-  /* Show left column on desktop after triggered by JS (if needed) */
+  /* Possibly show .left-column if needed on large screens */
 
-  /* Program name => bigger font */
+  /* Program row => bigger images */
   .program-row .program-name {
     font-size: 1.2rem !important;
   }
@@ -234,13 +209,13 @@ img {
 
   /* Points info boxes => more padding, border, etc. */
   .points-info-box.input-points-info,
-  .points-info-box.calc-points-info {    padding: 20px 40px;
+  .points-info-box.calc-points-info {
+    padding: 20px 40px;
     border: 1px solid #DFE5EB;
     margin: 1rem 0;
     align-items: center;
     gap: 24px;
   }
-
   .infobox-desktop-text {
     font-size: 1rem;
     line-height: 1.4;
@@ -251,10 +226,9 @@ img {
     border: none !important;
     outline: none !important;
     width: 120px !important; /* bigger on desktop */
-    
   }
 
-  /* Modal: center in the right column => offset left: ~60% (optional) */
+  /* Center the #report-modal in right column? */
   #report-modal-content {
     left: 60% !important;
     transform: translate(-50%, -50%);
@@ -268,29 +242,25 @@ img {
     margin-bottom: 1rem;
   }
 
-  /* (1) When popular program is selected => circle is blue with white check */
+  /* top-program-box => selected => circle is blue w/ white check */
   .top-program-box.selected-state .add-btn {
-    background-color: #1a2732 !important; /* blue */
-    color: #fff !important;              /* white check */
+    background-color: #1a2732 !important;
+    color: #fff !important;
     border-color: #1a2732 !important;
   }
-
-  /* (2) & (3) Desktop pills => bigger padding, font-size, centered row */
+  /* Desktop .mini-pill => bigger */
   .mini-pill-row-desktop {
     display: flex;
     flex-wrap: wrap;
-    justify-content: center !important; /* center the entire row */
-    gap: 1rem;                          /* keep a gap between pills */
+    justify-content: center !important;
+    gap: 1rem;
   }
   .mini-pill-row-desktop .mini-pill {
     display: inline-block;
     margin-right: 8px;
     margin-bottom: 8px;
-
-    /* updated size */
     padding: 6px 30px !important;
     font-size: 1rem !important;
-
     border-radius: 9999px;
     background-color: #f0f0f0;
     color: #333;
@@ -302,103 +272,89 @@ img {
   }
 }
 
+/*******************************************************
+ * 5) MISC => MODAL-CLOSE, OUTPUT BG
+ *******************************************************/
 #modal-close-btn {
-  /* originally float:right; cursor:pointer; font-size:24px, etc. */
-  color: #1a2732;  /* Dark blue text */
-  /* If you want a hover color or effect: */
+  color: #1a2732;
 }
 #modal-close-btn:hover {
   opacity: 0.7;
 }
-   .output-state-bg {
-background-color: #f5f5f5 !important; 
-    }
-
+.output-state-bg {
+  background-color: #f5f5f5 !important;
+}
 
 /*******************************************************
- * MOBILE ONLY CHANGES => (max-width: 576px)
+ * 6) MOBILE ONLY => (max-width: 576px)
  *******************************************************/
 @media (max-width: 576px) {
 
-  
-
+  /* USECASE => narrower container, etc. */
   .usecase-slider-section {
-  margin: 2rem auto; /* space above/below */
-  background: #fff;  /* white background */
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  padding: 1rem;
-  max-width: 350px !important; 
-}
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    padding: 1rem;
+    max-width: 350px !important; 
+  }
 
-   /* Stack the bar chart card & pie chart card vertically 
-     instead of side by side */
+  /* Stack bar & pie chart vertically */
   .chart-cards-row {
-    display: block !important;        /* was flex on desktop; stack them for mobile */
+    display: block !important;
   }
   .chart-cards-row .bar-chart-card,
   .chart-cards-row .pie-chart-card {
     width: 100%!important;
     max-width: 100%!important;
-    margin-bottom: 1rem;   /* spacing between cards */
+    margin-bottom: 1rem;
   }
 
-  /* Make sure the output-programs-list doesn't overflow */
+  /* output-programs-list => optional side margin */
   #output-programs-list {
-    margin: 0 1rem;  /* optional side padding for mobile */
+    margin: 0 1rem;
   }
 
-  /* Ensure Swiper container fits narrow screens */
+  /* SWIPER => ensure no overflow */
   .swiper-container {
     width: 100% !important;
     height: auto !important;
-    overflow: hidden; /* prevents horizontal scrolling if slides are wide */
+    overflow: hidden;
   }
-
-
-
-
-    .swiper-slide {
+  .swiper-slide {
     width: 100% !important;
     box-sizing: border-box; 
   }
-
   .usecase-slide-image {
     display: block;
     width: 100%;
-    height: 200px;     
-    max-height: 200px; /* or 180px, whichever you prefer */
-    
+    height: 200px;
+    max-height: 200px;
     object-fit: cover;
   }
 
-  /* --- SHARED / GLOBAL MOBILE TWEAKS --- */
+  /* Mobile => shared tweaks */
   .state-header {
     margin-top: 2.5rem !important;
   }
-
-   .content-limiter {
+  .content-limiter {
     max-width: 100% !important;
     margin: 0 !important;
-    padding: 0 1rem !important; /* optional padding to keep some breathing room on the sides */
+    padding: 0 1rem !important;
   }
-
   .back-btn {
     margin-left: 1rem !important;
   }
-
   .points-info-box.input-points-info,
   .points-info-box.calc-points-info {
     margin: 1rem 1rem !important;
     padding: 1rem !important;
   }
-
   .infobox-desktop-text {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
   }
-
-  /* Now we have a valid selector: */
   .mobile-sticky-cta {
     background-color: #fff;
     padding: 1rem;
@@ -406,10 +362,9 @@ background-color: #f5f5f5 !important;
     border-top: 1px solid #ccc;
   }
   .started-search-area {
-    margin: 1rem 1rem !important;
+    margin: 1rem 1rem !important; 
   }
-
-  /* Remove outline color on focus for inputs, etc. */
+  /* remove focus outlines */
   input:focus,
   select:focus,
   textarea:focus,
@@ -420,20 +375,17 @@ background-color: #f5f5f5 !important;
     box-shadow: none !important;
     border-color: transparent !important;
   }
-
   .program-search-field {
     width: 100% !important;
     max-width: 100%;
     margin: 0 auto;
     padding: 1rem 2rem !important;
   }
-
   .program-search-field:focus {
     outline: none !important;
     box-shadow: none !important;
     border-color: #dfe5eb !important;
   }
-
   .clear-all-btn {
     background-color: #dc3545 !important;
     color: #fff !important;
@@ -443,50 +395,41 @@ background-color: #f5f5f5 !important;
     font-size: 0.8rem !important;
     padding: 6px 12px !important;
   }
-
   .points-options {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     white-space: nowrap;
   }
-
   #modal-email-input {
     width: 80% !important;
-    border-radius:8px;
-    
+    border-radius: 8px;
   }
-
-  /* tip-text => 1rem left & right margin */
   .tip-text {
     margin: 1rem !important;
   }
 
-  /* --- POPULAR PROGRAMS / SELECT PROGRAMS --- */
+  /* Popular programs heading => smaller on mobile */
   .popular-programs-heading {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
   }
-  .dollar-input-container{
+  .dollar-input-container {
     padding: 0rem 0.7rem 0rem 0.4rem!important;
-    
   }
-
   #selected-programs-label {
     margin-left: 1rem !important;
     font-size: 1rem !important;
     font-weight: bold !important;
-        margin-bottom: 1rem;
+    margin-bottom: 1rem;
     margin-top: 1rem;
   }
-
   #chosen-programs-row {
     margin: 0 1rem !important;
-     display: flex;
-  gap: 10px;
-  min-height: 50px;
+    display: flex;
+    gap: 10px;
+    min-height: 50px;
   }
-
   #top-programs-grid.top-programs-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
@@ -494,68 +437,57 @@ background-color: #f5f5f5 !important;
     margin: 0 1rem !important;
     gap: 0.5rem !important;
   }
-
   .top-program-label {
     font-size: 0.75rem !important;
     line-height: 1rem !important;
   }
-
   .top-program-box .add-btn {
     display: none !important;
   }
-
   .top-program-box.selected-state {
     background-color: #1a2732 !important;
     border-color: #1a2732 !important;
   }
-
   .top-program-box.selected-state .top-program-label {
     color: #fff !important;
   }
 
-  /* --- INPUT MILES & POINTS => #calculator-state --- */
+  /* Calc => bigger margin inside #program-container? */
   #calculator-state .state-header {
     margin-top: 2.5rem !important;
   }
-
   #calculator-state #program-container {
     margin: 0 1rem !important;
   }
-
   #calculator-state .program-row img {
     width: 3rem !important;
     height: auto !important;
   }
-
   .program-name {
     font-size: 0.75rem !important;
     line-height: 1rem !important;
   }
-
   .program-row,
   .output-row {
     padding: 0.5rem 0.5rem !important;
   }
-
   .points-input {
     width: 85px !important;
-    font-size:16px !important;
+    font-size: 16px !important;
   }
 
-  /* --- TRAVEL/CASH SWITCH + OUTPUT CONTAINER --- */
+  /* TRAVEL/CASH SWITCH + OUTPUT CONTAINER */
   .tc-btn-row {
-    margin: 2rem 1rem 0 1rem !important; /* top => 2rem, sides => 1rem */
+    margin: 2rem 1rem 0 1rem !important; 
   }
-
   #output-programs-container {
     margin: 0 1rem !important;
   }
+  .output-state-bg {
+    background-color: #f5f5f5 !important;
+  }
 
-    .output-state-bg {
-background-color: #f5f5f5 !important; 
-    }
-
-  /* Center “Your Total Value” on #output-state despite back btn */
+  /* center “Your PointsLens Report” */
   #output-state .state-header {
     position: relative !important;
     justify-content: center !important;
@@ -563,14 +495,14 @@ background-color: #f5f5f5 !important;
   #output-state .state-header .back-btn {
     position: absolute !important;
     left: 1rem !important;
-    margin-left: 0 !important; /* override existing margin-left */
+    margin-left: 0 !important;
   }
   #output-state .state-header .state-title {
     margin: 0 auto !important;
     text-align: center !important;
   }
 
-  /* --- MINI-PILLS => single line + smaller, updated --- */
+  /* Single-line mini-pills => smaller spacing */
   .mini-pill-row {
     display: flex !important;
     flex-wrap: nowrap !important;
@@ -578,18 +510,12 @@ background-color: #f5f5f5 !important;
     white-space: nowrap !important;
     -webkit-overflow-scrolling: touch !important;
     scroll-snap-type: x mandatory !important;
-
-    /* (2) Now gap = 0.3rem */
     gap: 0.3rem !important;
   }
-
   .mini-pill-row .mini-pill {
     flex: 0 0 auto !important;
-
-    /* (1) Updated padding => 0.4rem 0.6rem, plus top padding 0.4rem */
     padding: 0.4rem 0.6rem !important;
-    padding-top: 0.4rem !important; /* if you want to ensure top is 0.4rem explicitly */
-
+    padding-top: 0.4rem !important;
     font-size: 0.8rem !important;
     scroll-snap-align: center !important;
     margin-right: 0 !important; 
@@ -598,12 +524,9 @@ background-color: #f5f5f5 !important;
     margin-right: 0.2rem !important; 
   }
 
-  /* --- BOTTOM SHEET MODAL ON MOBILE --- */
- /* Mobile: bottom sheet approach */
-  
+  /* BOTTOM SHEET MODAL for #report-modal => mobile */
   #report-modal-content {
-    /* override the above “center screen” logic */
-   top: auto !important;
+    top: auto !important;
     left: 0 !important;
     right: 0 !important;
     bottom: 0 !important;
@@ -613,30 +536,23 @@ background-color: #f5f5f5 !important;
     transition: transform 1.0s ease;
     max-width: 600px !important;
   }
-  
-
-  /* on .show, it slides up to 0 */
   #report-modal.show #report-modal-content {
     transform: translateY(0);
   }
-
-    .clear-all-btn {
+  .clear-all-btn {
     margin-right: 1rem !important;
-
-}
+  }
 }
 
 /*******************************************************
- * HERO & CTA
+ * 7) HERO & CTA
  *******************************************************/
 .hero-section {
   position: relative;
   width: 100%;
   min-height: 100vh;
-background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg");
-  
+  background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg");
 }
-
 .hero-inner {
   display: flex;
   flex-direction: column;
@@ -647,20 +563,17 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   color: #fff;
   padding: 0 1rem;
 }
-
 .hero-cta-container {
   display: inline-flex;
   flex-wrap: wrap;
   gap: 1rem;
 }
-
 .cta-btn {
   font-size: 1rem;
   font-weight: 600;
   padding: 0.75rem 1.25rem;
   transition: all 0.2s ease;
 }
-
 .cta-dark {
   background-color: #1a2732;
   color: #fff;
@@ -668,7 +581,6 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .cta-dark:hover {
   background-color: #141d28;
 }
-
 .cta-no-border {
   background-color: #fff;
   color: #1a2732;
@@ -676,7 +588,6 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .cta-no-border:hover {
   background-color: #e0e0e0;
 }
-
 .cta-light-border {
   background-color: #fff;
   color: #1a2732;
@@ -686,20 +597,18 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   background-color: #1a2732;
   color: #fff;
 }
-
 .cta-round {
   border-radius: 9999px;
 }
 
 /*******************************************************
- * HOW IT WORKS
+ * 8) HOW IT WORKS (More details)
  *******************************************************/
 .hiw-mobile-stack {
   padding: 50px 80px 40px;
   text-align: center;
 }
 @media (min-width: 992px) {
-  /* Limit HIW images on desktop */
   .hiw-main-image {
     max-width: 60rem;
     margin: 0 auto;
@@ -739,7 +648,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * STATE HEADERS => back + title
+ * 9) STATE HEADERS => back + title
  *******************************************************/
 .state-header {
   display: flex;
@@ -757,7 +666,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * BACK BTN
+ * 10) BACK BUTTON
  *******************************************************/
 .back-btn {
   width:24px; 
@@ -771,79 +680,65 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   display:inline-block;
   width:24px; 
   height:24px;
-  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
-    no-repeat center center;
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E") no-repeat center center;
   background-size:24px 24px;
   transition:opacity 0.2s ease;
 }
 .back-btn:hover::before {
   opacity:0.7;
 }
+
+/*******************************************************
+ * 11) STAT CARDS => total points, travel, cash
+ *******************************************************/
 .stat-cards-row {
   display: flex;
-  gap: 1rem;    /* space between cards */
+  gap: 1rem;
   margin: 1rem 0;
 }
-
 .stat-card {
-  position: relative;       /* so the icon can be absolutely positioned */
-  flex: 1;                  /* distribute space evenly among the cards */
+  position: relative;
+  flex: 1;
   background-color: #fff;
   border: 1px solid #DFE5EB;
   border-radius: 6px;
-  /* Increase right padding so the text doesn't collide with the icon */
   padding: 1rem 4rem 1rem 1rem;
   min-height: 80px;
   display: flex;
   flex-direction: column;
-  justify-content: center;  /* vertically center the label + value group */
+  justify-content: center;
 }
-
 .card-label {
   font-size: 0.9rem;
   font-weight: 600;
   color: #1D3A5F;
   margin-bottom: 0.3rem;
 }
-
 .card-value {
   font-size: 1.2rem;
   font-weight: bold;
   color: #1a2732;
 }
-
-/* Row to arrange the bold value + icon horizontally */
-.value-row {
-  display: flex;
-  justify-content: space-between; /* text left, icon right */
-  align-items: center;            /* vertically center them on the same line */
-}
-
-
-/* Icon pinned to the right, vertically centered in the card */
+/* icon => right side, centered vertically */
 .card-icon {
   position: absolute;
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;  /* adjust as needed */
+  width: 32px;
   height: auto;
 }
-
-/* On mobile, stack them vertically */
 @media (max-width: 576px) {
   .stat-cards-row {
-    display: block;    /* no flex => stack */
+    display: block; /* stack them on mobile */
   }
   .stat-card {
     margin-bottom: 1rem;
   }
 }
 
-
-
 /*******************************************************
- * POINTS INFO BOX
+ * 12) POINTS INFO BOX
  *******************************************************/
 .points-info-box {
   background-color:#f5f5f7;
@@ -863,16 +758,20 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .infobox-desktop-text {
   font-size:0.9rem;
   line-height:1.4;
-   margin: 0;
+  margin: 0;
 }
 
 /*******************************************************
- * SEARCH
+ * 13) SEARCH => SINGLE .started-search-area
  *******************************************************/
+/* The main search container (desktop + mobile). On desktop, 
+   the “Explore All” button is hidden. On mobile, we display it. */
 .started-search-area {
   position:relative;
   margin:1rem 0;
 }
+
+/* The search input */
 .program-search-field {
   width:100%;
   border-radius:0.5rem;
@@ -880,6 +779,8 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   padding:1rem;
   outline:none;
 }
+
+/* The preview below the input */
 #program-preview {
   display:none;
   position:absolute;
@@ -901,8 +802,37 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   background:#f8fafd;
 }
 
+/* The Explore All button => hidden by default. 
+   We reveal it on small screens below. */
+.explore-all-btn {
+  background-color: #1a2732;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: 0.5rem;
+  /* By default => hidden (inline “display:none;”), or do it here => display:none; */
+}
+
+/* On mobile => show the button & arrange them side by side in one row. */
+@media (max-width: 576px) {
+  .started-search-area {
+    display: flex !important; 
+    align-items: center;
+  }
+  .program-search-field {
+    flex: 1; 
+    margin: 0 !important;
+  }
+  .explore-all-btn {
+    display: inline-block !important; 
+    padding: 0.75rem 1rem;
+  }
+}
+
 /*******************************************************
- * POPULAR PROGRAMS => top-programs-grid
+ * 14) POPULAR PROGRAMS GRID
  *******************************************************/
 .top-programs-grid {
   display:grid;
@@ -952,16 +882,13 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * SELECTED PROGRAMS
+ * 15) SELECTED PROGRAMS ROW
  *******************************************************/
 .selected-programs-row {
   display:flex;
   align-items:center;
   justify-content:space-between;
   margin-bottom:0.75rem;
-}
-.selected-programs-row h3 {
-
 }
 .clear-all-btn {
   display:none;
@@ -973,7 +900,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * PROGRAM & OUTPUT ROWS
+ * 16) PROGRAM & OUTPUT ROWS
  *******************************************************/
 .program-row,
 .output-row {
@@ -998,7 +925,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * DOLLAR INPUT => remove black border
+ * 17) DOLLAR INPUT
  *******************************************************/
 .dollar-input-container {
   border:1px solid #DFE5EB;
@@ -1018,7 +945,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * STICKY NEXT BTN
+ * 18) STICKY NEXT BUTTON
  *******************************************************/
 .sticky-next-btn {
   display: block !important;
@@ -1026,27 +953,24 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   margin:2rem auto;
   padding:0.9rem 6rem;
 }
-
-/* Default: disabled => gray */
+/* Disabled => gray */
 #input-next-btn.disabled-btn,
 #input-next-btn:disabled {
-  background-color: #ccc !important;  /* gray background */
-  color: #fff !important;            /* white text, or #999 if you prefer */
+  background-color: #ccc !important;
+  color: #fff !important;
   pointer-events: none !important; 
-  opacity: 0.7;                      /* slightly faded to indicate disabled */
+  opacity: 0.7;
 }
-
-/* Enabled => blue background */
+/* Enabled => normal color */
 #input-next-btn {
-  background-color: #1a2732; /* or whatever “blue” you prefer */
+  background-color: #1a2732;
   color: #fff;
   pointer-events: auto;
   opacity: 1;
 }
 
-
 /*******************************************************
- * TRAVEL/CASH => switch
+ * 19) TRAVEL/CASH SWITCH
  *******************************************************/
 .tc-btn-row {
   display:flex;
@@ -1074,14 +998,14 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * OUT-CTA
+ * 20) OUT-CTA
  *******************************************************/
 .out-cta {
   font-size:1rem;
 }
 
 /*******************************************************
- * USECASES => pills
+ * 21) USECASES => pills
  *******************************************************/
 .points-options {
   display:flex;
@@ -1144,7 +1068,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * TIP-TEXT => output
+ * 22) TIP TEXT => output
  *******************************************************/
 .tip-text {
   margin:1rem 0;
@@ -1152,7 +1076,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 /*******************************************************
- * SUBMISSION TAKEOVER
+ * 23) SUBMISSION TAKEOVER
  *******************************************************/
 #submission-takeover {
   position:absolute;
@@ -1166,25 +1090,8 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   max-width:50rem;
 }
 
-
-
-/* On mobile, hide the old started-search-area, show .search-combo-field */
-@media (max-width: 576px) {
-
-  /* Hide the old layout for mobile */
-  .started-search-area {
-    display: none !important;
-  }
-
-  /* Show the new .search-combo-field row for mobile only */
-  .search-combo-field {
-    display: flex !important; /* side by side row: input + button */
-    margin: 1rem;            /* if you want similar spacing */
-  }
-}
-
 /*******************************************************
- * REPORT MODAL => #report-modal
+ * 24) REPORT MODAL => #report-modal
  *******************************************************/
 #report-modal {
   position: fixed; 
@@ -1194,7 +1101,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   height: 100%; 
   background-color: rgba(0,0,0,0.6);
   z-index: 9999;
-  display: none; /* You add .show => display: block */
+  display: none; /* .show => display block */
 }
 #report-modal-content {
   position: absolute;
@@ -1207,16 +1114,10 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   width: 80%;
   border-radius: 6px;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  /* If you only want a bottom sheet on mobile, 
-     you can keep these lines for desktop only and override them in your mobile query. */
 }
-
-/* When .show is applied, we reveal the modal. 
-   If you want a fade, set opacity transitions. Otherwise you can keep it simple. */
 #report-modal.show {
   display: block;
 }
-
 #modal-close-btn {
   float:right;
   font-size:24px;
@@ -1238,44 +1139,45 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   text-align:center;
 }
 
-/* Container that always has a 1px border */
+/*******************************************************
+ * 25) EMAIL FIELD CONTAINER
+ *******************************************************/
 .email-field-container {
   border: 1px solid #ccc;
   border-radius: 4px;
   background-color: #fff;
-  max-width: 100%;      /* or a fixed width if you prefer */
+  max-width: 100%;
   box-sizing: border-box;
   margin: 0 25px;
 }
-
-/* The input itself has no border, so the container’s border is always visible */
 .email-field-container input {
   border: none;
   outline: none;
   background-color: transparent;
   width: 100%;
   font-size: 1rem;
-  color: #333;          /* Ensure normal text color */
+  color: #333;
   box-sizing: border-box;
 }
-
-/* Ensure placeholder text is visible – not white on white */
 .email-field-container input::placeholder {
-  color: #999;          /* Adjust to your liking */
+  color: #999;
 }
-
-/* On focus (or if user is typing), highlight the container’s border */
 .email-field-container:focus-within {
-  border-color: #DFE5EB;  /* highlight color */
+  border-color: #DFE5EB;
   box-shadow: 0 0 0 2px #dfe5eb;
 }
+
+/*******************************************************
+ * 26) CHOSEN-WRAPPER
+ *******************************************************/
 #chosen-wrapper {
-  min-height: 115px; /* enough space to cover both heading + row */
-  /* optionally a background or something if you want to see the area */
-  margin-bottom: 1rem; /* so there's space under it before the Next button */
+  min-height: 115px;
+  margin-bottom: 1rem;
 }
 
-/* ===== SERVICES MODAL Overlay ===== */
+/*******************************************************
+ * 27) SERVICES MODAL Overlay
+ *******************************************************/
 #services-modal {
   position: fixed;
   top: 0; 
@@ -1283,30 +1185,29 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   width: 100%; 
   height: 100%;
   background-color: rgba(0, 0, 0, 0.6);
-  z-index: 9999;      /* Ensure it’s above everything else */
-  display: none;      /* Hidden by default. We'll toggle .show */
+  z-index: 9999;
+  display: none; /* .show => display block */
 }
-
 #services-modal.show {
   display: block;
 }
 
-/* ===== SERVICES MODAL Content Box ===== */
+/*******************************************************
+ * 28) SERVICES MODAL Content
+ *******************************************************/
 #services-modal-content {
   position: absolute;
   top: 50%; 
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 80%;                 /* Fill 80% of the viewport width */
-  height: 80%;                /* Fill 80% of the viewport height */
+  width: 80%;
+  height: 80%;
   background: #fff;
   padding: 20px;
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 }
-
-/* Close button inside the Services modal */
 #services-modal-close-btn {
   float: right;
   font-size: 24px;
@@ -1314,50 +1215,50 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   background: none;
   border: none;
   color: #1a2732;
-  margin-top: -8px; /* optional if you want it slightly higher */
+  margin-top: -8px;
 }
-
-/* The iframe container so the iframe can size to 100% */
 .services-iframe-container {
   width: 100%;
-  height: calc(100% - 40px); /* leave room for the close button area */
+  height: calc(100% - 40px);
   margin-top: 20px;
 }
-
 .services-iframe-container iframe {
   width: 100%;
   height: 100%;
   border: none;
 }
-/* Two columns at 50% each for desktop view */
+
+/*******************************************************
+ * 29) DESKTOP GRAPHS (Optional) 
+ *******************************************************/
 #desktop-graphs-row {
   display: flex;
   gap: 1rem;
-  margin-top: 1.5rem; /* optional spacing above chart */
+  margin-top: 1.5rem;
 }
-
-/* Force each child to 50% width */
 #desktop-graphs-row .graph-left,
 #desktop-graphs-row .graph-right {
   flex: 0 0 50%;
   max-width: 50%;
 }
-
-/* Make the placeholder image scale nicely */
 #desktop-graphs-row .graph-right img {
   display: block;
   width: 100%;
   height: auto;
-  max-width: 400px; /* optional, to limit large images */
-  margin: 0 auto;   /* center horizontally if narrower than 100% */
+  max-width: 400px;
+  margin: 0 auto;
 }
-
-/* Hide this entire row on small screens if you prefer: */
 @media (max-width: 992px) {
   #desktop-graphs-row {
     display: none;
   }
 }
+
+/*******************************************************
+ * 30) .search-combo-field => (HIDDEN if not needed) 
+ *******************************************************/
+/* If you still have a separate .search-combo-field for reference,
+   you can keep it or remove it entirely, depending on your final approach. */
 .search-combo-field {
   display: none;
   position: relative;
@@ -1367,9 +1268,6 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   overflow: hidden;
   background-color: #fff;
 }
-
-
-/* The search field flexes to fill space; no separate border. */
 .search-input {
   flex: 1;
   border: none;
@@ -1381,8 +1279,6 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .search-input::placeholder {
   color: #999;
 }
-
-/* “Explore All” button in .search-combo-field row */
 #explore-all-mobile {
   background-color: #1a2732;
   color: #fff;
@@ -1396,197 +1292,9 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   background-color: #141d28;
 }
 
-
-
-/*****************************************************************************
- * DASHBOARD / REPORT CSS
- * ---------------------------------------------------------------------------
- * This section handles the layout & styling for the bar chart card and 
- * the pie chart card, displayed side by side on desktop and stacked on 
- * smaller screens. 
- ****************************************************************************/
-
-.chart-cards-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2%;
-  margin-top: 1.5rem;
-  justify-content: space-between; /* optional */
-}
-
-.bar-chart-card,
-.pie-chart-card {
-  flex: 0 0 48%;         /* side-by-side on wider screens */
-  max-width: 48%;
-  background: #fff;
-  border-radius: 8px;
-  box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  /* No fixed height => dynamic expansion. If you want a minimum: min-height: 350px; */
-  overflow: visible;      /* ensures tooltips & legend are not clipped */
-  padding: 1rem;         /* space for chart titles, legends, etc. */
-}
-
-/* Title in bar chart card */
-.bar-card-title {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.25rem;
-  color: #333;
-  text-align: center; /* or left if you prefer */
-}
-
-/* Pie Chart Card */
-.pie-chart-card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-sizing: border-box;
-
-  /* The other 40% on desktop */
-  flex: 0 0 43%;
-  max-width: 43%;
-
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* Title in the pie chart card */
-.pie-card-title {
-  margin-top: 0;
-  margin-bottom: 1rem;
-  font-size: 1.25rem;
-  color: #333;
-  text-align: center;
-}
-
-.bar-chart-card canvas,
-.pie-chart-card canvas {
-  width: 100% !important;
-  height: auto !important;
-  display: block;
-}
-
-@media (max-width: 576px) {
-  .bar-chart-card,
-  .pie-chart-card {
-    flex: 0 0 48%;  /* or 55% and 43%, 60% and 38%, etc. */
-  max-width: 48%;
-  box-sizing: border-box;
-  height: 300px; /* if you want a fixed height */
-  }
-}
-
-
-.bar-chart-card,
-.pie-chart-card {
-  flex: 0 0 48%;       /* side by side on desktop */
-  max-width: 48%;
-  position: relative;  /* needed for child to fill absolutely or do height:100% */
-  height: 350px;       /* fixed height to prevent infinite stretch */
-  background: #fff;
-  border-radius: 8px;
-  padding: 1rem;       /* if you want some space for the title or legend */
-  box-sizing: border-box;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  overflow: hidden;    /* hide overflow if chart tries to expand beyond container */
-}
-
-/* Force the canvas to fill the container’s entire area */
-.bar-chart-card canvas,
-.pie-chart-card canvas {
-  display: block;
-  width: 100% !important; 
-  height: 100% !important; 
-}
-
-
-/*****************************************************************************
- * END DASHBOARD / REPORT CSS
- ****************************************************************************/
-
-
 /*******************************************************
- * USE CASE SLIDER
+ * 31) DASHBOARD / REPORT CSS
  *******************************************************/
-
-/* Outer “card” container for the slider */
-.usecase-slider-section {
-  margin: 2rem auto; /* space above/below */
-  background: #fff;  /* white background */
-  border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  padding: 1rem;
-  max-width: 600px;
-}
-
-/* The Swiper container => sets overall dimensions */
-.swiper-container {
-  position: relative; /* so arrows can anchor inside */
-  width: 100%;
-  max-width: 600px;
-  margin: 0 auto;     /* center horizontally */
-  --swiper-navigation-size: 25px; /* arrow size */
-    overflow: hidden; /* ADDED: clip any overflow */
-
-}
-
-
-
-/* The top image in each slide */
-.usecase-slide-image {
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-/* The text/content area below the image */
-.usecase-slide-content {
-  flex: 1;
-  padding: 1rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-/* Title styling */
-.usecase-slide-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-
-/* Body styling */
-.usecase-slide-body {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin-bottom: 1rem;
-}
-
-/* Points styling (smaller text) */
-.usecase-slide-points {
-  font-size: 0.8rem;
-  color: #555;
-}
-
-/*******************************************************
- * SWIPER ARROWS
- *******************************************************/
-.swiper-button-next,
-.swiper-button-prev {
-  color: #333;        /* arrow color */
-  top: 50%;           /* center vertically */
-  transform: translateY(-50%);
-}
-
-/* Right arrow on the right; left arrow on the left */
-.swiper-button-next {
-  right: 10px;
-  left: auto;
-}
-.swiper-button-prev {
-  left: 10px;
-  right: auto;
-}
+/* Summary from your code: bar/pie chart styling. 
+   Already integrated above as .chart-cards-row, etc.
+*/
