@@ -1465,9 +1465,10 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 @media (max-width: 576px) {
   .bar-chart-card,
   .pie-chart-card {
-    flex: 0 0 100%;
-    max-width: 100%;
-    margin-bottom: 1rem;
+    flex: 0 0 48%;  /* or 55% and 43%, 60% and 38%, etc. */
+  max-width: 48%;
+  box-sizing: border-box;
+  height: 300px; /* if you want a fixed height */
   }
 }
 
