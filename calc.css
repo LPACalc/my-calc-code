@@ -1333,6 +1333,51 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
     display: none;
   }
 }
+/* A container that visually looks like a single “search bar” with a button */
+.search-combo-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid #DFE5EB;
+  border-radius: 8px;
+  background-color: #fff;
+  overflow: hidden;  /* ensures corners stay rounded even around the button */
+  width: 100%;       /* or max-width: 100%; up to you */
+}
+
+.search-input {
+  flex: 1;                 /* take up remaining space */
+  border: none;
+  outline: none;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: #333;
+  /* If you like: border-radius: 8px 0 0 8px; 
+     But not necessary if container has overflow: hidden 
+  */
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.explore-all-btn {
+  background-color: #1a2732;  /* or a “blue” color you like */
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border: none;
+  cursor: pointer;
+  /* If you want a slightly different shape, do:
+     border-radius: 0 8px 8px 0; 
+  */
+}
+
+.explore-all-btn:hover {
+  background-color: #141d28;  /* slightly darker on hover */
+}
+
+
 
 /*****************************************************************************
  * DASHBOARD / REPORT CSS
@@ -1356,6 +1401,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   border-radius: 8px;
   padding: 1.5rem;
   box-sizing: border-box;
+  max-width: 500px !important;
 
   /* On desktop, let’s give it ~60% width */
   flex: 0 0 60%;
