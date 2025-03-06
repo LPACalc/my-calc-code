@@ -295,7 +295,7 @@ img {
 
   /* Stack the bar & pie chart vertically, override the desktop flex: */
   .chart-cards-row {
-    display: block; 
+    display: block !important; 
   }
   .chart-cards-row .bar-chart-card,
   .chart-cards-row .pie-chart-card {
@@ -660,22 +660,14 @@ img {
 }
 
 .stat-card {
-  display: flex;
-  align-items: center;      /* vertically center both columns */
-  justify-content: space-between; /* space label/value on left, icon on right */
+  flex: 1;
   background-color: #fff;
   border: 1px solid #DFE5EB;
   border-radius: 6px;
-  padding: 1rem; 
-  min-height: 80px;         /* optional: sets a uniform card height */
-}
-/* The left “column” that stacks label above value */
-.card-text {
-  display: flex;
-  flex-direction: column;   /* label on top, value below */
+  padding: 1rem;
+  min-height: 80px;
 }
 
-/* The label */
 .card-label {
   font-size: 0.9rem;
   font-weight: 600;
@@ -683,7 +675,6 @@ img {
   margin-bottom: 0.5rem;
 }
 
-/* The big value */
 .card-value {
   font-size: 1.2rem;
   font-weight: bold;
@@ -697,12 +688,10 @@ img {
   justify-content: space-between;
 }
 
-/* The icon on the right */
 .card-icon {
-  width: 32px;  
+  width: 32px;
   height: auto;
-  /* If you want some space to the left: */
-  margin-left: 1rem; 
+  margin-left: 0.5rem;
 }
 
 @media (max-width: 576px) {
