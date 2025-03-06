@@ -1,1411 +1,1318 @@
-"use strict";
-
-/********************************************************
- * CREATE/RETRIEVE SESSION ID
- *******************************************************/
-function generateSessionId() {
-  return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => {
-    return (Math.random() * 16 | 0).toString(16);
-  });
-}
-
-function getOrCreateSessionId() {
-  let stored = localStorage.getItem("pointsLensSessionId");
-  if (!stored) {
-    stored = generateSessionId();
-    localStorage.setItem("pointsLensSessionId", stored);
-  }
-  return stored;
-}
-
-const sessionId = getOrCreateSessionId();
-console.log("Session ID:", sessionId);
-
 /*******************************************************
- * GLOBALS & LOGGING
+ * BASE RESETS
  *******************************************************/
-let clientIP = null;
-let approximateLocation = null;
-let userEmail = null;
-let hasSentReport = false;
-let loyaltyPrograms = {};
-let realWorldUseCases = [];
-let chosenPrograms = [];
-let isTransitioning = false;
-let pointsMap = {};
-
-/**
- * NEW FLAGS to handle loading state and user input
- */
-let dataLoaded = false;           
-let userClickedGetStarted = false;
-
-/** 
- * We'll track these so we can destroy & rebuild charts each time 
- * the user re-enters the Output state with changed data.
- */
-let barChartInstance = null;
-let pieChartInstance = null;
-
-/** For the use case slider: */
-let useCaseSwiper = null;
-
-/*******************************************************
- * FETCH IP & LOCATION
- *******************************************************/
-async function fetchClientIP() {
-  try {
-    const resp = await fetch("https://young-cute-neptune.glitch.me/getClientIP");
-    if (!resp.ok) {
-      throw new Error(`Failed to fetch IP. status: ${resp.status}`);
-    }
-    const data = await resp.json();
-    clientIP = data.ip;
-    console.log("Client IP =>", clientIP);
-  } catch (err) {
-    console.error("Error fetching IP =>", err);
-  }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-async function fetchApproxLocationFromIP() {
-  if (!clientIP) return;
-  try {
-    // If IP is IPv6, skip
-    if (clientIP.includes(":")) {
-      approximateLocation = null;
-      return;
-    }
-    const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
-    const resp = await fetch(url);
-    if (!resp.ok) {
-      throw new Error(`Location fetch error: ${resp.status}`);
-    }
-    const data = await resp.json();
-    if (data.status === "success") {
-      approximateLocation = {
-        country: data.country,
-        region: data.regionName,
-        city: data.city,
-        lat: data.lat,
-        lon: data.lon
-      };
-    }
-    console.log("Approx location =>", approximateLocation);
-  } catch (err) {
-    console.error("Error fetching location =>", err);
-  }
+html, body {
+  height: 100%;
+  background-color: #F8FAFD;
+  font-family: "Inter", Arial, sans-serif;
+  line-height: 1.5;
+  color: #1D3A5F;
+  overflow-x: hidden; /* no horizontal scroll, vertical is normal */
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  outline: none;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 /*******************************************************
- * LOG EVENT
+ * PAGE LAYOUT => left + right
  *******************************************************/
-function logSessionEvent(eventName, payload = {}) {
-  const eventData = {
-    sessionId,
-    clientIP,
-    eventName,
-    approximateLocation,
-    timestamp: Date.now(),
-    ...payload
-  };
-  if (userEmail) {
-    eventData.email = userEmail;
-  }
-  fetch("https://young-cute-neptune.glitch.me/proxyLogEvent", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify(eventData),
-    keepalive: true
-  });
+.page-wrap {
+  display: flex;
+  flex-direction: row;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
 }
 
-let sessionStartTime = Date.now();
-window.addEventListener('beforeunload', () => {
-  const sessionEndTime = Date.now();
-  const durationMs = sessionEndTime - sessionStartTime;
-  logSessionEvent("session_end", { durationMs });
-  localStorage.removeItem("pointsLensSessionId");
-});
-
-/*******************************************************
- * HELPER => EMAIL
- *******************************************************/
-function isValidEmail(str) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(str);
+/* LEFT => hidden on mobile => show on desktop only upon user click */
+.left-column {
+  position: relative;
+  display: none;
+  width: 25%;
+  min-width: 250px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
 
-/*******************************************************
- * FETCH WITH TIMEOUT
- *******************************************************/
-async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries = 2) {
-  let attempt = 0;
-  while (attempt <= maxRetries) {
-    attempt++;
-    const controller = new AbortController();
-    const { signal } = controller;
-    const tid = setTimeout(() => controller.abort(), timeout);
+#left-col-logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 120px;
+}
 
-    try {
-      const response = await fetch(url, { ...options, signal });
-      clearTimeout(tid);
-      if (response.ok) {
-        return response;
-      }
-      if (attempt > maxRetries) {
-        throw new Error(`HTTP status: ${response.status}`);
-      }
-      // Retry if not OK
-      await new Promise((r) => setTimeout(r, 500));
-    } catch (err) {
-      clearTimeout(tid);
-      if (err.name === "AbortError") {
-        if (attempt > maxRetries) {
-          throw new Error("Request timed out multiple times.");
-        }
-        await new Promise((r) => setTimeout(r, 500));
-      } else {
-        if (attempt > maxRetries) {
-          throw err;
-        }
-        await new Promise((r) => setTimeout(r, 500));
-      }
-    }
-  }
-  throw new Error("Failed fetch after maxRetries");
+.right-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
 /*******************************************************
- * FETCH AIRTABLE
+ * “All Programs” Modal
  *******************************************************/
-async function fetchAirtableTable(tableName) {
-  const resp = await fetchWithTimeout(
-    `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
-    {},
-    10000,
-    2
-  );
-  if (!resp.ok) {
-    throw new Error(`Non-OK status: ${resp.status}`);
-  }
-  return await resp.json();
+#all-programs-modal {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: none; /* .show => display:block */
 }
 
-/*******************************************************
- * INIT APP
- *******************************************************/
-async function initializeApp() {
-  console.log("=== initializeApp() ===");
-  try {
-    const resp = await fetchWithTimeout(
-      "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
-      {},
-      10000
-    );
-    if (!resp.ok) {
-      throw new Error("Network not OK => " + resp.statusText);
-    }
-    const programsData = await resp.json();
-    loyaltyPrograms = programsData.reduce((acc, record) => {
-      const fields = { ...record.fields };
-      if (record.logoAttachmentUrl) {
-        fields["Brand Logo URL"] = record.logoAttachmentUrl;
-      }
-      acc[record.id] = fields;
-      return acc;
-    }, {});
-    console.log("loyaltyPrograms =>", loyaltyPrograms);
-  } catch (err) {
-    console.error("Error fetching Points Calc =>", err);
+#all-programs-modal.show {
+  display: block;
+}
+
+#all-programs-modal-content {
+  position: absolute;
+  top: 50%;  
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  max-height: 90%;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+/* Close button in top-right corner */
+#all-programs-close-btn {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #1a2732;
+  margin-top: -8px; 
+}
+
+/* The scrollable list inside the modal */
+.all-programs-list {
+  margin-top: 1rem;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+
+/* Each row => “all-program-row” */
+.all-program-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem;
+  border-bottom: 1px solid #dce3eb;
+  cursor: pointer;
+}
+
+.all-program-row .row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.all-program-row img {
+  width: 40px;
+  height: auto;
+}
+
+/* Circle button on the right => like “Add” or “Check” */
+.all-program-row .circle-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.all-program-row.selected-state .circle-btn {
+  background-color: #1a2732;
+  border-color: #1a2732;
+  color: #fff;
+}
+
+/* Show “Explore All” button only on mobile */
+@media (max-width: 576px) {
+  .explore-all-btn {
+    display: inline-block !important;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 0.9rem;
+    padding: 0.75rem;
+    margin-left: 0.5rem;
+    border-radius: 6px;
   }
 
-  try {
-    const useCasesData = await fetchAirtableTable("Real-World Use Cases");
-    realWorldUseCases = useCasesData.reduce((acc, record) => {
-      acc[record.id] = { id: record.id, ...record.fields };
-      return acc;
-    }, {});
-    console.log("Real-World Use Cases =>", realWorldUseCases);
-  } catch (err) {
-    console.error("Error fetching Real-World =>", err);
+  #all-programs-modal-content {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    max-width: 100% !important;
+    transform: translateY(100%);
+    border-radius: 12px 12px 0 0 !important;
+    transition: transform 0.5s ease;
   }
 
-  buildTopProgramsSection();
-
-  // Data is fully loaded
-  dataLoaded = true;
-  console.log("Data fully loaded => dataLoaded = true");
-}
-
-/*******************************************************
- * BUILD POPULAR PROGRAMS
- *******************************************************/
-function buildTopProgramsSection() {
-  const container = document.getElementById("top-programs-grid");
-  if (!container) return;
-  const topRecords = Object.keys(loyaltyPrograms).filter((id) => {
-    return !!loyaltyPrograms[id]["Top Programs"];
-  });
-  let html = "";
-  topRecords.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"] || "Unnamed Program";
-    const logo = prog["Brand Logo URL"] || "";
-    html += `
-      <div class="top-program-box" data-record-id="${rid}">
-        <div style="display:flex; align-items:center; gap:0.5rem;">
-          <img 
-            src="${logo}" 
-            alt="${name} logo"
-            style="object-fit:contain;"
-          />
-          <span class="top-program-label">${name}</span>
-        </div>
-        <button class="add-btn">+</button>
-      </div>
-    `;
-  });
-  container.innerHTML = html;
-}
-
-/*******************************************************
- * FILTER PROGRAMS
- *******************************************************/
-function filterPrograms() {
-  if (!loyaltyPrograms || !Object.keys(loyaltyPrograms).length) {
-    $("#program-preview")
-      .html("<div style='padding:12px; color:#999;'>Still loading programs...</div>")
-      .show();
-    return;
-  }
-  const val = $("#program-search").val().toLowerCase().trim();
-  if (!val) {
-    $("#program-preview").hide().empty();
-    return;
-  }
-  const results = Object.keys(loyaltyPrograms).filter((id) => {
-    const prog = loyaltyPrograms[id];
-    if (!prog["Program Name"]) return false;
-    if (chosenPrograms.includes(id)) return false;
-    const inCalc = $(`#program-container .program-row[data-record-id='${id}']`).length > 0;
-    if (inCalc) return false;
-    return prog["Program Name"].toLowerCase().includes(val);
-  });
-  const limited = results.slice(0, 5);
-  if (!limited.length) {
-    $("#program-preview").hide().empty();
-    return;
-  }
-  let previewHTML = "";
-  limited.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"];
-    const logo = prog["Brand Logo URL"] || "";
-    previewHTML += `
-      <div class="preview-item" data-record-id="${rid}">
-        <div>
-          <span class="program-name">${name}</span>
-          <span class="program-type">(${prog.Type || "Unknown"})</span>
-        </div>
-        ${logo ? `<img src="${logo}" alt="logo" style="height:35px;">` : ""}
-      </div>
-    `;
-  });
-  $("#program-preview").html(previewHTML).show();
-}
-
-/*******************************************************
- * ADD PROGRAM ROW
- *******************************************************/
-function addProgramRow(recordId) {
-  const prog = loyaltyPrograms[recordId];
-  if (!prog) return;
-
-  // Points persistence:
-  const existingPoints = pointsMap[recordId] || 0;
-  const formattedPoints = existingPoints ? existingPoints.toLocaleString() : "";
-
-  const logoUrl = prog["Brand Logo URL"] || "";
-  const programName = prog["Program Name"] || "Unnamed Program";
-
-  const rowHTML = `
-    <div class="program-row" data-record-id="${recordId}">
-      <div style="display:flex; align-items:center; gap:0.75rem;">
-        ${
-          logoUrl
-            ? `<img 
-                 src="${logoUrl}" 
-                 alt="${programName} logo"
-                 style="width:50px; height:auto;"
-               />`
-            : ""
-        }
-        <span class="program-name">${programName}</span>
-      </div>
-      <div style="display:flex; align-items:center; gap:1rem;">
-        <div class="dollar-input-container">
-          <input
-            type="tel"
-            inputmode="numeric"
-            class="points-input"
-            placeholder="Enter Total"
-            oninput="formatNumberInput(this); calculateTotal()"
-            value="${formattedPoints}"
-          />
-        </div>
-        <button class="remove-btn">×</button>
-      </div>
-    </div>
-  `;
-  $("#program-container").append(rowHTML);
-  calculateTotal();
-}
-
-/*******************************************************
- * TOGGLE SEARCH ITEM
- *******************************************************/
-function toggleSearchItemSelection(itemEl) {
-  const rid = itemEl.data("record-id");
-  if (!rid) return;
-  chosenPrograms.push(rid);
-  itemEl.remove();
-
-  $("#program-search").val("");
-  $("#program-preview").hide().empty();
-  filterPrograms();
-
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-}
-
-/*******************************************************
- * TOGGLE PROGRAM => popular
- *******************************************************/
-function toggleProgramSelection(boxEl) {
-  const rid = boxEl.data("record-id");
-  const idx = chosenPrograms.indexOf(rid);
-  if (idx === -1) {
-    chosenPrograms.push(rid);
-    boxEl.addClass("selected-state");
-    if (window.innerWidth >= 992) {
-      boxEl.find(".add-btn").text("✓");
-    }
-  } else {
-    chosenPrograms.splice(idx, 1);
-    boxEl.removeClass("selected-state");
-    if (window.innerWidth >= 992) {
-      boxEl.find(".add-btn").text("+");
-    }
-  }
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-}
-
-/*******************************************************
- * UPDATE CHOSEN PROGRAMS DISPLAY
- *******************************************************/
-function updateChosenProgramsDisplay() {
-  const container = $("#chosen-programs-row");
-  container.empty();
-  if (!chosenPrograms.length) {
-    $("#selected-programs-label").hide();
-    return;
-  }
-  $("#selected-programs-label").show();
-
-  chosenPrograms.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    if (!prog) return;
-    const logoUrl = prog["Brand Logo URL"] || "";
-    container.append(`
-      <div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
-        <img 
-          src="${logoUrl}" 
-          alt="${prog["Program Name"] || "N/A"}" 
-          style="width:100%; height:auto;"
-        />
-      </div>
-    `);
-  });
-}
-
-/*******************************************************
- * NEXT CTA VISIBILITY
- *******************************************************/
-function updateNextCTAVisibility() {
-  const $nextBtn = $("#input-next-btn");
-  if (chosenPrograms.length > 0) {
-    $nextBtn.removeClass("disabled-btn").prop("disabled", false);
-  } else {
-    $nextBtn.addClass("disabled-btn").prop("disabled", true);
+  #all-programs-modal.show #all-programs-modal-content {
+    transform: translateY(0);
   }
 }
 
 /*******************************************************
- * CLEAR ALL
+ * DESKTOP ONLY => min-width: 992px
  *******************************************************/
-function clearAllPrograms() {
-  chosenPrograms = [];
-  pointsMap = {};
-  $("#program-container").empty();
-  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
+@media (min-width: 992px) {
+  .program-row .program-name {
+    font-size: 1.2rem !important;
+  }
+  .program-row img {
+    width: 60px !important;
+  }
 
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
+  .sticky-next-btn {
+    margin: 1rem auto !important;
+    padding: 1rem 6rem;
+    display: block !important;
+  }
 
-  // If the All Programs modal is open, refresh:
-  if ($("#all-programs-modal").hasClass("show")) {
-    buildAllProgramsList();
+  .clear-all-btn {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+  }
+
+  .points-info-box.input-points-info,
+  .points-info-box.calc-points-info {
+    padding: 20px 40px;
+    border: 1px solid #DFE5EB;
+    margin: 1rem 0;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .infobox-desktop-text {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+
+  .points-input {
+    border: none !important;
+    outline: none !important;
+    width: 120px !important;
+  }
+
+  /* Center #report-modal-content in the right column for desktop */
+  #report-modal-content {
+    left: 60% !important;
+    transform: translate(-50%, -50%);
+  }
+
+  h2.popular-programs-heading {
+    font-size: 1.25rem;
+    font-weight: bold;
+    text-align: left;
+    margin-bottom: 1rem;
+  }
+
+  /* If user selects a “Popular Program” => circle is blue with white check */
+  .top-program-box.selected-state .add-btn {
+    background-color: #1a2732 !important;
+    color: #fff !important;
+    border-color: #1a2732 !important;
+  }
+
+  /* Desktop “mini-pill-row-desktop” overrides (if used) */
+  .mini-pill-row-desktop {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center !important;
+    gap: 1rem;
+  }
+  .mini-pill-row-desktop .mini-pill {
+    display: inline-block;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    padding: 6px 30px !important;
+    font-size: 1rem !important;
+    border-radius: 9999px;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+  }
+  .mini-pill-row-desktop .mini-pill.active {
+    background-color: #1a2732;
+    color: #fff;
   }
 }
 
 /*******************************************************
- * SHOW/HIDE CLEAR-ALL
+ * MOBILE => max-width: 576px
  *******************************************************/
-function updateClearAllVisibility() {
-  const $btn = $("#clear-all-btn");
-  const hasChosen = chosenPrograms.length > 0;
-  if (hasChosen) {
-    $btn.show();
-  } else {
-    $btn.hide();
+@media (max-width: 576px) {
+
+  .usecase-slider-section {
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    padding: 1rem;
+    max-width: 350px !important; /* narrower slider for mobile */
+  }
+
+  /* Stack the bar & pie chart vertically, override the desktop flex: */
+  .chart-cards-row {
+    display: block !important; 
+  }
+  .chart-cards-row .bar-chart-card,
+  .chart-cards-row .pie-chart-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 1rem;
+  }
+
+  #output-programs-list {
+    margin: 0 1rem;
+  }
+
+  .swiper-container {
+    width: 100% !important;
+    height: auto !important;
+    overflow: hidden;
+  }
+
+  .swiper-slide {
+    width: 100% !important;
+    box-sizing: border-box; 
+  }
+
+  .usecase-slide-image {
+    display: block;
+    width: 100%;
+    height: 200px;  
+    max-height: 200px;
+    object-fit: cover;
+  }
+
+  /* The “search-combo-field” or “search area” might need smaller margins: */
+  .started-search-area {
+    margin: 1rem 1rem !important;
+  }
+
+  .program-search-field:focus {
+    outline: none !important;
+    box-shadow: none !important;
+    border-color: #dfe5eb !important;
+  }
+
+  .clear-all-btn {
+    background-color: #dc3545 !important;
+    color: #fff !important;
+  }
+
+  .point-option {
+    font-size: 0.8rem !important;
+    padding: 6px 12px !important;
+  }
+
+  #modal-email-input {
+    width: 80% !important;
+    border-radius:8px;
+  }
+
+  .popular-programs-heading {
+    margin-left: 1rem !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+  }
+
+  #selected-programs-label {
+    margin-left: 1rem !important;
+    font-size: 1rem !important;
+    font-weight: bold !important;
+    margin-bottom: 1rem;
+    margin-top: 1rem;
+  }
+
+  #chosen-programs-row {
+    margin: 0 1rem !important;
+    display: flex;
+    gap: 10px;
+    min-height: 50px;
+  }
+
+  #top-programs-grid.top-programs-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    grid-template-rows: repeat(3, auto) !important;
+    margin: 0 1rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .top-program-label {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+
+  .top-program-box .add-btn {
+    display: none !important; /* hide the + circle on mobile if you prefer */
+  }
+
+  .top-program-box.selected-state {
+    background-color: #1a2732 !important;
+    border-color: #1a2732 !important;
+  }
+
+  .top-program-box.selected-state .top-program-label {
+    color: #fff !important;
+  }
+
+  #calculator-state .state-header {
+    margin-top: 2.5rem !important;
+  }
+
+  #calculator-state #program-container {
+    margin: 0 1rem !important;
+  }
+
+  #calculator-state .program-row img {
+    width: 3rem !important;
+    height: auto !important;
+  }
+
+  .program-name {
+    font-size: 0.75rem !important;
+    line-height: 1rem !important;
+  }
+
+  .program-row,
+  .output-row {
+    padding: 0.5rem 0.5rem !important;
+  }
+
+  .points-input {
+    width: 85px !important;
+    font-size: 16px !important;
+  }
+
+  .tc-btn-row {
+    margin: 2rem 1rem 0 1rem !important;
+  }
+
+  #output-programs-container {
+    margin: 0 1rem !important;
+  }
+
+  .output-state-bg {
+    background-color: #f5f5f5 !important; 
+  }
+
+  /* Center “Your Total Value” on #output-state despite the back btn */
+  #output-state .state-header {
+    position: relative !important;
+    justify-content: center !important;
+  }
+  #output-state .state-header .back-btn {
+    position: absolute !important;
+    left: 1rem !important;
+    margin-left: 0 !important;
+  }
+  #output-state .state-header .state-title {
+    margin: 0 auto !important;
+    text-align: center !important;
+  }
+
+  /* Use case mini-pill row => single line with horizontal scroll */
+  .mini-pill-row {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    white-space: nowrap !important;
+    -webkit-overflow-scrolling: touch !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 0.3rem !important;
+  }
+  .mini-pill-row .mini-pill {
+    flex: 0 0 auto !important;
+    padding: 0.4rem 0.6rem !important;
+    padding-top: 0.4rem !important;
+    font-size: 0.8rem !important;
+    scroll-snap-align: center !important;
+    margin-right: 0 !important; 
+  }
+  .mini-pill-row .mini-pill.active {
+    margin-right: 0.2rem !important; 
+  }
+
+  /* Bottom sheet for #report-modal on mobile */
+  #report-modal-content {
+    top: auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100% !important;
+    border-radius: 12px 12px 0 0 !important;
+    transform: translateY(100%);
+    transition: transform 1.0s ease;
+    max-width: 600px !important;
+  }
+  #report-modal.show #report-modal-content {
+    transform: translateY(0);
+  }
+
+  .clear-all-btn {
+    margin-right: 1rem !important;
   }
 }
 
 /*******************************************************
- * FORMAT => auto commas
+ * HERO & CTA
  *******************************************************/
-function formatNumberInput(el) {
-  let raw = el.value.replace(/[^0-9]/g, "");
-  if (!raw) {
-    el.value = "";
-    return;
-  }
-  let num = parseInt(raw, 10);
-  if (num > 10000000) num = 10000000;
-  el.value = num.toLocaleString();
+.hero-section {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/b688c71d-4336-43a8-a54a-25d0c757a629/3000x2001.jpeg");
 }
 
-function calculateTotal() {
-  // optional real-time sum
+.hero-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 75vh;
+  text-align: center;
+  color: #fff;
+  padding: 0 1rem;
+}
+
+.hero-cta-container {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.cta-btn {
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.cta-dark {
+  background-color: #1a2732;
+  color: #fff;
+}
+.cta-dark:hover {
+  background-color: #141d28;
+}
+
+.cta-no-border {
+  background-color: #fff;
+  color: #1a2732;
+}
+.cta-no-border:hover {
+  background-color: #e0e0e0;
+}
+
+.cta-light-border {
+  background-color: #fff;
+  color: #1a2732;
+  border: 2px solid #1a2732;
+}
+.cta-light-border:hover {
+  background-color: #1a2732;
+  color: #fff;
+}
+
+.cta-round {
+  border-radius: 9999px;
 }
 
 /*******************************************************
- * GATHER PROGRAM DATA
+ * HOW IT WORKS (HIW)
  *******************************************************/
-function gatherProgramData() {
-  const data = [];
-  $(".program-row").each(function () {
-    const rid = $(this).data("record-id");
-    const prog = loyaltyPrograms[rid];
-    if (!prog) return;
-    let valStr = $(this).find(".points-input").val().replace(/,/g, "") || "0";
-    const points = parseFloat(valStr) || 0;
-    data.push({
-      recordId: rid,
-      programName: prog["Program Name"] || "Unknown",
-      points
-    });
-  });
-  return data;
+.hiw-mobile-stack {
+  padding: 50px 80px 40px;
+  text-align: center;
+}
+@media (min-width: 992px) {
+  .hiw-main-image {
+    max-width: 60rem;
+    margin: 0 auto;
+    display: block;
+  }
+  .hiw-flex-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+  }
+}
+@media (max-width: 576px) {
+  .hiw-flex-container {
+    flex-direction: column;
+  }
+}
+.hiw-main-image {
+  width: 100%;
+  border-radius: 8px;
+}
+.hiw-bottom-lines {
+  display: flex;
+  justify-content: center;
+  margin-top: 4.5rem;
+  gap: 8px;
+}
+.hiw-line {
+  width: 60px;
+  height: 4px;
+  background-color: #ccc;
+  border-radius: 2px;
+  transition: background-color 0.3s;
+}
+.hiw-line.active-line {
+  background-color: #1a2732;
 }
 
 /*******************************************************
- * SWIPER: BUILD + REBUILD
+ * STATE HEADERS => back + title
  *******************************************************/
-function buildUseCaseSlides(allUseCases) {
-  let slideHTML = "";
-
-  allUseCases.forEach(uc => {
-    const imageURL = uc["Use Case URL"] || "";
-    const title    = uc["Use Case Title"] || "Untitled";
-    const body     = uc["Use Case Body"]  || "No description";
-    const points   = uc["Points Required"] || 0;
-
-    slideHTML += `
-      <div class="swiper-slide">
-        <img src="${imageURL}" alt="Use Case" class="usecase-slide-image" />
-        <div class="usecase-slide-content">
-          <h3 class="usecase-slide-title">${title}</h3>
-          <p class="usecase-slide-body">${body}</p>
-          <p class="usecase-slide-points">Points Required: ${points.toLocaleString()}</p>
-        </div>
-      </div>
-    `;
-  });
-
-  const slidesEl = document.getElementById("useCaseSlides");
-  slidesEl.innerHTML = slideHTML;
+.state-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4.5rem;
+  padding: 1rem;
+  background-color: #fff;
 }
-
-function initUseCaseSwiper() {
-  useCaseSwiper = new Swiper('#useCaseSwiper', {
-    slidesPerView: 1,
-    direction: 'horizontal',
-    loop: true,               // loop through slides
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-       dynamicBullets: true,
-    dynamicMainBullets: 5,
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
-    }
-  });
+.state-header .state-title {
+  margin: 0 auto;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-align: center;
 }
 
 /*******************************************************
- * CHARTS
+ * BACK BTN
  *******************************************************/
-// We'll store the references in barChartInstance & pieChartInstance
-
-function renderValueComparisonChart(travelValue, cashValue) {
-  // Destroy any existing chart before creating a fresh one
-  if (barChartInstance) {
-    barChartInstance.destroy();
-    barChartInstance = null;
-  }
-  const barCanvas = document.getElementById("valueComparisonChart");
-  if (!barCanvas) return;
-
-  const conciergeVal = travelValue > 1000 ? 125 : 99;
-  const ctx = barCanvas.getContext("2d");
-
-  const data = {
-    labels: ["Travel", "Cash", "Concierge"],
-    datasets: [
-      {
-        label: "Value",
-        data: [travelValue, cashValue, conciergeVal],
-        backgroundColor: ["#042940", "#005C53", "#D6D58E"]
-      }
-    ]
-  };
-
-  const config = {
-    type: "bar",
-    data,
-    options: {
-      indexAxis: 'y',
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        x: {
-          beginAtZero: true,
-          title: {
-            display: true,
-            text: "Dollar Value"
-          }
-        }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const val = context.parsed.x || 0;
-              return "$" + val.toLocaleString();
-            }
-          }
-        }
-      }
-    }
-  };
-
-  barChartInstance = new Chart(ctx, config);
+.back-btn {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  background: none;
+  cursor: pointer;
 }
-
-function renderPieChartProgramShare(gatheredData) {
-  // Destroy existing pie chart
-  if (pieChartInstance) {
-    pieChartInstance.destroy();
-    pieChartInstance = null;
-  }
-  const pieCanvas = document.getElementById("programSharePieChart");
-  if (!pieCanvas) return;
-
-  const ctx = pieCanvas.getContext("2d");
-  const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-  if (totalPoints < 1) {
-    ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
-    return;
-  }
-
-  const donutLabels = gatheredData.map(x => x.programName);
-  const donutValues = gatheredData.map(x => x.points);
-
-  const donutColors = gatheredData.map(item => {
-    const rec = loyaltyPrograms[item.recordId];
-    return rec && rec["Color"] ? rec["Color"] : "#cccccc";
-  });
-
-  const data = {
-    labels: donutLabels,
-    datasets: [
-      {
-        data: donutValues,
-        backgroundColor: donutColors,
-        hoverOffset: 10
-      }
-    ]
-  };
-
-  const config = {
-    type: "doughnut",
-    data,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "55%",
-      plugins: {
-        legend: { position: "bottom" },
-        tooltip: {
-          callbacks: {
-            label: function (context) {
-              const val = context.parsed || 0;
-              const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
-              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
-            }
-          }
-        }
-      }
-    }
-  };
-
-  pieChartInstance = new Chart(ctx, config);
+.back-btn::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
+    no-repeat center center;
+  background-size: 24px 24px;
+  transition: opacity 0.2s ease;
+}
+.back-btn:hover::before {
+  opacity: 0.7;
 }
 
 /*******************************************************
- * USE CASE RECOMMENDATIONS
+ * STAT CARDS => “Total Points”, “Travel Value”, “Cash Value”
  *******************************************************/
-function gatherAllRecommendedUseCases() {
-  const userProgramPoints = {};
-  const data = gatherProgramData();
-  data.forEach(item => {
-    userProgramPoints[item.recordId] = item.points;
-  });
-
-  const results = [];
-  const usedIds = new Set();
-
-  chosenPrograms.forEach(programId => {
-    const userPoints = userProgramPoints[programId] || 0;
-    Object.values(realWorldUseCases).forEach(uc => {
-      if (!uc.Recommended) return;
-      if (!uc["Points Required"]) return;
-      if (!uc["Program Name"]?.includes(programId)) return;
-      if (uc["Points Required"] > userPoints) return;
-
-      if (!usedIds.has(uc.id)) {
-        usedIds.add(uc.id);
-        results.push(uc);
-      }
-    });
-  });
-
-  results.sort(() => Math.random() - 0.5);
-  return results;
+.stat-cards-row {
+  display: flex; /* side-by-side on desktop */
+  gap: 1rem;
+  margin: 1rem 0;
 }
 
-
-function openAllProgramsModal() {
-  // Populate #all-programs-list with rows for each program
-  buildAllProgramsList();
-  // Show the modal
-  $("#all-programs-modal").addClass("show");
+.stat-card {
+  flex: 1;
+  background-color: #fff;
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  padding: 1rem;
+  min-height: 80px;
 }
 
-function closeAllProgramsModal() {
-  $("#all-programs-modal").removeClass("show");
+.card-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1D3A5F;
+  margin-bottom: 0.5rem;
 }
 
-/**
- * Build the entire list of programs, marking any that are already chosen.
- */
-function buildAllProgramsList() {
-  const container = $("#all-programs-list");
-  container.empty();
-
-  // Suppose loyaltyPrograms is an object: { [recordId]: programData }
-  const allIds = Object.keys(loyaltyPrograms);
-
-  allIds.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"] || "Unknown Program";
-    const logo = prog["Brand Logo URL"] || "";
-
-    // Check if currently selected
-    const isSelected = chosenPrograms.includes(rid);
-
-    // We'll show a plus sign if not selected, or a check mark if selected:
-    const circleIcon = isSelected ? "✓" : "+";
-
-    // The row can have a “selected-state” class if chosen
-    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
-
-    const rowHtml = `
-      <div class="${rowClass}" data-record-id="${rid}">
-        <div class="row-left">
-          <img src="${logo}" alt="${name} logo" />
-          <span class="program-name">${name}</span>
-        </div>
-        <button class="circle-btn">${circleIcon}</button>
-      </div>
-    `;
-    container.append(rowHtml);
-  });
+.card-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1a2732;
 }
 
-// Open the modal on “Explore All” button click (mobile)
-$("#explore-all-btn").on("click", function() {
-  openAllProgramsModal();
-});
+/* If you want the icon next to the value: */
+.value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-// Close button => close the modal
-$("#all-programs-close-btn").on("click", function() {
-  closeAllProgramsModal();
-});
+.card-icon {
+  width: 32px;
+  height: auto;
+  margin-left: 0.5rem;
+}
 
-// Also close if user clicks outside the content (optional):
-$("#all-programs-modal").on("click", function(e) {
-  if ($(e.target).attr("id") === "all-programs-modal") {
-    closeAllProgramsModal();
+@media (max-width: 576px) {
+  .stat-cards-row {
+    display: block; /* stack them on mobile */
   }
-});
-
-/**
- * Toggle selection on click of the row or the circle.
- * We'll do a delegated event handler for .all-program-row
- */
-$(document).on("click", ".all-program-row", function(e) {
-  // If the user clicked the row or circle, let's unify logic:
-  const rowEl = $(this);
-  const rid = rowEl.data("record-id");
-  if (!rid) return;
-
-  // Are we already selected?
-  const index = chosenPrograms.indexOf(rid);
-  const isSelected = (index !== -1);
-
-  if (isSelected) {
-    // Remove from chosenPrograms
-    chosenPrograms.splice(index, 1);
-    rowEl.removeClass("selected-state");
-    rowEl.find(".circle-btn").text("+");
-  } else {
-    // Add to chosenPrograms
-    chosenPrograms.push(rid);
-    rowEl.addClass("selected-state");
-    rowEl.find(".circle-btn").text("✓");
-  }
-
-  // Also reflect changes in your main Input state or “Selected Programs” row
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-});
-
-
-/*******************************************************
- * BUILD OUTPUT => TRAVEL / CASH
- *******************************************************/
-function buildOutputRows(viewType) {
-  const data = gatherProgramData();
-  $("#output-programs-list").empty();
-
-  // We'll calculate total travel/cash value, plus total points
-  let scenarioTotal = 0;
-  let totalTravelValue = 0;  
-  let totalCashValue   = 0;
-
-  // Calculate total points by summing user-entered points
-  let totalPoints = data.reduce((acc, item) => acc + item.points, 0);
-
-  data.forEach((item) => {
-    const prog = loyaltyPrograms[item.recordId];
-    const logoUrl = prog?.["Brand Logo URL"] || "";
-
-    const tVal = item.points * (prog?.["Travel Value"] || 0);
-    const cVal = item.points * (prog?.["Cash Value"]   || 0);
-
-    totalTravelValue += tVal;
-    totalCashValue   += cVal;
-
-    // Depending on whether user is viewing Travel or Cash
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
-
-    const formattedVal = `$${rowVal.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>
-    `;
-
-    // If Travel view, add the use-case accordion
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion"
-             style="
-               display:none; 
-               border:1px solid #dce3eb; 
-               border-radius:6px; 
-               margin-bottom:12px; 
-               padding:1rem; 
-               overflow-x:auto;
-             ">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  // Show either "Travel Value" or "Cash Value" label under the list
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-
-  $("#output-programs-list").append(`
-    <div class="total-value-row" 
-         style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>
-  `);
-
-  // (A) Update the 3 "stat cards" with new totals:
-  //     totalPoints, totalTravelValue, totalCashValue
-  $("#total-points-card .card-value").text(
-    totalPoints.toLocaleString()
-  );
-  $("#travel-value-card .card-value").text(
-    "$" + totalTravelValue.toLocaleString(undefined, { 
-      minimumFractionDigits: 2 
-    })
-  );
-  $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { 
-      minimumFractionDigits: 2 
-    })
-  );
-
-  // (B) Rebuild or destroy charts as needed
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
-
-  // If viewing Travel => rebuild the Swiper with recommended use cases
-  if (viewType === "travel") {
-    const allUseCases = gatherAllRecommendedUseCases();
-    buildUseCaseSlides(allUseCases);
-
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    initUseCaseSwiper();
-  } else {
-    // If user switched to "Cash," optionally kill the swiper
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-  }
-}
-
-
-/*******************************************************
- * USE CASE => BUILD ACCORDION
- *******************************************************/
-function buildUseCaseAccordionContent(recordId, userPoints) {
-  const program = loyaltyPrograms[recordId];
-  if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
-  }
-  let matching = Object.values(realWorldUseCases).filter((uc) => {
-    if (!uc.Recommended) return false;
-    if (!uc["Points Required"]) return false;
-    if (!uc["Use Case Title"]) return false;
-    if (!uc["Use Case Body"]) return false;
-    const linked = uc["Program Name"] || [];
-    return linked.includes(recordId) && uc["Points Required"] <= userPoints;
-  });
-
-  matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
-  matching = matching.slice(0, 5);
-  matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
-
-  if (!matching.length) {
-    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
-  }
-
-  let pillsHTML = "";
-  matching.forEach((uc, i) => {
-    const pts = uc["Points Required"] || 0;
-    pillsHTML += `
-      <div 
-        class="mini-pill ${i === 0 ? "active" : ""}"
-        data-usecase-id="${uc.id}"
-        style="
-          display:inline-block;
-          margin-right:8px; 
-          margin-bottom:8px;
-          padding:6px 12px;
-          border-radius:9999px;
-          background-color:${i === 0 ? "#1a2732" : "#f0f0f0"};
-          color:${i === 0 ? "#fff" : "#333"};
-          cursor:pointer;
-        "
-      >
-        ${pts.toLocaleString()}
-      </div>
-    `;
-  });
-
-  const first = matching[0];
-  const imageURL = first["Use Case URL"] || "";
-  const title = first["Use Case Title"] || "Untitled";
-  const body = first["Use Case Body"] || "No description";
-
-  return `
-    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
-      <div class="mini-pill-row">
-        ${pillsHTML}
-      </div>
-      <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
-        <div style="max-width:180px; flex:0 0 auto;">
-          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
-        </div>
-        <div style="flex:1 1 auto;">
-          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
-            ${title}
-          </h4>
-          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
-            ${body}
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/*******************************************************
- * MODAL => SHOW/HIDE
- *******************************************************/
-function showReportModal() {
-  $("#report-modal").addClass("show");
-}
-function hideReportModal() {
-  $("#report-modal").removeClass("show");
-}
-
-/*******************************************************
- * SEND REPORT
- *******************************************************/
-async function sendReport(email) {
-  if (!email) return;
-  if (!isValidEmail(email)) {
-    throw new Error("Invalid email format");
-  }
-  const fullData = gatherProgramData();
-  const programsToSend = fullData.map((x) => ({
-    programName: x.programName,
-    points: x.points
-  }));
-  console.log("Sending =>", { email, programsToSend });
-
-  const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ email, programs: programsToSend })
-  });
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.error || `HTTP ${response.status}`);
-  }
-  return true;
-}
-
-async function sendReportFromModal() {
-  const emailInput = $("#modal-email-input").val().trim();
-  const errorEl = $("#modal-email-error");
-  const sentMsgEl = $("#email-sent-message");
-  const sendBtn = $("#modal-send-btn");
-
-  errorEl.hide().text("");
-  sentMsgEl.hide();
-
-  if (!isValidEmail(emailInput)) {
-    errorEl.text("Invalid email address.").show();
-    return;
-  }
-
-  sendBtn.prop("disabled", true).text("Sending...");
-  try {
-    await sendReport(emailInput);
-    sentMsgEl.show();
-    hasSentReport = true;
-    userEmail = emailInput;
-    logSessionEvent("email_submitted", { email: userEmail });
-
-    setTimeout(() => {
-      hideReportModal();
-      sentMsgEl.hide();
-      $("#unlock-report-btn")
-        .removeClass("cta-dark cta-light-border")
-        .addClass("cta-light-border");
-      $("#explore-concierge-lower")
-        .removeClass("cta-dark cta-light-border")
-        .addClass("cta-dark");
-    }, 700);
-  } catch (err) {
-    console.error("Failed to send =>", err);
-    errorEl.text(err.message || "Error sending report").show();
-  } finally {
-    sendBtn.prop("disabled", false).text("Send Report");
+  .stat-card {
+    margin-bottom: 1rem;
   }
 }
 
 /*******************************************************
- * SHOW HOW IT WORKS STEP
+ * POINTS INFO BOX
  *******************************************************/
-function showHowItWorksStep(stepNum) {
-  $(".hiw-step").hide();
-  $(`.hiw-step[data-step='${stepNum}']`).show();
-  $(".hiw-line").removeClass("active-line");
-  $(".hiw-line").each(function (idx) {
-    if (idx < stepNum) {
-      $(this).addClass("active-line");
-    }
-  });
+.points-info-box {
+  background-color: #f5f5f7;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 1rem 0;
+}
+.info-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.infobox-desktop-text {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0;
 }
 
 /*******************************************************
- * DOC READY
+ * SEARCH => “Combo Field” approach
  *******************************************************/
-$(document).ready(function () {
-  (async () => {
-    try {
-      await fetchClientIP();
-      await fetchApproxLocationFromIP();
-      await initializeApp();
-      dataLoaded = true;
-      console.log("Data fully loaded => dataLoaded = true (re-confirmed)");
+.started-search-area {
+  position: relative;
+  margin: 1rem 0;
+}
 
-      if (userClickedGetStarted) {
-        hideLoadingScreenAndShowInput();
-      }
-    } catch (err) {
-      console.error("Error while loading data =>", err);
-    }
-  })();
+/* Single “search bar” with input & Explore All button inside */
+.search-combo-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid #DFE5EB;
+  border-radius: 8px;
+  background-color: #fff;
+  overflow: hidden;
+  width: 100%;
+}
 
-  logSessionEvent("session_load");
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: #333;
+}
 
-  // Hide states except hero
-  $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
-  $("#default-hero").show();
-  $("#program-preview").hide().empty();
-  $(".left-column").hide();
+.search-input::placeholder {
+  color: #999;
+}
 
-  // Hero => GET STARTED
-  $("#hero-get-started-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hero_get_started_clicked");
-    userClickedGetStarted = true;
+.explore-all-btn {
+  background-color: #1a2732;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+.explore-all-btn:hover {
+  background-color: #141d28;
+}
 
-    if (dataLoaded) {
-      hideLoadingScreenAndShowInput();
-    } else {
-      $("#hero-how-it-works-btn").hide();
-      $("#hero-get-started-btn").hide();
-      $(".hero-inner h1").hide();
-      $(".hero-inner h2").hide();
-      $(".hero-cta-container").hide();
-      $("#loading-screen").show();
-      isTransitioning = false;
-    }
-  });
+/* Program preview dropdown below the search bar */
+#program-preview {
+  display: none;
+  position: absolute;
+  width: 100%;
+  left: 0;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border-radius: 8px;
+  z-index: 9999;
+}
+.preview-item {
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.preview-item:hover {
+  background: #f8fafd;
+}
 
-  function hideLoadingScreenAndShowInput() {
-    if (window.innerWidth >= 992) {
-      $(".left-column").show();
-      $(".left-column").css({
-        background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
-      });
-    }
-    $("#default-hero").hide();
-    $("#loading-screen").hide();
-    $("#input-state").fadeIn(() => {
-      isTransitioning = false;
-      updateNextCTAVisibility();
-      updateClearAllVisibility();
-    });
+/*******************************************************
+ * POPULAR PROGRAMS => top-programs-grid
+ *******************************************************/
+.top-programs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.top-program-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+.top-program-box img {
+  width: 40px;
+  height: auto;
+}
+.top-program-box:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.top-program-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a2732;
+}
+.add-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/*******************************************************
+ * SELECTED PROGRAMS
+ *******************************************************/
+.selected-programs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.selected-programs-row h3 {
+  /* additional styles if you want */
+}
+.clear-all-btn {
+  display: none;
+  background-color: #dc3545;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/*******************************************************
+ * PROGRAM & OUTPUT ROWS
+ *******************************************************/
+.program-row,
+.output-row {
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  background-color: #fff;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+}
+.program-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1D3A5F;
+}
+.remove-btn {
+  background: none;
+  color: #dc3545;
+  font-size: 1.25rem;
+}
+
+/*******************************************************
+ * DOLLAR INPUT => remove black border
+ *******************************************************/
+.dollar-input-container {
+  border: 1px solid #DFE5EB;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  padding: 0 0.5rem;
+  display: inline-flex;
+  align-items: center;
+}
+.points-input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  width: 70px;
+}
+
+/*******************************************************
+ * STICKY NEXT BTN
+ *******************************************************/
+.sticky-next-btn {
+  display: block !important;
+  position: static;
+  margin: 2rem auto;
+  padding: 0.9rem 6rem;
+}
+
+/* Default: disabled => gray */
+#input-next-btn.disabled-btn,
+#input-next-btn:disabled {
+  background-color: #ccc !important;
+  color: #fff !important;
+  pointer-events: none !important;
+  opacity: 0.7;
+}
+
+/* Enabled => blue background */
+#input-next-btn {
+  background-color: #1a2732;
+  color: #fff;
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/*******************************************************
+ * TRAVEL/CASH => switch
+ *******************************************************/
+.tc-btn-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1rem 0;
+}
+.tc-switch-btn {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.tc-switch-btn:hover {
+  background-color: #2e4461;
+  color: #fff;
+}
+.tc-switch-btn.active-tc {
+  background-color: #1a2732;
+  color: #fff;
+}
+
+/*******************************************************
+ * OUT-CTA
+ *******************************************************/
+.out-cta {
+  font-size: 1rem;
+}
+
+/*******************************************************
+ * USECASES => real-world use examples
+ *******************************************************/
+.points-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+}
+.point-option {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  background-color: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin: 10px 0;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+.point-option.active,
+.point-option:hover {
+  background-color: #1a2732;
+  color: #fff;
+}
+.points-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.points-view-img {
+  flex: 0 1 820px;
+  max-width: 820px;
+}
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.points-view-content {
+  flex: 1 1 300px;
+  text-align: left;
+}
+.points-state-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.points-state-description {
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 400px;
+}
+.usecase-accordion,
+.usecase-accordion .mini-pill {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/*******************************************************
+ * TIP-TEXT => output
+ *******************************************************/
+.tip-text {
+  margin: 1rem 0;
+  text-align: left;
+}
+
+/*******************************************************
+ * SUBMISSION TAKEOVER
+ *******************************************************/
+#submission-takeover {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255,255,255,0.95);
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+  max-width: 50rem;
+}
+
+/*******************************************************
+ * REPORT MODAL => #report-modal
+ *******************************************************/
+#report-modal {
+  position: fixed; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  background-color: rgba(0,0,0,0.6);
+  z-index: 9999;
+  display: none; /* .show => display: block */
+}
+#report-modal.show {
+  display: block;
+}
+#report-modal-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  padding: 20px;
+  max-width: 400px;
+  width: 80%;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+
+#modal-close-btn {
+  float: right;
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+#modal-email-error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-align: center;
+  display: none;
+}
+
+#email-sent-message {
+  display: none;
+  color: green;
+  margin-top: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/*******************************************************
+ * EMAIL FIELD => always has 1px border
+ *******************************************************/
+.email-field-container {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 25px;
+}
+.email-field-container input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  width: 100%;
+  font-size: 1rem;
+  color: #333;
+  box-sizing: border-box;
+}
+.email-field-container input::placeholder {
+  color: #999;
+}
+.email-field-container:focus-within {
+  border-color: #DFE5EB;
+  box-shadow: 0 0 0 2px #dfe5eb;
+}
+
+/*******************************************************
+ * SERVICES MODAL => #services-modal
+ *******************************************************/
+#services-modal {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  z-index: 9999;
+  display: none; 
+}
+#services-modal.show {
+  display: block;
+}
+#services-modal-content {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  height: 80%;
+  background: #fff;
+  padding: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+}
+#services-modal-close-btn {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #1a2732;
+  margin-top: -8px;
+}
+.services-iframe-container {
+  width: 100%;
+  height: calc(100% - 40px);
+  margin-top: 20px;
+}
+.services-iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/*******************************************************
+ * CHARTS => bar & pie side by side
+ *******************************************************/
+.chart-cards-row {
+  display: flex;      /* side by side on desktop */
+  flex-wrap: wrap;    /* can wrap on narrow screens */
+  gap: 2%;
+  margin-top: 1.5rem;
+}
+
+.bar-chart-card,
+.pie-chart-card {
+  position: relative; 
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Bar chart => ~60% width on desktop */
+.bar-chart-card {
+  flex: 0 0 60%;
+  max-width: 55%;
+  /* or remove these if you want it more fluid */
+}
+
+/* Pie chart => ~40% width on desktop */
+.pie-chart-card {
+  flex: 0 0 43%;
+  max-width: 43%;
+}
+
+.bar-card-title,
+.pie-card-title {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+  color: #333;
+  text-align: center;
+}
+
+/* Make the canvases scale nicely */
+.bar-chart-card canvas,
+.pie-chart-card canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+@media (max-width: 576px) {
+  .bar-chart-card,
+  .pie-chart-card {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 1rem;
   }
+}
 
-  // Hero => HOW IT WORKS
-  $("#hero-how-it-works-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hero_how_it_works_clicked");
-    if (window.innerWidth >= 992) {
-      $(".left-column").show();
-      $(".left-column").css({
-        background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
-      });
-    }
-    $("#default-hero").hide();
-    $("#how-it-works-state").fadeIn(() => {
-      isTransitioning = false;
-      showHowItWorksStep(1);
-    });
-  });
 
-  // Step transitions
-  $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
-  $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
-  $("#hiw-final-start-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hiw_final_get_started");
-    $("#how-it-works-state").hide();
+/*******************************************************
+ * USE CASE SLIDER
+ *******************************************************/
+.usecase-slider-section {
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  padding: 1rem;
+  max-width: 600px;
+}
 
-    userClickedGetStarted = true;
-    if (dataLoaded) {
-      hideLoadingScreenAndShowInput();
-    } else {
-      $("#loading-screen").show();
-      isTransitioning = false;
-    }
-  });
+/* Swiper container => full width up to 600px */
+.swiper-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  --swiper-navigation-size: 25px;
+  overflow: hidden;
+}
 
-  // Input => back => hero
-  $("#input-back-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("input_back_clicked");
-    $("#input-state").hide();
-    $(".left-column").hide();
-    $("#hero-how-it-works-btn").show();
-    $("#hero-get-started-btn").show();
-    $(".hero-inner h1").show();
-    $(".hero-inner h2").show();
-    $(".hero-cta-container").show();
-    $("#default-hero").fadeIn(() => {
-      isTransitioning = false;
-    });
-  });
+/* The top image in each slide */
+.usecase-slide-image {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
 
-  // Input => next => calc
-  $("#input-next-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("input_next_clicked");
-    $("#input-state").hide();
-    $("#calculator-state").fadeIn(() => {
-      isTransitioning = false;
-      $("#to-output-btn").show();
-    });
-    $("#program-container").empty();
-    chosenPrograms.forEach((rid) => addProgramRow(rid));
-    updateClearAllVisibility();
-  });
+/* The text/content area below the image */
+.usecase-slide-content {
+  flex: 1;
+  padding: 1rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
-  // Calc => back => input
-  $("#calc-back-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("calc_back_clicked");
-    $("#calculator-state").hide();
-    $("#input-state").fadeIn(() => {
-      isTransitioning = false;
-      $("#to-output-btn").hide();
-      updateClearAllVisibility();
-    });
-  });
+.usecase-slide-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+}
 
-  // Calc => next => output
-  $("#to-output-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("calc_next_clicked");
-    $("#calculator-state").hide();
-    $("#output-state").fadeIn(() => {
-      isTransitioning = false;
-      $("#unlock-report-btn").show();
-      $("#explore-concierge-lower").show();
-    });
-    // Build TRAVEL view by default each time
-    buildOutputRows("travel");
-    $(".tc-switch-btn").removeClass("active-tc");
-    $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
-  });
+.usecase-slide-body {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin-bottom: 1rem;
+}
 
-  // Output => back => calc
-  $("#output-back-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("output_back_clicked");
-    $("#output-state").hide();
-    $("#calculator-state").fadeIn(() => {
-      isTransitioning = false;
-    });
-  });
+.usecase-slide-points {
+  font-size: 0.8rem;
+  color: #555;
+}
 
-  // Switch between Travel / Cash
-  $(".tc-switch-btn").on("click", function () {
-    $(".tc-switch-btn").removeClass("active-tc");
-    $(this).addClass("active-tc");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
-  });
-
-  // Real-time filter
-  $("#program-search").on("input", filterPrograms);
-
-  // “Enter” => if only 1 result, pick it
-  $(document).on("keypress", "#program-search", function (e) {
-    if (e.key === "Enter" && $(".preview-item").length === 1) {
-      logSessionEvent("program_search_enter");
-      $(".preview-item").click();
-    }
-  });
-
-  // Toggle program from search
-  $(document).on("click", ".preview-item", function () {
-    const rid = $(this).data("record-id");
-    logSessionEvent("program_preview_item_clicked", { rid });
-    toggleSearchItemSelection($(this));
-  });
-
-  // Toggle program from “Popular Programs”
-  $(document).on("click", ".top-program-box", function () {
-    const rid = $(this).data("record-id");
-    logSessionEvent("top_program_box_clicked", { rid });
-    toggleProgramSelection($(this));
-  });
-
-  // Expand/collapse use case on row click
-  $(document).on("click", ".output-row", function () {
-    $(".usecase-accordion:visible").slideUp();
-    const nextAcc = $(this).next(".usecase-accordion");
-    if (nextAcc.is(":visible")) {
-      nextAcc.slideUp();
-    } else {
-      nextAcc.slideDown();
-    }
-  });
-
-  // Remove single program row
-  $(document).on("click", ".remove-btn", function() {
-    const rowEl = $(this).closest(".program-row");
-    const recordId = rowEl.data("record-id");
-    rowEl.remove();
-    delete pointsMap[recordId];
-  });
-
-  // On typed input => update pointsMap
-  $(document).on("input", ".points-input", function() {
-    const rowEl = $(this).closest(".program-row");
-    const recordId = rowEl.data("record-id");
-    let raw = $(this).val().replace(/[^0-9]/g, "");
-    if (!raw) {
-      pointsMap[recordId] = 0;
-      return;
-    }
-    let num = parseInt(raw, 10);
-    if (isNaN(num)) num = 0;
-    pointsMap[recordId] = num;
-  });
-
-  // mini-pill => changing which use case is displayed
-  $(document).on("click", ".mini-pill", function () {
-    const useCaseId = $(this).data("usecaseId");
-    logSessionEvent("mini_pill_clicked", { useCaseId });
-    const container = $(this).closest("div[style*='flex-direction:column']");
-    $(this).siblings(".mini-pill").each(function () {
-      $(this).css({ backgroundColor: "#f0f0f0", color: "#333" }).removeClass("active");
-    });
-    $(this).css({ backgroundColor: "#1a2732", color: "#fff" }).addClass("active");
-
-    const uc = Object.values(realWorldUseCases).find((x) => x.id === useCaseId);
-    if (!uc) return;
-    const newImg = uc["Use Case URL"] || "";
-    const newTitle = uc["Use Case Title"] || "Untitled";
-    const newBody = uc["Use Case Body"] || "No description";
-
-    container.find("img").attr("src", newImg);
-    container.find("h4").text(newTitle);
-    container.find("p").text(newBody);
-  });
-
-  // Unlock => show email modal
-  $("#unlock-report-btn").on("click", function () {
-    logSessionEvent("unlock_report_clicked");
-    showReportModal();
-  });
-  $("#modal-close-btn").on("click", function () {
-    logSessionEvent("modal_close_clicked");
-    hideReportModal();
-  });
-  $("#report-modal").on("click", function (event) {
-    if ($(event.target).attr("id") === "report-modal") {
-      hideReportModal();
-    }
-  });
-  $("#modal-send-btn").on("click", async function () {
-    const emailInput = $("#modal-email-input").val().trim();
-    logSessionEvent("modal_send_clicked", { email: emailInput });
-    await sendReportFromModal();
-  });
-
-  // Explore => external link (services modal)
-  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
-    logSessionEvent("explore_concierge_clicked");
-    $("#services-modal").addClass("show");
-  });
-  $("#services-modal-close-btn").on("click", function () {
-    $("#services-modal").removeClass("show");
-  });
-
-  // Usecase => back => output
-  $("#usecase-back-btn").on("click", function () {
-    $("#usecase-state").hide();
-    $("#output-state").fadeIn();
-  });
-
-  $("#send-report-back-btn").on("click", function () {
-    $("#send-report-state").hide();
-    $("#output-state").fadeIn();
-  });
-
-  $("#go-back-btn").on("click", function () {
-    $("#submission-takeover").hide();
-    $("#output-state").fadeIn();
-  });
-
-  // “Clear All”
-  $("#clear-all-btn").on("click", function () {
-    logSessionEvent("clear_all_clicked");
-    clearAllPrograms();
-  });
-});
+/* Swiper arrows => next/prev */
+.swiper-button-next,
+.swiper-button-prev {
+  color: #333;
+  top: 50%;
+  transform: translateY(-50%);
+}
+.swiper-button-next {
+  right: 10px;
+  left: auto;
+}
+.swiper-button-prev {
+  left: 10px;
+  right: auto;
+}
