@@ -617,7 +617,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   display:inline-block;
   width:24px; 
   height:24px;
-  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
+  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='https://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
     no-repeat center center;
   background-size:24px 24px;
   transition:opacity 0.2s ease;
