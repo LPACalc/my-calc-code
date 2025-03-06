@@ -557,7 +557,6 @@ function initUseCaseSwiper() {
       slidesPerView: 1,
     direction: 'horizontal',
     slidesPerView: 1,  // only 1 visible at a time
-    loop: true,
     pagination: {
       el: '.swiper-pagination',
       clickable: true
@@ -565,11 +564,8 @@ function initUseCaseSwiper() {
     navigation: {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev'
-    },
-    autoplay: {
-      delay: 4000,
-      disableOnInteraction: false
     }
+  
   });
 }
 
