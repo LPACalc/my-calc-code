@@ -779,36 +779,33 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .back-btn:hover::before {
   opacity:0.7;
 }
-  /* The wrapper row => side-by-side on desktop */
 .stat-cards-row {
   display: flex;
-  gap: 1rem;          /* space between cards */
-  margin: 1rem 0;     /* spacing above/below the row */
+  gap: 1rem;    /* space between cards */
+  margin: 1rem 0;
 }
 
-/* Each individual stat box */
 .stat-card {
-  /* Already in your code, but be sure it’s something like: */
-  flex: 1;
+  position: relative;       /* so the icon can be absolutely positioned */
+  flex: 1;                  /* distribute space evenly among the cards */
   background-color: #fff;
   border: 1px solid #DFE5EB;
   border-radius: 6px;
-  padding: 1rem;
+  /* Increase right padding so the text doesn't collide with the icon */
+  padding: 1rem 4rem 1rem 1rem;
   min-height: 80px;
   display: flex;
-  flex-direction: column; /* label on top, then the row beneath it */
-  justify-content: center;
-  /* remove any absolute positioning from .card-icon */
+  flex-direction: column;
+  justify-content: center;  /* vertically center the label + value group */
 }
 
-/* The small label text on top */
 .card-label {
   font-size: 0.9rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #1D3A5F;
+  margin-bottom: 0.3rem;
 }
 
-/* The big bold value under the label */
 .card-value {
   font-size: 1.2rem;
   font-weight: bold;
@@ -822,11 +819,14 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   align-items: center;            /* vertically center them on the same line */
 }
 
+
+/* Icon pinned to the right, vertically centered in the card */
 .card-icon {
+  position: absolute;
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 32px;  /* or 40px, whichever size you need */
+  width: 32px;  /* adjust as needed */
   height: auto;
 }
 
