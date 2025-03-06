@@ -643,6 +643,63 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 .back-btn:hover::before {
   opacity:0.7;
+
+  /* The wrapper row => side-by-side on desktop */
+.stat-cards-row {
+  display: flex;
+  gap: 1rem;          /* space between cards */
+  margin: 1rem 0;     /* spacing above/below the row */
+}
+
+/* Each individual stat box */
+.stat-card {
+  flex: 1;                    /* evenly distribute space across all 3 cards */
+  background-color: #fff;
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  padding: 1rem;
+  min-height: 80px;           /* optional: keeps them at least a consistent height */
+}
+
+/* The small label text on top */
+.card-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1D3A5F;
+  margin-bottom: 0.5rem;
+}
+
+/* The big bold value under the label */
+.card-value {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #1a2732;
+}
+
+/* Row to arrange the bold value + icon horizontally */
+.value-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Icons – reduce or increase width as you like */
+.card-icon {
+  width: 32px;
+  height: auto;
+  margin-left: 0.5rem;
+}
+
+/* On mobile, stack them vertically */
+@media (max-width: 576px) {
+  .stat-cards-row {
+    display: block;    /* no flex => stack */
+  }
+  .stat-card {
+    margin-bottom: 1rem;
+  }
+}
+
 }
 
 /*******************************************************
