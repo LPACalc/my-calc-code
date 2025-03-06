@@ -760,43 +760,36 @@ function closeAllProgramsModal() {
   $("#all-programs-modal").removeClass("show");
 }
 
+// On screens <= 576px, enable swipe to close
 if (window.innerWidth <= 576) {
-  // Suppose your top "grab area" is the header row that includes the X button:
-  // If you want the entire modal content to detect swipes, you can just target
-  // "#all-programs-modal-content" directly. However, it sounds like you only
-  // want the top area to be swipable, so that swipes within the scrollable list
-  // simply scroll the content rather than close the modal.
-  
-  const grabArea = document.getElementById("all-programs-close-btn"); 
-  // Alternatively: document.querySelector("#all-programs-modal-content .modal-header")
-
+  const modalContent = document.getElementById("all-programs-modal-content");
   let startX = 0;
   let startY = 0;
   let verticalSwipe = false;
-  const SWIPE_THRESHOLD = 80; // typical downward distance to trigger close
+  const SWIPE_THRESHOLD = 80;
 
-  grabArea.addEventListener("touchstart", function(e) {
+  modalContent.addEventListener("touchstart", function(e) {
     if (e.touches.length === 1) {
+      // Get initial finger coords
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       verticalSwipe = false;
     }
   });
 
-  grabArea.addEventListener("touchmove", function(e) {
+  modalContent.addEventListener("touchmove", function(e) {
     if (e.touches.length !== 1) return; // ignore multi-touch
-
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
     const diffX = currentX - startX;
     const diffY = currentY - startY;
 
-    // Check if this is primarily a vertical swipe
+    // Is this primarily a vertical movement?
     if (Math.abs(diffY) > Math.abs(diffX)) {
       verticalSwipe = true;
     }
 
-    // If it is a downward vertical swipe >= threshold, close the modal
+    // If downward vertical swipe >= threshold => close
     if (verticalSwipe && diffY > SWIPE_THRESHOLD) {
       closeAllProgramsModal();
     }
