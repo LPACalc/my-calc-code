@@ -1166,6 +1166,18 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   max-width:50rem;
 }
 
+
+/* Show the combo row on mobile; hide the old layout. */
+@media (max-width: 576px) {
+  .search-combo-field {
+    display: flex; 
+  }
+  /* If you had a separate “search area” above, hide it on mobile. */
+  .started-search-area {
+    display: none; 
+  }
+}
+
 /*******************************************************
  * REPORT MODAL => #report-modal
  *******************************************************/
@@ -1341,44 +1353,40 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
     display: none;
   }
 }
-/* A container that visually looks like a single “search bar” with a button */
 .search-combo-field {
-  display: flex;
-  align-items: center;
+  display: none;             /* default: hidden on larger screens */
+  position: relative;
+  width: 100%;
+  max-width: 100%;
   border: 1px solid #DFE5EB;
   border-radius: 8px;
+  overflow: hidden; 
   background-color: #fff;
-  overflow: hidden;  /* ensures corners stay rounded even around the button */
-  width: 100%;       /* or max-width: 100%; up to you */
 }
 
+/* The search field flexes to fill space; no separate border. */
 .search-input {
-  flex: 1;                 /* take up remaining space */
+  flex: 1;
   border: none;
   outline: none;
   padding: 0.75rem 1rem;
   font-size: 1rem;
   color: #333;
-  /* If you like: border-radius: 8px 0 0 8px; 
-     But not necessary if container has overflow: hidden 
-  */
 }
 
 .search-input::placeholder {
   color: #999;
 }
 
+/* The “Explore All” button sits on the right, same height as input. */
 .explore-all-btn {
-  background-color: #1a2732;  /* or a “blue” color you like */
+  background-color: #1a2732;  /* dark color */
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
   padding: 0.75rem 1rem;
   border: none;
   cursor: pointer;
-  /* If you want a slightly different shape, do:
-     border-radius: 0 8px 8px 0; 
-  */
 }
 
 .explore-all-btn:hover {
