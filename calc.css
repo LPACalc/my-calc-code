@@ -1218,6 +1218,8 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   max-width: 600px;
   margin: 0 auto;     /* center horizontally */
   --swiper-navigation-size: 25px; /* arrow size */
+    overflow: hidden; /* ADDED: clip any overflow */
+
 }
 
 /* Each slide => single use case */
