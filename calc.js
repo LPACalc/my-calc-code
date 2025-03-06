@@ -760,6 +760,50 @@ function closeAllProgramsModal() {
   $("#all-programs-modal").removeClass("show");
 }
 
+if (window.innerWidth <= 576) {
+  // Suppose your top "grab area" is the header row that includes the X button:
+  // If you want the entire modal content to detect swipes, you can just target
+  // "#all-programs-modal-content" directly. However, it sounds like you only
+  // want the top area to be swipable, so that swipes within the scrollable list
+  // simply scroll the content rather than close the modal.
+  
+  const grabArea = document.getElementById("all-programs-close-btn"); 
+  // Alternatively: document.querySelector("#all-programs-modal-content .modal-header")
+
+  let startX = 0;
+  let startY = 0;
+  let verticalSwipe = false;
+  const SWIPE_THRESHOLD = 80; // typical downward distance to trigger close
+
+  grabArea.addEventListener("touchstart", function(e) {
+    if (e.touches.length === 1) {
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      verticalSwipe = false;
+    }
+  });
+
+  grabArea.addEventListener("touchmove", function(e) {
+    if (e.touches.length !== 1) return; // ignore multi-touch
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - startX;
+    const diffY = currentY - startY;
+
+    // Check if this is primarily a vertical swipe
+    if (Math.abs(diffY) > Math.abs(diffX)) {
+      verticalSwipe = true;
+    }
+
+    // If it is a downward vertical swipe >= threshold, close the modal
+    if (verticalSwipe && diffY > SWIPE_THRESHOLD) {
+      closeAllProgramsModal();
+    }
+  });
+}
+
+
 /**
  * Build the entire list of programs, marking any that are already chosen.
  */
