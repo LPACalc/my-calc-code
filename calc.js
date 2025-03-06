@@ -451,17 +451,16 @@ function clearAllPrograms() {
   chosenPrograms = [];
   pointsMap = {};
   $("#program-container").empty();
-
-  $(".top-program-box.selected-state").each(function () {
-    $(this).removeClass("selected-state");
-    if (window.innerWidth >= 992) {
-      $(this).find(".add-btn").text("+");
-    }
-  });
+  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
 
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
+
+  // If the All Programs modal is open, refresh:
+  if ($("#all-programs-modal").hasClass("show")) {
+    buildAllProgramsList();
+  }
 }
 
 /*******************************************************
@@ -713,6 +712,105 @@ function gatherAllRecommendedUseCases() {
   results.sort(() => Math.random() - 0.5);
   return results;
 }
+
+
+function openAllProgramsModal() {
+  // Populate #all-programs-list with rows for each program
+  buildAllProgramsList();
+  // Show the modal
+  $("#all-programs-modal").addClass("show");
+}
+
+function closeAllProgramsModal() {
+  $("#all-programs-modal").removeClass("show");
+}
+
+/**
+ * Build the entire list of programs, marking any that are already chosen.
+ */
+function buildAllProgramsList() {
+  const container = $("#all-programs-list");
+  container.empty();
+
+  // Suppose loyaltyPrograms is an object: { [recordId]: programData }
+  const allIds = Object.keys(loyaltyPrograms);
+
+  allIds.forEach((rid) => {
+    const prog = loyaltyPrograms[rid];
+    const name = prog["Program Name"] || "Unknown Program";
+    const logo = prog["Brand Logo URL"] || "";
+
+    // Check if currently selected
+    const isSelected = chosenPrograms.includes(rid);
+
+    // We'll show a plus sign if not selected, or a check mark if selected:
+    const circleIcon = isSelected ? "✓" : "+";
+
+    // The row can have a “selected-state” class if chosen
+    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
+
+    const rowHtml = `
+      <div class="${rowClass}" data-record-id="${rid}">
+        <div class="row-left">
+          <img src="${logo}" alt="${name} logo" />
+          <span class="program-name">${name}</span>
+        </div>
+        <button class="circle-btn">${circleIcon}</button>
+      </div>
+    `;
+    container.append(rowHtml);
+  });
+}
+
+// Open the modal on “Explore All” button click (mobile)
+$("#explore-all-btn").on("click", function() {
+  openAllProgramsModal();
+});
+
+// Close button => close the modal
+$("#all-programs-close-btn").on("click", function() {
+  closeAllProgramsModal();
+});
+
+// Also close if user clicks outside the content (optional):
+$("#all-programs-modal").on("click", function(e) {
+  if ($(e.target).attr("id") === "all-programs-modal") {
+    closeAllProgramsModal();
+  }
+});
+
+/**
+ * Toggle selection on click of the row or the circle.
+ * We'll do a delegated event handler for .all-program-row
+ */
+$(document).on("click", ".all-program-row", function(e) {
+  // If the user clicked the row or circle, let's unify logic:
+  const rowEl = $(this);
+  const rid = rowEl.data("record-id");
+  if (!rid) return;
+
+  // Are we already selected?
+  const index = chosenPrograms.indexOf(rid);
+  const isSelected = (index !== -1);
+
+  if (isSelected) {
+    // Remove from chosenPrograms
+    chosenPrograms.splice(index, 1);
+    rowEl.removeClass("selected-state");
+    rowEl.find(".circle-btn").text("+");
+  } else {
+    // Add to chosenPrograms
+    chosenPrograms.push(rid);
+    rowEl.addClass("selected-state");
+    rowEl.find(".circle-btn").text("✓");
+  }
+
+  // Also reflect changes in your main Input state or “Selected Programs” row
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+});
+
 
 /*******************************************************
  * BUILD OUTPUT => TRAVEL / CASH
