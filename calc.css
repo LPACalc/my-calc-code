@@ -788,12 +788,17 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 
 /* Each individual stat box */
 .stat-card {
-  flex: 1;                    /* evenly distribute space across all 3 cards */
+  position: relative;         /* Needed so the icon can be absolutely positioned */
+  flex: 1; 
   background-color: #fff;
   border: 1px solid #DFE5EB;
   border-radius: 6px;
-  padding: 1rem;
-  min-height: 80px;           /* optional: keeps them at least a consistent height */
+  padding: 1rem;              /* Enough padding so the icon doesn’t clash with edges */
+  min-height: 80px;
+  margin: 0;                  /* If you want consistent spacing, keep or adjust this */
+  display: flex;
+  flex-direction: column;     /* Label on top, then value below it */
+  justify-content: center;    /* Vertically center the label + value as a group */
 }
 
 /* The small label text on top */
@@ -818,11 +823,13 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   justify-content: space-between; /* or 'flex-end' if you want the icon to float right */
 }
 
-/* Icons – reduce or increase width as you like */
 .card-icon {
-  width: 32px;
+  position: absolute;         /* Pin it to the right, centered vertically */
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;  /* or 40px, whichever size you need */
   height: auto;
-  margin-left: 0.5rem;
 }
 
 /* On mobile, stack them vertically */
