@@ -420,12 +420,7 @@ background-color: #f5f5f5 !important;
     border-color: transparent !important;
   }
 
-  .program-search-field {
-    width: 100% !important;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 1rem 2rem !important;
-  }
+
 
   .program-search-field:focus {
     outline: none !important;
@@ -867,13 +862,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   position:relative;
   margin:1rem 0;
 }
-.program-search-field {
-  width:100%;
-  border-radius:0.5rem;
-  border:1px solid #DFE5EB;
-  padding:1rem;
-  outline:none;
-}
+
 #program-preview {
   display:none;
   position:absolute;
@@ -1547,6 +1536,45 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .usecase-slide-points {
   font-size: 0.8rem;
   color: #555;
+}
+
+
+
+.search-combo-field {
+  display: flex;
+  align-items: center;
+  border: 1px solid #DFE5EB;
+  border-radius: 8px;
+  background-color: #fff;
+  overflow: hidden;
+  width: 100%; 
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  padding: 0.75rem 1rem;
+  font-size: 1rem;
+  color: #333;
+}
+
+.search-input::placeholder {
+  color: #999;
+}
+
+.explore-all-btn {
+  background-color: #1a2732;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  border: none;
+  cursor: pointer;
+}
+
+.explore-all-btn:hover {
+  background-color: #141d28;
 }
 
 /*******************************************************
