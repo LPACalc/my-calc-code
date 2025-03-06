@@ -695,20 +695,28 @@ function renderPieChartProgramShare(gatheredData) {
 
 
 function gatherAllRecommendedUseCases() {
+  // 1) Figure out how many points the user has in each chosen program
+  const userProgramPoints = {};
+  const data = gatherProgramData(); // Already returns an array of { recordId, points }
+  data.forEach(item => {
+    userProgramPoints[item.recordId] = item.points;
+  });
+
   const results = [];
   const usedIds = new Set();
 
-  // For each chosen program
+  // 2) For each chosen program
   chosenPrograms.forEach(programId => {
     const userPoints = userProgramPoints[programId] || 0;
-    // For each realWorldUseCase
+
+    // 3) For each realWorldUseCase
     Object.values(realWorldUseCases).forEach(uc => {
       if (!uc.Recommended) return;
       if (!uc["Points Required"]) return;
       if (!uc["Program Name"]?.includes(programId)) return;
       if (uc["Points Required"] > userPoints) return;
-      // etc...
 
+      // Prevent duplicates
       if (!usedIds.has(uc.id)) {
         usedIds.add(uc.id);
         results.push(uc);
@@ -716,10 +724,11 @@ function gatherAllRecommendedUseCases() {
     });
   });
 
-  // Randomize
+  // 4) Randomize
   results.sort(() => Math.random() - 0.5);
   return results;
 }
+
 
 
 
