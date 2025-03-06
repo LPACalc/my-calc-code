@@ -788,17 +788,17 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 
 /* Each individual stat box */
 .stat-card {
-  position: relative;         /* Needed so the icon can be absolutely positioned */
-  flex: 1; 
+  /* Already in your code, but be sure it’s something like: */
+  flex: 1;
   background-color: #fff;
   border: 1px solid #DFE5EB;
   border-radius: 6px;
-  padding: 1rem;              /* Enough padding so the icon doesn’t clash with edges */
+  padding: 1rem;
   min-height: 80px;
-  margin: 0;                  /* If you want consistent spacing, keep or adjust this */
   display: flex;
-  flex-direction: column;     /* Label on top, then value below it */
-  justify-content: center;    /* Vertically center the label + value as a group */
+  flex-direction: column; /* label on top, then the row beneath it */
+  justify-content: center;
+  /* remove any absolute positioning from .card-icon */
 }
 
 /* The small label text on top */
@@ -819,12 +819,11 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 /* Row to arrange the bold value + icon horizontally */
 .value-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between; /* or 'flex-end' if you want the icon to float right */
+  justify-content: space-between; /* text left, icon right */
+  align-items: center;            /* vertically center them on the same line */
 }
 
 .card-icon {
-  position: absolute;         /* Pin it to the right, centered vertically */
   right: 1rem;
   top: 50%;
   transform: translateY(-50%);
