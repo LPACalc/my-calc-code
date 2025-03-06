@@ -37,8 +37,18 @@ let pointsMap = {};
 /**
  * NEW FLAGS to handle loading state and user input
  */
-let dataLoaded = false;           // becomes true after data loads
-let userClickedGetStarted = false; // if user clicks "Get Started" before data is loaded
+let dataLoaded = false;           
+let userClickedGetStarted = false;
+
+/** 
+ * We'll track these so we can destroy & rebuild charts each time 
+ * the user re-enters the Output state with changed data.
+ */
+let barChartInstance = null;
+let pieChartInstance = null;
+
+/** For the use case slider: */
+let useCaseSwiper = null;
 
 /*******************************************************
  * FETCH IP & LOCATION
@@ -110,6 +120,7 @@ function logSessionEvent(eventName, payload = {}) {
     keepalive: true
   });
 }
+
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
@@ -311,11 +322,10 @@ function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
 
-  // Points persistence (already in place):
+  // Points persistence:
   const existingPoints = pointsMap[recordId] || 0;
   const formattedPoints = existingPoints ? existingPoints.toLocaleString() : "";
 
-  // Pull the program’s logo URL, if it exists:
   const logoUrl = prog["Brand Logo URL"] || "";
   const programName = prog["Program Name"] || "Unnamed Program";
 
@@ -358,16 +368,13 @@ function addProgramRow(recordId) {
 function toggleSearchItemSelection(itemEl) {
   const rid = itemEl.data("record-id");
   if (!rid) return;
-  // Add
   chosenPrograms.push(rid);
   itemEl.remove();
 
-  // Clean up UI
   $("#program-search").val("");
   $("#program-preview").hide().empty();
   filterPrograms();
 
-  // Update displays
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
@@ -380,14 +387,12 @@ function toggleProgramSelection(boxEl) {
   const rid = boxEl.data("record-id");
   const idx = chosenPrograms.indexOf(rid);
   if (idx === -1) {
-    // Not chosen yet => add
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
     if (window.innerWidth >= 992) {
       boxEl.find(".add-btn").text("✓");
     }
   } else {
-    // Already chosen => remove
     chosenPrograms.splice(idx, 1);
     boxEl.removeClass("selected-state");
     if (window.innerWidth >= 992) {
@@ -433,10 +438,8 @@ function updateChosenProgramsDisplay() {
 function updateNextCTAVisibility() {
   const $nextBtn = $("#input-next-btn");
   if (chosenPrograms.length > 0) {
-    // Enable
     $nextBtn.removeClass("disabled-btn").prop("disabled", false);
   } else {
-    // Disable
     $nextBtn.addClass("disabled-btn").prop("disabled", true);
   }
 }
@@ -445,14 +448,10 @@ function updateNextCTAVisibility() {
  * CLEAR ALL
  *******************************************************/
 function clearAllPrograms() {
-  // 1) Clear chosen arrays
   chosenPrograms = [];
   pointsMap = {};
-
-  // 2) Remove program rows in the calculator
   $("#program-container").empty();
 
-  // 3) Remove the .selected-state from popular programs & reset “+” text (on desktop)
   $(".top-program-box.selected-state").each(function () {
     $(this).removeClass("selected-state");
     if (window.innerWidth >= 992) {
@@ -460,7 +459,6 @@ function clearAllPrograms() {
     }
   });
 
-  // 4) Update displays, hide Clear All button, etc.
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
@@ -472,7 +470,6 @@ function clearAllPrograms() {
 function updateClearAllVisibility() {
   const $btn = $("#clear-all-btn");
   const hasChosen = chosenPrograms.length > 0;
-
   if (hasChosen) {
     $btn.show();
   } else {
@@ -495,7 +492,7 @@ function formatNumberInput(el) {
 }
 
 function calculateTotal() {
-  // Optionally do real-time calculations if desired
+  // optional real-time sum
 }
 
 /*******************************************************
@@ -518,6 +515,9 @@ function gatherProgramData() {
   return data;
 }
 
+/*******************************************************
+ * SWIPER: BUILD + REBUILD
+ *******************************************************/
 function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
 
@@ -527,7 +527,6 @@ function buildUseCaseSlides(allUseCases) {
     const body     = uc["Use Case Body"]  || "No description";
     const points   = uc["Points Required"] || 0;
 
-    // Build ONE slide per use case
     slideHTML += `
       <div class="swiper-slide">
         <img src="${imageURL}" alt="Use Case" class="usecase-slide-image" />
@@ -544,14 +543,11 @@ function buildUseCaseSlides(allUseCases) {
   slidesEl.innerHTML = slideHTML;
 }
 
-let useCaseSwiper = null;
-
-// Init with loop: true, but no autoplay
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
     slidesPerView: 1,
     direction: 'horizontal',
-    slidesPerView: 1,  // only 1 visible at a time
+    loop: true,               // loop through slides
     pagination: {
       el: '.swiper-pagination',
       clickable: true
@@ -559,16 +555,22 @@ function initUseCaseSwiper() {
     navigation: {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev'
-    },
-    loop: true
+    }
+    // no autoplay => user must navigate
   });
 }
 
 /*******************************************************
- * RENDER CHARTS
+ * CHARTS
  *******************************************************/
-// Horizontal Bar Chart
+// We'll store the references in barChartInstance & pieChartInstance
+
 function renderValueComparisonChart(travelValue, cashValue) {
+  // Destroy any existing chart before creating a fresh one
+  if (barChartInstance) {
+    barChartInstance.destroy();
+    barChartInstance = null;
+  }
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
 
@@ -616,17 +618,19 @@ function renderValueComparisonChart(travelValue, cashValue) {
     }
   };
 
-  new Chart(ctx, config);
+  barChartInstance = new Chart(ctx, config);
 }
 
-// Pie / Doughnut Chart
 function renderPieChartProgramShare(gatheredData) {
+  // Destroy existing pie chart
+  if (pieChartInstance) {
+    pieChartInstance.destroy();
+    pieChartInstance = null;
+  }
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
 
   const ctx = pieCanvas.getContext("2d");
-
-  // Sum up total user points
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
   if (totalPoints < 1) {
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
@@ -674,11 +678,11 @@ function renderPieChartProgramShare(gatheredData) {
     }
   };
 
-  new Chart(ctx, config);
+  pieChartInstance = new Chart(ctx, config);
 }
 
 /*******************************************************
- * RECOMMENDED USE CASES
+ * USE CASE RECOMMENDATIONS
  *******************************************************/
 function gatherAllRecommendedUseCases() {
   const userProgramPoints = {};
@@ -692,7 +696,6 @@ function gatherAllRecommendedUseCases() {
 
   chosenPrograms.forEach(programId => {
     const userPoints = userProgramPoints[programId] || 0;
-
     Object.values(realWorldUseCases).forEach(uc => {
       if (!uc.Recommended) return;
       if (!uc["Points Required"]) return;
@@ -706,7 +709,6 @@ function gatherAllRecommendedUseCases() {
     });
   });
 
-  // Randomize
   results.sort(() => Math.random() - 0.5);
   return results;
 }
@@ -716,16 +718,14 @@ function gatherAllRecommendedUseCases() {
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
-
-  // Clear
   $("#output-programs-list").empty();
 
-  let scenarioTotal    = 0;  
+  let scenarioTotal = 0;
   let totalTravelValue = 0;  
   let totalCashValue   = 0;
 
   data.forEach((item) => {
-    const prog    = loyaltyPrograms[item.recordId];
+    const prog = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
 
     const tVal = item.points * (prog?.["Travel Value"] || 0);
@@ -784,24 +784,32 @@ function buildOutputRows(viewType) {
     </div>
   `);
 
-  // Charts
+  // Destroy and recreate the charts each time
   renderValueComparisonChart(totalTravelValue, totalCashValue);
   renderPieChartProgramShare(data);
 
-  // If travel => build swiper
+  // If travel => rebuild the Swiper
   if (viewType === "travel") {
     const allUseCases = gatherAllRecommendedUseCases();
     buildUseCaseSlides(allUseCases);
-    if (!useCaseSwiper) {
-      initUseCaseSwiper();
-    } else {
-      useCaseSwiper.update();
+    // If it already exists, nuke it and re-init
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+    initUseCaseSwiper();
+  } else {
+    // If user is switching to "Cash" view, 
+    // optionally kill the swiper because not used
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
     }
   }
 }
 
 /*******************************************************
- * USE CASE => build accordion
+ * USE CASE => BUILD ACCORDION
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -817,7 +825,6 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && uc["Points Required"] <= userPoints;
   });
 
-  // Sort by redemption value desc
   matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
   matching = matching.slice(0, 5);
   matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
@@ -877,7 +884,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 }
 
 /*******************************************************
- * MODAL => show/hide
+ * MODAL => SHOW/HIDE
  *******************************************************/
 function showReportModal() {
   $("#report-modal").addClass("show");
@@ -940,9 +947,12 @@ async function sendReportFromModal() {
     setTimeout(() => {
       hideReportModal();
       sentMsgEl.hide();
-      // Adjust CTA states
-      $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
-      $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
+      $("#unlock-report-btn")
+        .removeClass("cta-dark cta-light-border")
+        .addClass("cta-light-border");
+      $("#explore-concierge-lower")
+        .removeClass("cta-dark cta-light-border")
+        .addClass("cta-dark");
     }, 700);
   } catch (err) {
     console.error("Failed to send =>", err);
@@ -992,7 +1002,7 @@ $(document).ready(function () {
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
-  $(".left-column").hide(); 
+  $(".left-column").hide();
 
   // Hero => GET STARTED
   $("#hero-get-started-btn").on("click", function () {
@@ -1122,6 +1132,7 @@ $(document).ready(function () {
       $("#unlock-report-btn").show();
       $("#explore-concierge-lower").show();
     });
+    // Build TRAVEL view by default each time
     buildOutputRows("travel");
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
@@ -1171,9 +1182,8 @@ $(document).ready(function () {
     toggleProgramSelection($(this));
   });
 
-  // Expand/collapse use case
+  // Expand/collapse use case on row click
   $(document).on("click", ".output-row", function () {
-    const activeView = $(".tc-switch-btn.active-tc").data("view");
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
     if (nextAcc.is(":visible")) {
@@ -1185,30 +1195,15 @@ $(document).ready(function () {
 
   // Remove single program row
   $(document).on("click", ".remove-btn", function() {
-    const rowEl   = $(this).closest(".program-row");
+    const rowEl = $(this).closest(".program-row");
     const recordId = rowEl.data("record-id");
     rowEl.remove();
     delete pointsMap[recordId];
   });
 
-  // Overwrite clearAllPrograms
-  function clearAllPrograms() {
-    chosenPrograms = [];
-    pointsMap = {};
-    $("#program-container").empty();
-    $(".top-program-box.selected-state").each(function () {
-      $(this).removeClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $(this).find(".add-btn").text("+");
-      }
-    });
-    updateChosenProgramsDisplay();
-    updateNextCTAVisibility();
-    updateClearAllVisibility();
-  }
-
+  // On typed input => update pointsMap
   $(document).on("input", ".points-input", function() {
-    const rowEl   = $(this).closest(".program-row");
+    const rowEl = $(this).closest(".program-row");
     const recordId = rowEl.data("record-id");
     let raw = $(this).val().replace(/[^0-9]/g, "");
     if (!raw) {
@@ -1220,7 +1215,7 @@ $(document).ready(function () {
     pointsMap[recordId] = num;
   });
 
-  // mini-pill => switch slides inside the use case accordion
+  // mini-pill => changing which use case is displayed
   $(document).on("click", ".mini-pill", function () {
     const useCaseId = $(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked", { useCaseId });
@@ -1232,12 +1227,16 @@ $(document).ready(function () {
 
     const uc = Object.values(realWorldUseCases).find((x) => x.id === useCaseId);
     if (!uc) return;
-    container.find("img").attr("src", uc["Use Case URL"] || "");
-    container.find("h4").text(uc["Use Case Title"] || "Untitled");
-    container.find("p").text(uc["Use Case Body"] || "No description");
+    const newImg = uc["Use Case URL"] || "";
+    const newTitle = uc["Use Case Title"] || "Untitled";
+    const newBody = uc["Use Case Body"] || "No description";
+
+    container.find("img").attr("src", newImg);
+    container.find("h4").text(newTitle);
+    container.find("p").text(newBody);
   });
 
-  // Email modal
+  // Unlock => show email modal
   $("#unlock-report-btn").on("click", function () {
     logSessionEvent("unlock_report_clicked");
     showReportModal();
@@ -1257,7 +1256,7 @@ $(document).ready(function () {
     await sendReportFromModal();
   });
 
-  // Services modal
+  // Explore => external link (services modal)
   $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
     logSessionEvent("explore_concierge_clicked");
     $("#services-modal").addClass("show");
