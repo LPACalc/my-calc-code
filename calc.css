@@ -319,6 +319,8 @@ background-color: #f5f5f5 !important;
  *******************************************************/
 @media (max-width: 576px) {
 
+  
+
   .usecase-slider-section {
   margin: 2rem auto; /* space above/below */
   background: #fff;  /* white background */
@@ -331,7 +333,7 @@ background-color: #f5f5f5 !important;
    /* Stack the bar chart card & pie chart card vertically 
      instead of side by side */
   .chart-cards-row {
-    display: block;        /* was flex on desktop; stack them for mobile */
+    display: block !important;        /* was flex on desktop; stack them for mobile */
   }
   .chart-cards-row .bar-chart-card,
   .chart-cards-row .pie-chart-card {
@@ -1401,7 +1403,6 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   border-radius: 8px;
   padding: 1.5rem;
   box-sizing: border-box;
-  max-width: 500px !important;
 
   /* On desktop, let’s give it ~60% width */
   flex: 0 0 60%;
