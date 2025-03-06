@@ -1471,17 +1471,27 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 
+/* Let each chart share a row at ~48% width, no hard height. */
 .bar-chart-card,
 .pie-chart-card {
-  position: relative; /* required for the canvas to size properly */
-  /* The inline style or a fixed CSS rule sets the height: 300px; */
+  flex: 0 0 48%;
+  max-width: 48%;
+  display: flex;              /* so the canvas can expand */
+  flex-direction: column;     /* chart title + canvas stack vertically */
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: visible;          /* ensure nothing is clipped */
 }
 
 .bar-chart-card canvas,
 .pie-chart-card canvas {
-  /* Force the canvas to fill the parent’s size */
+  display: block;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;    /* allow flexible height */
+  flex: 1;                    /* expands to fill remaining vertical space */
 }
 
 
