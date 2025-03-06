@@ -1395,12 +1395,12 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
  * smaller screens. 
  ****************************************************************************/
 
-/* The parent row that holds two separate cards side by side */
 .chart-cards-row {
   display: flex;
-  flex-wrap: wrap;   /* So on small screens they can stack */
-  gap: 2%;         /* Space between cards */
+  flex-wrap: wrap;
+  gap: 2%;
   margin-top: 1.5rem;
+  justify-content: space-between; /* optional, to spread them evenly */
 }
 
 /* Bar Chart Card */
@@ -1471,27 +1471,26 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 
-/* Let each chart share a row at ~48% width, no hard height. */
 .bar-chart-card,
 .pie-chart-card {
-  flex: 0 0 48%;
+  flex: 0 0 48%;       /* side by side on desktop */
   max-width: 48%;
-  display: flex;              /* so the canvas can expand */
-  flex-direction: column;     /* chart title + canvas stack vertically */
+  position: relative;  /* needed for child to fill absolutely or do height:100% */
+  height: 350px;       /* fixed height to prevent infinite stretch */
   background: #fff;
   border-radius: 8px;
-  padding: 1.5rem;
+  padding: 1rem;       /* if you want some space for the title or legend */
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  overflow: visible;          /* ensure nothing is clipped */
+  overflow: hidden;    /* hide overflow if chart tries to expand beyond container */
 }
 
+/* Force the canvas to fill the container’s entire area */
 .bar-chart-card canvas,
 .pie-chart-card canvas {
   display: block;
-  width: 100% !important;
-  height: auto !important;    /* allow flexible height */
-  flex: 1;                    /* expands to fill remaining vertical space */
+  width: 100% !important; 
+  height: 100% !important; 
 }
 
 
