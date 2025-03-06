@@ -1216,7 +1216,6 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   position: relative; /* so arrows can anchor inside */
   width: 100%;
   max-width: 600px;
-  height: 500px;      /* adjust this to desired height */
   margin: 0 auto;     /* center horizontally */
   --swiper-navigation-size: 25px; /* arrow size */
 }
