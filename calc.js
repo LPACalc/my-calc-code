@@ -668,14 +668,17 @@ function renderPieChartProgramShare(gatheredData) {
     data,
     options: {
       responsive: true,
-       layout: {
-    padding: {
-      bottom: 20 // extra breathing room so axes/labels don’t get clipped
-    },
       maintainAspectRatio: false,
-      cutout: "55%",
+      layout: {
+        padding: {
+          bottom: 20 // extra breathing room so labels/tooltips aren’t clipped
+        }
+      },
+      cutout: "55%",  // Make it a donut
       plugins: {
-        legend: { position: "bottom" },
+        legend: {
+          position: "bottom"
+        },
         tooltip: {
           callbacks: {
             label: function (context) {
@@ -691,6 +694,7 @@ function renderPieChartProgramShare(gatheredData) {
 
   pieChartInstance = new Chart(ctx, config);
 }
+
 
 /*******************************************************
  * USE CASE RECOMMENDATIONS
