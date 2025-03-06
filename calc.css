@@ -205,17 +205,31 @@ background-color: #f5f5f5 !important;
   }
 
   /* Ensure Swiper container fits narrow screens */
-  .swiper-container {
-    width: 100%;
-    height: auto;  
-    /* removes any fixed height so it shrinks to content */
+.swiper-container {
+    width: 100% !important;
+    height: auto !important;       /* remove any fixed height */
+    overflow: hidden;              /* hides potential overflow */
   }
+
 
   /* Limit the slide image’s height so it doesn’t balloon 
      on very narrow screens */
   .usecase-slide-image {
     max-height: 180px;  
     object-fit: cover;  
+  }
+
+    .swiper-slide {
+    width: 100% !important;
+    box-sizing: border-box;        /* ensures correct sizing */
+  }
+
+   .usecase-slide-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 200px;            /* or 180px, etc. */
+    object-fit: cover;            /* crops horizontally if needed */
   }
 
   /* --- SHARED / GLOBAL MOBILE TWEAKS --- */
