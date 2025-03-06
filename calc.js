@@ -629,7 +629,6 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
 
 function renderPieChartProgramShare(gatheredData) {
-  // Destroy existing pie chart
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
@@ -646,11 +645,9 @@ function renderPieChartProgramShare(gatheredData) {
 
   const donutLabels = gatheredData.map(x => x.programName);
   const donutValues = gatheredData.map(x => x.points);
-
-  const donutColors = gatheredData.map(item => {
-    const rec = loyaltyPrograms[item.recordId];
-    return rec && rec["Color"] ? rec["Color"] : "#cccccc";
-  });
+  const donutColors = gatheredData.map(item =>
+    loyaltyPrograms[item.recordId]?.Color || "#cccccc"
+  );
 
   const data = {
     labels: donutLabels,
@@ -667,24 +664,30 @@ function renderPieChartProgramShare(gatheredData) {
     type: "doughnut",
     data,
     options: {
+      devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
       layout: {
         padding: {
-          bottom: 20 // extra breathing room so labels/tooltips aren’t clipped
+          bottom: 40 // extra space at bottom
         }
       },
-      cutout: "55%",  // Make it a donut
+      cutout: "55%", // donut hole size
       plugins: {
         legend: {
-          position: "bottom"
+          position: "bottom",
+          maxHeight: 50, // forces multi-row wrapping
+          labels: {
+            boxWidth: 20,
+            padding: 10
+          }
         },
         tooltip: {
           callbacks: {
-            label: function (context) {
-              const val = context.parsed || 0;
+            label: function (ctx) {
+              const val = ctx.parsed || 0;
               const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
-              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
+              return `${ctx.label}: ${val.toLocaleString()} pts (${pct})`;
             }
           }
         }
@@ -694,6 +697,7 @@ function renderPieChartProgramShare(gatheredData) {
 
   pieChartInstance = new Chart(ctx, config);
 }
+
 
 
 /*******************************************************
