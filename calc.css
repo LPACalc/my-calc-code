@@ -1167,20 +1167,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 
 
 
-/* On mobile, hide the old started-search-area, show .search-combo-field */
-@media (max-width: 576px) {
 
-  /* Hide the old layout for mobile */
-  .started-search-area {
-    display: none !important;
-  }
-
-  /* Show the new .search-combo-field row for mobile only */
-  .search-combo-field {
-    display: flex !important; /* side by side row: input + button */
-    margin: 1rem;            /* if you want similar spacing */
-  }
-}
 
 /*******************************************************
  * REPORT MODAL => #report-modal
