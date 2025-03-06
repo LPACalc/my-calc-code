@@ -550,9 +550,9 @@ function initUseCaseSwiper() {
     loop: true,               // loop through slides
     pagination: {
       el: '.swiper-pagination',
-      clickable: true
+      clickable: true,
        dynamicBullets: true,
-    dynamicMainBullets: 5, // or 3, etc.
+    dynamicMainBullets: 5,
     },
     navigation: {
       nextEl: '.swiper-button-next',
@@ -721,9 +721,13 @@ function buildOutputRows(viewType) {
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
+  // We'll calculate total travel/cash value, plus total points
   let scenarioTotal = 0;
   let totalTravelValue = 0;  
   let totalCashValue   = 0;
+
+  // Calculate total points by summing user-entered points
+  let totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
@@ -735,6 +739,7 @@ function buildOutputRows(viewType) {
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
+    // Depending on whether user is viewing Travel or Cash
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
@@ -753,6 +758,7 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
+    // If Travel view, add the use-case accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion"
@@ -772,6 +778,7 @@ function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
+  // Show either "Travel Value" or "Cash Value" label under the list
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -785,29 +792,45 @@ function buildOutputRows(viewType) {
     </div>
   `);
 
-  // Destroy and recreate the charts each time
+  // (A) Update the 3 "stat cards" with new totals:
+  //     totalPoints, totalTravelValue, totalCashValue
+  $("#total-points-card .card-value").text(
+    totalPoints.toLocaleString()
+  );
+  $("#travel-value-card .card-value").text(
+    "$" + totalTravelValue.toLocaleString(undefined, { 
+      minimumFractionDigits: 2 
+    })
+  );
+  $("#cash-value-card .card-value").text(
+    "$" + totalCashValue.toLocaleString(undefined, { 
+      minimumFractionDigits: 2 
+    })
+  );
+
+  // (B) Rebuild or destroy charts as needed
   renderValueComparisonChart(totalTravelValue, totalCashValue);
   renderPieChartProgramShare(data);
 
-  // If travel => rebuild the Swiper
+  // If viewing Travel => rebuild the Swiper with recommended use cases
   if (viewType === "travel") {
     const allUseCases = gatherAllRecommendedUseCases();
     buildUseCaseSlides(allUseCases);
-    // If it already exists, nuke it and re-init
+
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
       useCaseSwiper = null;
     }
     initUseCaseSwiper();
   } else {
-    // If user is switching to "Cash" view, 
-    // optionally kill the swiper because not used
+    // If user switched to "Cash," optionally kill the swiper
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
       useCaseSwiper = null;
     }
   }
 }
+
 
 /*******************************************************
  * USE CASE => BUILD ACCORDION
