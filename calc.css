@@ -1400,22 +1400,20 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   flex-wrap: wrap;
   gap: 2%;
   margin-top: 1.5rem;
-  justify-content: space-between; /* optional, to spread them evenly */
+  justify-content: space-between; /* optional */
 }
 
-/* Bar Chart Card */
-.bar-chart-card {
+.bar-chart-card,
+.pie-chart-card {
+  flex: 0 0 48%;         /* side-by-side on wider screens */
+  max-width: 48%;
   background: #fff;
   border-radius: 8px;
-  padding: 1.5rem;
   box-sizing: border-box;
-
-  /* On desktop, let’s give it ~60% width */
-  flex: 0 0 60%;
-  max-width: 55%;
-
-  /* Optional drop shadow: */
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  /* No fixed height => dynamic expansion. If you want a minimum: min-height: 350px; */
+  overflow: visible;      /* ensures tooltips & legend are not clipped */
+  padding: 1rem;         /* space for chart titles, legends, etc. */
 }
 
 /* Title in bar chart card */
@@ -1450,14 +1448,11 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   text-align: center;
 }
 
-/* Make canvases scale nicely within each card */
 .bar-chart-card canvas,
 .pie-chart-card canvas {
+  width: 100% !important;
+  height: auto !important;
   display: block;
-  width: 100%;
-  height: auto;
-  max-width: 100%;
-  margin: 0 auto; /* center horizontally if narrower than parent */
 }
 
 @media (max-width: 576px) {
