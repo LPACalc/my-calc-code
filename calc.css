@@ -812,7 +812,7 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 .value-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: space-between; /* or 'flex-end' if you want the icon to float right */
 }
 
 /* Icons – reduce or increase width as you like */
