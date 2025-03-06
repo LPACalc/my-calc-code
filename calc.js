@@ -571,6 +571,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
     barChartInstance.destroy();
     barChartInstance = null;
   }
+
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
 
@@ -595,6 +596,11 @@ function renderValueComparisonChart(travelValue, cashValue) {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: {
+          bottom: 20 // extra breathing room so axes/labels don’t get clipped
+        }
+      },
       scales: {
         x: {
           beginAtZero: true,
@@ -620,6 +626,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
   barChartInstance = new Chart(ctx, config);
 }
+
 
 function renderPieChartProgramShare(gatheredData) {
   // Destroy existing pie chart
@@ -661,6 +668,10 @@ function renderPieChartProgramShare(gatheredData) {
     data,
     options: {
       responsive: true,
+       layout: {
+    padding: {
+      bottom: 20 // extra breathing room so axes/labels don’t get clipped
+    },
       maintainAspectRatio: false,
       cutout: "55%",
       plugins: {
