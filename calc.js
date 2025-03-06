@@ -101,14 +101,14 @@ function logSessionEvent(eventName, payload = {}) {
   if (userEmail) {
     eventData.email = userEmail;
   }
-fetch("https://young-cute-neptune.glitch.me/proxyLogEvent", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify(eventData),
-  keepalive: true
-});
+  fetch("https://young-cute-neptune.glitch.me/proxyLogEvent", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(eventData),
+    keepalive: true
+  });
 }
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
@@ -352,7 +352,6 @@ function addProgramRow(recordId) {
   calculateTotal();
 }
 
-
 /*******************************************************
  * TOGGLE SEARCH ITEM
  *******************************************************/
@@ -467,8 +466,6 @@ function clearAllPrograms() {
   updateClearAllVisibility();
 }
 
-
-
 /*******************************************************
  * SHOW/HIDE CLEAR-ALL
  *******************************************************/
@@ -521,7 +518,6 @@ function gatherProgramData() {
   return data;
 }
 
-
 function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
 
@@ -548,13 +544,12 @@ function buildUseCaseSlides(allUseCases) {
   slidesEl.innerHTML = slideHTML;
 }
 
-
-
 let useCaseSwiper = null;
 
+// Init with loop: true, but no autoplay
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
-      slidesPerView: 1,
+    slidesPerView: 1,
     direction: 'horizontal',
     slidesPerView: 1,  // only 1 visible at a time
     pagination: {
@@ -564,20 +559,19 @@ function initUseCaseSwiper() {
     navigation: {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev'
-    }
-  
+    },
+    loop: true
   });
 }
 
-
-// -----------------------------------------
-// Render the Horizontal Bar Chart
-// -----------------------------------------
+/*******************************************************
+ * RENDER CHARTS
+ *******************************************************/
+// Horizontal Bar Chart
 function renderValueComparisonChart(travelValue, cashValue) {
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
 
-  // Optional extra data point for 'Concierge' or anything else:
   const conciergeVal = travelValue > 1000 ? 125 : 99;
   const ctx = barCanvas.getContext("2d");
 
@@ -587,7 +581,6 @@ function renderValueComparisonChart(travelValue, cashValue) {
       {
         label: "Value",
         data: [travelValue, cashValue, conciergeVal],
-        // You can remove or change these “backgroundColor” entries if you want them all the same
         backgroundColor: ["#042940", "#005C53", "#D6D58E"]
       }
     ]
@@ -597,7 +590,6 @@ function renderValueComparisonChart(travelValue, cashValue) {
     type: "bar",
     data,
     options: {
-      // Let’s do horizontal bars by flipping the axis
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
@@ -627,28 +619,23 @@ function renderValueComparisonChart(travelValue, cashValue) {
   new Chart(ctx, config);
 }
 
-// -----------------------------------------
-// Render the Pie / Doughnut Chart
-// -----------------------------------------
+// Pie / Doughnut Chart
 function renderPieChartProgramShare(gatheredData) {
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
 
   const ctx = pieCanvas.getContext("2d");
 
-  // Sum up total user points for all chosen programs
+  // Sum up total user points
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
   if (totalPoints < 1) {
-    // If the user has 0 points, no chart to show
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
   }
 
-  // Build arrays for the chart
   const donutLabels = gatheredData.map(x => x.programName);
   const donutValues = gatheredData.map(x => x.points);
 
-  // If you saved a "Color" per program in your loyaltyPrograms object, use it; otherwise default
   const donutColors = gatheredData.map(item => {
     const rec = loyaltyPrograms[item.recordId];
     return rec && rec["Color"] ? rec["Color"] : "#cccccc";
@@ -671,7 +658,7 @@ function renderPieChartProgramShare(gatheredData) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "55%", // how large the donut hole is
+      cutout: "55%",
       plugins: {
         legend: { position: "bottom" },
         tooltip: {
@@ -690,11 +677,12 @@ function renderPieChartProgramShare(gatheredData) {
   new Chart(ctx, config);
 }
 
-
+/*******************************************************
+ * RECOMMENDED USE CASES
+ *******************************************************/
 function gatherAllRecommendedUseCases() {
-  // 1) Figure out how many points the user has in each chosen program
   const userProgramPoints = {};
-  const data = gatherProgramData(); // Already returns an array of { recordId, points }
+  const data = gatherProgramData();
   data.forEach(item => {
     userProgramPoints[item.recordId] = item.points;
   });
@@ -702,18 +690,15 @@ function gatherAllRecommendedUseCases() {
   const results = [];
   const usedIds = new Set();
 
-  // 2) For each chosen program
   chosenPrograms.forEach(programId => {
     const userPoints = userProgramPoints[programId] || 0;
 
-    // 3) For each realWorldUseCase
     Object.values(realWorldUseCases).forEach(uc => {
       if (!uc.Recommended) return;
       if (!uc["Points Required"]) return;
       if (!uc["Program Name"]?.includes(programId)) return;
       if (uc["Points Required"] > userPoints) return;
 
-      // Prevent duplicates
       if (!usedIds.has(uc.id)) {
         usedIds.add(uc.id);
         results.push(uc);
@@ -721,13 +706,10 @@ function gatherAllRecommendedUseCases() {
     });
   });
 
-  // 4) Randomize
+  // Randomize
   results.sort(() => Math.random() - 0.5);
   return results;
 }
-
-
-
 
 /*******************************************************
  * BUILD OUTPUT => TRAVEL / CASH
@@ -735,37 +717,31 @@ function gatherAllRecommendedUseCases() {
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
 
-  // Clear out the existing output list
+  // Clear
   $("#output-programs-list").empty();
 
-  let scenarioTotal    = 0;  // The sum for whichever view (travel/cash) is displayed
+  let scenarioTotal    = 0;  
   let totalTravelValue = 0;  
   let totalCashValue   = 0;
 
-  // Loop through each chosen program
   data.forEach((item) => {
     const prog    = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
 
-    // Calculate Travel/Cash for this program
     const tVal = item.points * (prog?.["Travel Value"] || 0);
     const cVal = item.points * (prog?.["Cash Value"]   || 0);
 
-    // Accumulate overall totals
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // Decide which value to display based on travel/cash view
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
-    // Format the displayed currency
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
-    // Build each row’s HTML
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -776,7 +752,6 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If in travel view, attach the hidden use-case accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion"
@@ -793,11 +768,9 @@ function buildOutputRows(viewType) {
       `;
     }
 
-    // Append this block to #output-programs-list
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Show a final "Total Value" line
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -811,18 +784,14 @@ function buildOutputRows(viewType) {
     </div>
   `);
 
-  // Render the bar chart
+  // Charts
   renderValueComparisonChart(totalTravelValue, totalCashValue);
-
-  // Render the pie chart
   renderPieChartProgramShare(data);
 
-  // If we’re in travel view, build & show the swiper slides
+  // If travel => build swiper
   if (viewType === "travel") {
-    // gatherAllRecommendedUseCases() is your own helper for collecting them
     const allUseCases = gatherAllRecommendedUseCases();
     buildUseCaseSlides(allUseCases);
-
     if (!useCaseSwiper) {
       initUseCaseSwiper();
     } else {
@@ -832,14 +801,13 @@ function buildOutputRows(viewType) {
 }
 
 /*******************************************************
- * USE CASE => build
+ * USE CASE => build accordion
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
   if (!program) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
-  // Filter recommended use cases
   let matching = Object.values(realWorldUseCases).filter((uc) => {
     if (!uc.Recommended) return false;
     if (!uc["Points Required"]) return false;
@@ -848,11 +816,10 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     const linked = uc["Program Name"] || [];
     return linked.includes(recordId) && uc["Points Required"] <= userPoints;
   });
+
   // Sort by redemption value desc
   matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
-  // Slice top 5
   matching = matching.slice(0, 5);
-  // Then sort by points ascending
   matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
 
   if (!matching.length) {
@@ -934,13 +901,13 @@ async function sendReport(email) {
   }));
   console.log("Sending =>", { email, programsToSend });
 
-const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
-  method: "POST",
-  headers: {
-    "Content-Type": "application/json"
-  },
-  body: JSON.stringify({ email, programs: programsToSend })
-});
+  const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ email, programs: programsToSend })
+  });
   if (!response.ok) {
     const result = await response.json();
     throw new Error(result.error || `HTTP ${response.status}`);
@@ -989,13 +956,8 @@ async function sendReportFromModal() {
  * SHOW HOW IT WORKS STEP
  *******************************************************/
 function showHowItWorksStep(stepNum) {
-  // Hide all hiw-step
   $(".hiw-step").hide();
-
-  // Show the one matching the stepNum
   $(`.hiw-step[data-step='${stepNum}']`).show();
-
-  // Update the progress lines
   $(".hiw-line").removeClass("active-line");
   $(".hiw-line").each(function (idx) {
     if (idx < stepNum) {
@@ -1008,20 +970,14 @@ function showHowItWorksStep(stepNum) {
  * DOC READY
  *******************************************************/
 $(document).ready(function () {
-  // 1) Kick off data loads in the background
   (async () => {
     try {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
       await initializeApp();
-
-      // dataLoaded is set to true within initializeApp,
-      // but let's reconfirm here:
       dataLoaded = true;
       console.log("Data fully loaded => dataLoaded = true (re-confirmed)");
 
-      // If user clicked "Get Started" while data was loading,
-      // transition them to input-state now
       if (userClickedGetStarted) {
         hideLoadingScreenAndShowInput();
       }
@@ -1032,11 +988,11 @@ $(document).ready(function () {
 
   logSessionEvent("session_load");
 
-  // Hide everything except hero
+  // Hide states except hero
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
-  $(".left-column").hide(); // hidden by default on load
+  $(".left-column").hide(); 
 
   // Hero => GET STARTED
   $("#hero-get-started-btn").on("click", function () {
@@ -1045,24 +1001,19 @@ $(document).ready(function () {
     logSessionEvent("hero_get_started_clicked");
     userClickedGetStarted = true;
 
-    // If data is already loaded, go directly to input-state
     if (dataLoaded) {
       hideLoadingScreenAndShowInput();
     } else {
-      // Hide normal hero elements, show loading screen
       $("#hero-how-it-works-btn").hide();
       $("#hero-get-started-btn").hide();
       $(".hero-inner h1").hide();
       $(".hero-inner h2").hide();
       $(".hero-cta-container").hide();
-
-      // Show a custom loading screen
       $("#loading-screen").show();
       isTransitioning = false;
     }
   });
 
-  // This helper just hides the loading screen & shows input-state
   function hideLoadingScreenAndShowInput() {
     if (window.innerWidth >= 992) {
       $(".left-column").show();
@@ -1116,41 +1067,32 @@ $(document).ready(function () {
   });
 
   // Input => back => hero
-$("#input-back-btn").on("click", function () {
-  if (isTransitioning) return;
-  isTransitioning = true;
-  logSessionEvent("input_back_clicked");
-
-  // Hide the input state, left column, etc.
-  $("#input-state").hide();
-  $(".left-column").hide();
-
-  // IMPORTANT: re-show everything on the hero
-  $("#hero-how-it-works-btn").show();
-  $("#hero-get-started-btn").show();
-  $(".hero-inner h1").show();
-  $(".hero-inner h2").show();
-  $(".hero-cta-container").show();
-
-  // Finally fade the hero back in
-  $("#default-hero").fadeIn(() => {
-    isTransitioning = false;
+  $("#input-back-btn").on("click", function () {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("input_back_clicked");
+    $("#input-state").hide();
+    $(".left-column").hide();
+    $("#hero-how-it-works-btn").show();
+    $("#hero-get-started-btn").show();
+    $(".hero-inner h1").show();
+    $(".hero-inner h2").show();
+    $(".hero-cta-container").show();
+    $("#default-hero").fadeIn(() => {
+      isTransitioning = false;
+    });
   });
-});
 
   // Input => next => calc
   $("#input-next-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("input_next_clicked");
-
     $("#input-state").hide();
     $("#calculator-state").fadeIn(() => {
       isTransitioning = false;
       $("#to-output-btn").show();
     });
-
-    // Rebuild the program container from chosenPrograms
     $("#program-container").empty();
     chosenPrograms.forEach((rid) => addProgramRow(rid));
     updateClearAllVisibility();
@@ -1229,8 +1171,6 @@ $("#input-back-btn").on("click", function () {
     toggleProgramSelection($(this));
   });
 
-
-
   // Expand/collapse use case
   $(document).on("click", ".output-row", function () {
     const activeView = $(".tc-switch-btn.active-tc").data("view");
@@ -1243,60 +1183,44 @@ $("#input-back-btn").on("click", function () {
     }
   });
 
-// Remove single program row
-$(document).on("click", ".remove-btn", function() {
-  const rowEl   = $(this).closest(".program-row");
-  const recordId = rowEl.data("record-id");
-  
-  // Remove that row
-  rowEl.remove();
-
-  // Also remove it from pointsMap so it doesn’t linger
-  delete pointsMap[recordId];
-});
-
-// Define a proper clearAllPrograms() function
-function clearAllPrograms() {
-  // 1) Clear chosen arrays
-  chosenPrograms = [];
-  pointsMap = {};
-
-  // 2) Remove program rows in the calculator
-  $("#program-container").empty();
-
-  // 3) Remove the .selected-state from popular programs & reset “+” text (on desktop)
-  $(".top-program-box.selected-state").each(function () {
-    $(this).removeClass("selected-state");
-    if (window.innerWidth >= 992) {
-      $(this).find(".add-btn").text("+");
-    }
+  // Remove single program row
+  $(document).on("click", ".remove-btn", function() {
+    const rowEl   = $(this).closest(".program-row");
+    const recordId = rowEl.data("record-id");
+    rowEl.remove();
+    delete pointsMap[recordId];
   });
 
-  // 4) Update displays, hide Clear All button, etc.
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-}
-
-
+  // Overwrite clearAllPrograms
+  function clearAllPrograms() {
+    chosenPrograms = [];
+    pointsMap = {};
+    $("#program-container").empty();
+    $(".top-program-box.selected-state").each(function () {
+      $(this).removeClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $(this).find(".add-btn").text("+");
+      }
+    });
+    updateChosenProgramsDisplay();
+    updateNextCTAVisibility();
+    updateClearAllVisibility();
+  }
 
   $(document).on("input", ".points-input", function() {
-  const rowEl   = $(this).closest(".program-row");
-  const recordId = rowEl.data("record-id");
-  // Get rid of commas & non-digits
-  let raw = $(this).val().replace(/[^0-9]/g, "");
-  if (!raw) {
-    pointsMap[recordId] = 0;
-    return;
-  }
-  let num = parseInt(raw, 10);
-  if (isNaN(num)) num = 0;
+    const rowEl   = $(this).closest(".program-row");
+    const recordId = rowEl.data("record-id");
+    let raw = $(this).val().replace(/[^0-9]/g, "");
+    if (!raw) {
+      pointsMap[recordId] = 0;
+      return;
+    }
+    let num = parseInt(raw, 10);
+    if (isNaN(num)) num = 0;
+    pointsMap[recordId] = num;
+  });
 
-  // Update pointsMap so we remember the user’s typed value
-  pointsMap[recordId] = num;
-});
-
-  // mini-pill => change use case display
+  // mini-pill => switch slides inside the use case accordion
   $(document).on("click", ".mini-pill", function () {
     const useCaseId = $(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked", { useCaseId });
@@ -1308,52 +1232,39 @@ function clearAllPrograms() {
 
     const uc = Object.values(realWorldUseCases).find((x) => x.id === useCaseId);
     if (!uc) return;
-    const newImg = uc["Use Case URL"] || "";
-    const newTitle = uc["Use Case Title"] || "Untitled";
-    const newBody = uc["Use Case Body"] || "No description";
-
-    container.find("img").attr("src", newImg);
-    container.find("h4").text(newTitle);
-    container.find("p").text(newBody);
+    container.find("img").attr("src", uc["Use Case URL"] || "");
+    container.find("h4").text(uc["Use Case Title"] || "Untitled");
+    container.find("p").text(uc["Use Case Body"] || "No description");
   });
 
-  // Unlock => show email modal
+  // Email modal
   $("#unlock-report-btn").on("click", function () {
     logSessionEvent("unlock_report_clicked");
     showReportModal();
   });
-
   $("#modal-close-btn").on("click", function () {
     logSessionEvent("modal_close_clicked");
     hideReportModal();
   });
-
-  // Listen for clicks on the overlay
-$("#report-modal").on("click", function (event) {
-  // If the clicked element is the overlay itself, and NOT the modal content, close the modal
-  if ($(event.target).attr("id") === "report-modal") {
-    hideReportModal();
-  }
-});
-
+  $("#report-modal").on("click", function (event) {
+    if ($(event.target).attr("id") === "report-modal") {
+      hideReportModal();
+    }
+  });
   $("#modal-send-btn").on("click", async function () {
     const emailInput = $("#modal-email-input").val().trim();
     logSessionEvent("modal_send_clicked", { email: emailInput });
     await sendReportFromModal();
   });
 
-  // Explore => external link (services modal)
+  // Services modal
   $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
     logSessionEvent("explore_concierge_clicked");
     $("#services-modal").addClass("show");
   });
-
-  // Close button on the services modal
   $("#services-modal-close-btn").on("click", function () {
     $("#services-modal").removeClass("show");
   });
-
-  
 
   // Usecase => back => output
   $("#usecase-back-btn").on("click", function () {
@@ -1371,7 +1282,7 @@ $("#report-modal").on("click", function (event) {
     $("#output-state").fadeIn();
   });
 
-  // “Clear All” => remove everything
+  // “Clear All”
   $("#clear-all-btn").on("click", function () {
     logSessionEvent("clear_all_clicked");
     clearAllPrograms();
