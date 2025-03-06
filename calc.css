@@ -304,10 +304,11 @@ img {
   .chart-cards-row {
     display: block !important;
   }
-  .chart-cards-row .bar-chart-card,
-  .chart-cards-row .pie-chart-card {
-    width: 100%!important;
-    max-width: 100%!important;
+   .bar-chart-card,
+  .pie-chart-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    height: 300px; /* slightly smaller on mobile */
     margin-bottom: 1rem;
   }
 
@@ -1298,3 +1299,27 @@ img {
 /* Summary from your code: bar/pie chart styling. 
    Already integrated above as .chart-cards-row, etc.
 */
+.bar-chart-card,
+.pie-chart-card {
+  /* side by side on wider screens */
+  flex: 0 0 48%;
+  max-width: 48%;
+
+  position: relative;  /* needed so canvas can fill absolutely if needed */
+  height: 350px;       /* fixed or min-height => stops infinite stretching */
+  
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: hidden; /* hide any overflows if the chart tries to expand */
+}
+
+/* Force the canvas to fill the parent container’s entire area. */
+.bar-chart-card canvas,
+.pie-chart-card canvas {
+  width: 100% !important;
+  height: 100% !important; 
+  display: block;
+}
