@@ -551,12 +551,13 @@ function initUseCaseSwiper() {
     pagination: {
       el: '.swiper-pagination',
       clickable: true
+       dynamicBullets: true,
+    dynamicMainBullets: 5, // or 3, etc.
     },
     navigation: {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev'
     }
-    // no autoplay => user must navigate
   });
 }
 
