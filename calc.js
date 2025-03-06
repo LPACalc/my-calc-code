@@ -593,14 +593,21 @@ function renderValueComparisonChart(travelValue, cashValue) {
     type: "bar",
     data,
     options: {
-      indexAxis: 'y',
+      // Improve clarity and consistent sizing
+      devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
+      // Add matching padding on all sides
       layout: {
         padding: {
-          bottom: 20 // extra breathing room so axes/labels don’t get clipped
+          top: 20,
+          right: 20,
+          bottom: 40,
+          left: 20
         }
       },
+      // Horizontal bar => 'y' is index axis
+      indexAxis: 'y',
       scales: {
         x: {
           beginAtZero: true,
@@ -611,7 +618,9 @@ function renderValueComparisonChart(travelValue, cashValue) {
         }
       },
       plugins: {
-        legend: { display: false },
+        legend: {
+          display: false
+        },
         tooltip: {
           callbacks: {
             label: function (context) {
@@ -629,15 +638,19 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
 
 function renderPieChartProgramShare(gatheredData) {
+  // Destroy any existing pie chart instance
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
   }
+
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
 
   const ctx = pieCanvas.getContext("2d");
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
+
+  // If no points, clear canvas and exit
   if (totalPoints < 1) {
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
@@ -669,14 +682,16 @@ function renderPieChartProgramShare(gatheredData) {
       maintainAspectRatio: false,
       layout: {
         padding: {
-          bottom: 40 // extra space at bottom
+          top: 20,
+          right: 20,
+          bottom: 40,
+          left: 20
         }
       },
       cutout: "55%", // donut hole size
       plugins: {
         legend: {
           position: "bottom",
-          maxHeight: 50, // forces multi-row wrapping
           labels: {
             boxWidth: 20,
             padding: 10
@@ -697,6 +712,7 @@ function renderPieChartProgramShare(gatheredData) {
 
   pieChartInstance = new Chart(ctx, config);
 }
+
 
 
 
