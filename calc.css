@@ -804,9 +804,8 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 /* The small label text on top */
 .card-label {
   font-size: 0.9rem;
-  font-weight: 600;
+  font-weight: 500;
   color: #1D3A5F;
-  margin-bottom: 0.5rem;
 }
 
 /* The big bold value under the label */
