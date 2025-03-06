@@ -1167,14 +1167,19 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 }
 
 
-/* Show the combo row on mobile; hide the old layout. */
-@media (max-width: 576px) {
-  .search-combo-field {
-    display: flex; 
-  }
-  /* If you had a separate “search area” above, hide it on mobile. */
-  .started-search-area {
 
+/* On mobile, hide the old started-search-area, show .search-combo-field */
+@media (max-width: 576px) {
+
+  /* Hide the old layout for mobile */
+  .started-search-area {
+    display: none !important;
+  }
+
+  /* Show the new .search-combo-field row for mobile only */
+  .search-combo-field {
+    display: flex !important; /* side by side row: input + button */
+    margin: 1rem;            /* if you want similar spacing */
   }
 }
 
@@ -1354,15 +1359,15 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   }
 }
 .search-combo-field {
-  display: none;             /* default: hidden on larger screens */
+  display: none;
   position: relative;
   width: 100%;
-  max-width: 100%;
   border: 1px solid #DFE5EB;
   border-radius: 8px;
-  overflow: hidden; 
+  overflow: hidden;
   background-color: #fff;
 }
+
 
 /* The search field flexes to fill space; no separate border. */
 .search-input {
@@ -1373,14 +1378,13 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   font-size: 1rem;
   color: #333;
 }
-
 .search-input::placeholder {
   color: #999;
 }
 
-/* The “Explore All” button sits on the right, same height as input. */
-.explore-all-btn {
-  background-color: #1a2732;  /* dark color */
+/* “Explore All” button in .search-combo-field row */
+#explore-all-mobile {
+  background-color: #1a2732;
   color: #fff;
   font-size: 0.9rem;
   font-weight: 600;
@@ -1388,9 +1392,8 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   border: none;
   cursor: pointer;
 }
-
-.explore-all-btn:hover {
-  background-color: #141d28;  /* slightly darker on hover */
+#explore-all-mobile:hover {
+  background-color: #141d28;
 }
 
 
