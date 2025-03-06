@@ -295,7 +295,7 @@ img {
 
   /* Stack the bar & pie chart vertically, override the desktop flex: */
   .chart-cards-row {
-    display: block !important; 
+    display: block; 
   }
   .chart-cards-row .bar-chart-card,
   .chart-cards-row .pie-chart-card {
