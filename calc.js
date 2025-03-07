@@ -1223,10 +1223,7 @@ $(document).ready(function () {
     delete pointsMap[recordId];
   });
 
-      document.addEventListener('DOMContentLoaded', function() {
-    const sheetContent = document.getElementById("all-programs-modal-content");
-    const hammerManager = new Hammer(sheetContent);
-    hammerManager.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
+
 
   // On typed input => update pointsMap
   $(document).on("input", ".points-input", function() {
