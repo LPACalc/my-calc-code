@@ -316,97 +316,89 @@ function filterPrograms() {
 }
 
 /*******************************************************
- * BOTTOM SHEET DRAG-TO-DISMISS LOGIC
+ * GLOBAL “BOTTOM SHEET” MODAL => with Hammer.js for pull-down
  *******************************************************/
-let startY = 0;
-let currentY = 0;
-let isDragging = false;
-let initialTranslateY = 0; // Start at 0 => fully visible
-const DISMISS_THRESHOLD = 100; // Drag distance in px to trigger close
-
+const modal = document.getElementById('all-programs-modal');
 const sheetContent = document.getElementById('all-programs-modal-content');
 
-/** 
- * touchstart => record the initial touch Y 
+// Create a Hammer manager for sheetContent
+const hammerManager = new Hammer(sheetContent);
+hammerManager.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
+
+let isModalOpen = false;
+const PULL_DOWN_THRESHOLD = 100; // how many px to pull down before closing
+
+/**
+ * Open the “All Programs” modal as a bottom sheet (on mobile).
  */
-sheetContent.addEventListener('touchstart', (e) => {
-  // Only consider single-touch
-  if (e.touches.length !== 1) return;
-  isDragging = true;
-  startY = e.touches[0].clientY;
-  currentY = startY;
-  initialTranslateY = 0; 
-  // Make sure we remove any CSS transitions so it follows finger in real-time
+function openAllProgramsModal() {
+  // Prevent pull-to-refresh in modern browsers
+  document.documentElement.style.overscrollBehavior = 'none';
+
+  buildAllProgramsList();
+  // Show the overlay
+  modal.classList.add('show');
+
+  // Animate up from the bottom
+  setTimeout(() => {
+    sheetContent.style.transition = 'transform 0.4s ease';
+    sheetContent.style.transform = 'translateY(0)';
+    isModalOpen = true;
+  }, 10);
+}
+
+/**
+ * Close the “All Programs” modal
+ */
+function closeAllProgramsModal() {
+  // Animate down
+  sheetContent.style.transition = 'transform 0.4s ease';
+  sheetContent.style.transform = 'translateY(100%)';
+
+  setTimeout(() => {
+    modal.classList.remove('show');
+    isModalOpen = false;
+    // Re-enable normal scrolling
+    document.documentElement.style.overscrollBehavior = '';
+  }, 400);
+}
+
+/** Hammer => panstart => remove transitions, so it follows the finger. */
+hammerManager.on('panstart', () => {
+  if (!isModalOpen) return;
   sheetContent.style.transition = 'none';
 });
 
-/**
- * touchmove => update the translation if dragging downward
- */
-sheetContent.addEventListener('touchmove', (e) => {
-  if (!isDragging) return;
-  // Only consider single-touch
-  if (e.touches.length !== 1) return;
-
-  currentY = e.touches[0].clientY;
-  const deltaY = currentY - startY;
-
-  // We only want to drag down (deltaY > 0). If user drags upward, clamp to 0.
-  const translateY = Math.max(0, deltaY + initialTranslateY);
-
-  // Apply transform to move the sheet down
-  sheetContent.style.transform = `translateY(${translateY}px)`;
+/** Hammer => panmove => follow user’s finger downward (clamp negative) */
+hammerManager.on('panmove', (ev) => {
+  if (!isModalOpen) return;
+  const clampedY = Math.max(0, ev.deltaY);
+  sheetContent.style.transform = `translateY(${clampedY}px)`;
 });
 
-/**
- * touchend => decide if we should close or snap back
- */
-sheetContent.addEventListener('touchend', () => {
-  if (!isDragging) return;
-  isDragging = false;
-
-  // Calculate final distance
-  const finalDelta = currentY - startY;
-
-  // If user dragged down > DISMISS_THRESHOLD => close
-  if (finalDelta > DISMISS_THRESHOLD) {
+/** Hammer => panend => if pulled enough => close, else snap back */
+hammerManager.on('panend', (ev) => {
+  if (!isModalOpen) return;
+  if (ev.deltaY > PULL_DOWN_THRESHOLD) {
     closeAllProgramsModal();
   } else {
-    // Snap back to fully visible
     sheetContent.style.transition = 'transform 0.3s ease';
     sheetContent.style.transform = 'translateY(0)';
   }
 });
 
-/**
- * Keep your existing open/close modal functions, just ensure
- * they set or remove the .show class and reset transforms.
- */
-function openAllProgramsModal() {
-  const modal = document.getElementById('all-programs-modal');
-  // Build or refresh the programs list, etc.
-  buildAllProgramsList();
-  sheetContent.style.transform = 'translateY(100%)'; // start off-screen
-  modal.classList.add('show');
+// Clicking the dark backdrop => close
+modal.addEventListener("click", (e) => {
+  if (e.target.id === "all-programs-modal") {
+    closeAllProgramsModal();
+  }
+});
 
-  // After a tiny delay, animate it up to 0
-  setTimeout(() => {
-    sheetContent.style.transition = 'transform 0.4s ease';
-    sheetContent.style.transform = 'translateY(0)';
-  }, 10);
-}
+// X button => close
+document.getElementById("all-programs-close-btn").addEventListener("click", () => {
+  closeAllProgramsModal();
+});
 
-function closeAllProgramsModal() {
-  const modal = document.getElementById('all-programs-modal');
-  // Animate down
-  sheetContent.style.transition = 'transform 0.4s ease';
-  sheetContent.style.transform = 'translateY(100%)';
-
-  // Hide completely after the transition
-  setTimeout(() => {
-    modal.classList.remove('show');
-  }, 400);
-}
 
 /*******************************************************
  * ADD PROGRAM ROW
@@ -685,11 +677,9 @@ function renderValueComparisonChart(travelValue, cashValue) {
     type: "bar",
     data,
     options: {
-      // Improve clarity and consistent sizing
       devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
-      // Add matching padding on all sides
       layout: {
         padding: {
           top: 20,
@@ -698,7 +688,6 @@ function renderValueComparisonChart(travelValue, cashValue) {
           left: 20
         }
       },
-      // Horizontal bar => 'y' is index axis
       indexAxis: 'y',
       scales: {
         x: {
@@ -749,7 +738,6 @@ function renderPieChartProgramShare(gatheredData) {
 
   const donutLabels = gatheredData.map(x => x.programName);
   const donutValues = gatheredData.map(x => x.points);
-  // The original code used a “Color” field if present, you can keep or remove:
   const donutColors = gatheredData.map(item =>
     loyaltyPrograms[item.recordId]?.Color || "#cccccc"
   );
@@ -780,7 +768,7 @@ function renderPieChartProgramShare(gatheredData) {
           left: 20
         }
       },
-      cutout: "55%", // donut hole size
+      cutout: "55%",
       plugins: {
         legend: {
           position: "bottom",
@@ -825,17 +813,14 @@ function updateTopProgramSelection(rid, isSelected) {
   }
 }
 
-/**
- * SINGLE CLICK HANDLER for .all-program-row
- * Merged from the two previous duplicates.
- */
+/*******************************************************
+ * SINGLE CLICK HANDLER => .all-program-row
+ *******************************************************/
 $(document).on("click", ".all-program-row", function(e) {
-  // If the user clicked the row or circle, let's unify logic:
   const rowEl = $(this);
   const rid = rowEl.data("record-id");
   if (!rid) return;
 
-  // Are we already selected?
   const index = chosenPrograms.indexOf(rid);
   const isSelected = (index !== -1);
 
@@ -843,17 +828,14 @@ $(document).on("click", ".all-program-row", function(e) {
     chosenPrograms.splice(index, 1);
     rowEl.removeClass("selected-state");
     rowEl.find(".circle-btn").text("+");
-    // ALSO update popular programs if it’s there
     updateTopProgramSelection(rid, false);
   } else {
     chosenPrograms.push(rid);
     rowEl.addClass("selected-state");
     rowEl.find(".circle-btn").text("✓");
-    // ALSO update popular programs if it’s there
     updateTopProgramSelection(rid, true);
   }
 
-  // Reflect changes in your main Input state or “Selected Programs” row
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
@@ -891,75 +873,18 @@ function gatherAllRecommendedUseCases() {
   return results;
 }
 
-function openAllProgramsModal() {
-  // Populate #all-programs-list with rows for each program
-  buildAllProgramsList();
-  // Show the modal
-  $("#all-programs-modal").addClass("show");
-}
-
-function closeAllProgramsModal() {
-  $("#all-programs-modal").removeClass("show");
-}
-
-// On screens <= 576px, enable swipe to close
-if (window.innerWidth <= 576) {
-  const modalContent = document.getElementById("all-programs-modal-content");
-  let startX = 0;
-  let startY = 0;
-  let verticalSwipe = false;
-  const SWIPE_THRESHOLD = 80;
-
-  modalContent.addEventListener("touchstart", function(e) {
-    if (e.touches.length === 1) {
-      // Get initial finger coords
-      startX = e.touches[0].clientX;
-      startY = e.touches[0].clientY;
-      verticalSwipe = false;
-    }
-  });
-
-  modalContent.addEventListener("touchmove", function(e) {
-    if (e.touches.length !== 1) return; // ignore multi-touch
-    const currentX = e.touches[0].clientX;
-    const currentY = e.touches[0].clientY;
-    const diffX = currentX - startX;
-    const diffY = currentY - startY;
-
-    // Is this primarily a vertical movement?
-    if (Math.abs(diffY) > Math.abs(diffX)) {
-      verticalSwipe = true;
-    }
-
-    // If downward vertical swipe >= threshold => close
-    if (verticalSwipe && diffY > SWIPE_THRESHOLD) {
-      closeAllProgramsModal();
-    }
-  });
-}
-
-/**
- * Build the entire list of programs, marking any that are already chosen.
- */
 function buildAllProgramsList() {
   const container = $("#all-programs-list");
   container.empty();
 
-  // Suppose loyaltyPrograms is an object: { [recordId]: programData }
   const allIds = Object.keys(loyaltyPrograms);
-
   allIds.forEach((rid) => {
     const prog = loyaltyPrograms[rid];
     const name = prog["Program Name"] || "Unknown Program";
     const logo = prog["Brand Logo URL"] || "";
 
-    // Check if currently selected
     const isSelected = chosenPrograms.includes(rid);
-
-    // We'll show a plus sign if not selected, or a check mark if selected:
     const circleIcon = isSelected ? "✓" : "+";
-
-    // The row can have a “selected-state” class if chosen
     const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
 
     const rowHtml = `
@@ -980,212 +905,8 @@ $("#explore-all-btn").on("click", function() {
   openAllProgramsModal();
 });
 
-// Close button => close the modal
-$("#all-programs-close-btn").on("click", function() {
-  closeAllProgramsModal();
-});
-
-// Also close if user clicks outside the content (optional):
-$("#all-programs-modal").on("click", function(e) {
-  if ($(e.target).attr("id") === "all-programs-modal") {
-    closeAllProgramsModal();
-  }
-});
-
 /*******************************************************
- * BUILD OUTPUT => TRAVEL / CASH
- *******************************************************/
-function buildOutputRows(viewType) {
-  const data = gatherProgramData();
-  $("#output-programs-list").empty();
-
-  // We'll calculate total travel/cash value, plus total points
-  let scenarioTotal = 0;
-  let totalTravelValue = 0;  
-  let totalCashValue   = 0;
-
-  // Calculate total points by summing user-entered points
-  let totalPoints = data.reduce((acc, item) => acc + item.points, 0);
-
-  data.forEach((item) => {
-    const prog = loyaltyPrograms[item.recordId];
-    const logoUrl = prog?.["Brand Logo URL"] || "";
-
-    const tVal = item.points * (prog?.["Travel Value"] || 0);
-    const cVal = item.points * (prog?.["Cash Value"]   || 0);
-
-    totalTravelValue += tVal;
-    totalCashValue   += cVal;
-
-    // Depending on whether user is viewing Travel or Cash
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
-
-    const formattedVal = `$${rowVal.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>
-    `;
-
-    // If Travel view, add the use-case accordion
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion"
-             style="
-               display:none; 
-               border:1px solid #dce3eb; 
-               border-radius:6px; 
-               margin-bottom:12px; 
-               padding:1rem; 
-               overflow-x:auto;
-             ">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  // Show either "Travel Value" or "Cash Value" label under the list
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-
-  $("#output-programs-list").append(`
-    <div class="total-value-row" 
-         style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>
-  `);
-
-  // (A) Update the 3 "stat cards" with new totals:
-  //     totalPoints, totalTravelValue, totalCashValue
-  $("#total-points-card .card-value").text(
-    totalPoints.toLocaleString()
-  );
-  $("#travel-value-card .card-value").text(
-    "$" + totalTravelValue.toLocaleString(undefined, { 
-      minimumFractionDigits: 2 
-    })
-  );
-  $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { 
-      minimumFractionDigits: 2 
-    })
-  );
-
-  // (B) Rebuild or destroy charts as needed
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
-
-  // If viewing Travel => rebuild the Swiper with recommended use cases
-  if (viewType === "travel") {
-    const allUseCases = gatherAllRecommendedUseCases();
-    buildUseCaseSlides(allUseCases);
-
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    initUseCaseSwiper();
-  } else {
-    // If user switched to "Cash," optionally kill the swiper
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-  }
-}
-
-/*******************************************************
- * USE CASE => BUILD ACCORDION
- *******************************************************/
-function buildUseCaseAccordionContent(recordId, userPoints) {
-  const program = loyaltyPrograms[recordId];
-  if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
-  }
-  let matching = Object.values(realWorldUseCases).filter((uc) => {
-    if (!uc.Recommended) return false;
-    if (!uc["Points Required"]) return false;
-    if (!uc["Use Case Title"]) return false;
-    if (!uc["Use Case Body"]) return false;
-    const linked = uc["Program Name"] || [];
-    return linked.includes(recordId) && uc["Points Required"] <= userPoints;
-  });
-
-  matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
-  matching = matching.slice(0, 5);
-  matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
-
-  if (!matching.length) {
-    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
-  }
-
-  let pillsHTML = "";
-  matching.forEach((uc, i) => {
-    const pts = uc["Points Required"] || 0;
-    pillsHTML += `
-      <div 
-        class="mini-pill ${i === 0 ? "active" : ""}"
-        data-usecase-id="${uc.id}"
-        style="
-          display:inline-block;
-          margin-right:8px; 
-          margin-bottom:8px;
-          padding:6px 12px;
-          border-radius:9999px;
-          background-color:${i === 0 ? "#1a2732" : "#f0f0f0"};
-          color:${i === 0 ? "#fff" : "#333"};
-          cursor:pointer;
-        "
-      >
-        ${pts.toLocaleString()}
-      </div>
-    `;
-  });
-
-  const first = matching[0];
-  const imageURL = first["Use Case URL"] || "";
-  const title = first["Use Case Title"] || "Untitled";
-  const body = first["Use Case Body"] || "No description";
-
-  return `
-    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
-      <div class="mini-pill-row">
-        ${pillsHTML}
-      </div>
-      <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
-        <div style="max-width:180px; flex:0 0 auto;">
-          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
-        </div>
-        <div style="flex:1 1 auto;">
-          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
-            ${title}
-          </h4>
-          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
-            ${body}
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-/*******************************************************
- * MODAL => SHOW/HIDE
+ * REPORT MODAL => show/hide
  *******************************************************/
 function showReportModal() {
   $("#report-modal").addClass("show");
@@ -1588,3 +1309,193 @@ $(document).ready(function () {
     clearAllPrograms();
   });
 });
+
+/*******************************************************
+ * BUILD OUTPUT => TRAVEL / CASH
+ *******************************************************/
+function buildOutputRows(viewType) {
+  const data = gatherProgramData();
+  $("#output-programs-list").empty();
+
+  // We'll calculate total travel/cash value, plus total points
+  let scenarioTotal = 0;
+  let totalTravelValue = 0;  
+  let totalCashValue   = 0;
+
+  // Calculate total points by summing user-entered points
+  let totalPoints = data.reduce((acc, item) => acc + item.points, 0);
+
+  data.forEach((item) => {
+    const prog = loyaltyPrograms[item.recordId];
+    const logoUrl = prog?.["Brand Logo URL"] || "";
+
+    const tVal = item.points * (prog?.["Travel Value"] || 0);
+    const cVal = item.points * (prog?.["Cash Value"]   || 0);
+
+    totalTravelValue += tVal;
+    totalCashValue   += cVal;
+
+    // Depending on whether user is viewing Travel or Cash
+    const rowVal = (viewType === "travel") ? tVal : cVal;
+    scenarioTotal += rowVal;
+
+    const formattedVal = `$${rowVal.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    let rowHtml = `
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="logo" style="width:50px;">
+          <span class="program-name">${item.programName}</span>
+        </div>
+        <div class="output-value">${formattedVal}</div>
+      </div>
+    `;
+
+    // If Travel view, add the use-case accordion
+    if (viewType === "travel") {
+      rowHtml += `
+        <div class="usecase-accordion"
+             style="
+               display:none; 
+               border:1px solid #dce3eb; 
+               border-radius:6px; 
+               margin-bottom:12px; 
+               padding:1rem; 
+               overflow-x:auto;
+             ">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+    }
+
+    $("#output-programs-list").append(rowHtml);
+  });
+
+  // Show either "Travel Value" or "Cash Value" label
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+
+  $("#output-programs-list").append(`
+    <div class="total-value-row" 
+         style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${totalStr}
+    </div>
+  `);
+
+  // (A) update the 3 "stat cards"
+  $("#total-points-card .card-value").text(
+    totalPoints.toLocaleString()
+  );
+  $("#travel-value-card .card-value").text(
+    "$" + totalTravelValue.toLocaleString(undefined, { 
+      minimumFractionDigits: 2 
+    })
+  );
+  $("#cash-value-card .card-value").text(
+    "$" + totalCashValue.toLocaleString(undefined, { 
+      minimumFractionDigits: 2 
+    })
+  );
+
+  // (B) Rebuild or destroy charts
+  renderValueComparisonChart(totalTravelValue, totalCashValue);
+  renderPieChartProgramShare(data);
+
+  // (C) If Travel => recommended use cases
+  if (viewType === "travel") {
+    const allUseCases = gatherAllRecommendedUseCases();
+    buildUseCaseSlides(allUseCases);
+
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+    initUseCaseSwiper();
+  } else {
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+  }
+}
+
+/*******************************************************
+ * USE CASE => BUILD ACCORDION
+ *******************************************************/
+function buildUseCaseAccordionContent(recordId, userPoints) {
+  const program = loyaltyPrograms[recordId];
+  if (!program) {
+    return `<div style="padding:1rem;">No data found.</div>`;
+  }
+  let matching = Object.values(realWorldUseCases).filter((uc) => {
+    if (!uc.Recommended) return false;
+    if (!uc["Points Required"]) return false;
+    if (!uc["Use Case Title"]) return false;
+    if (!uc["Use Case Body"]) return false;
+    const linked = uc["Program Name"] || [];
+    return linked.includes(recordId) && uc["Points Required"] <= userPoints;
+  });
+
+  matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
+  matching = matching.slice(0, 5);
+  matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
+
+  if (!matching.length) {
+    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
+  }
+
+  let pillsHTML = "";
+  matching.forEach((uc, i) => {
+    const pts = uc["Points Required"] || 0;
+    pillsHTML += `
+      <div 
+        class="mini-pill ${i === 0 ? "active" : ""}"
+        data-usecase-id="${uc.id}"
+        style="
+          display:inline-block;
+          margin-right:8px; 
+          margin-bottom:8px;
+          padding:6px 12px;
+          border-radius:9999px;
+          background-color:${i === 0 ? "#1a2732" : "#f0f0f0"};
+          color:${i === 0 ? "#fff" : "#333"};
+          cursor:pointer;
+        "
+      >
+        ${pts.toLocaleString()}
+      </div>
+    `;
+  });
+
+  const first = matching[0];
+  const imageURL = first["Use Case URL"] || "";
+  const title = first["Use Case Title"] || "Untitled";
+  const body = first["Use Case Body"] || "No description";
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
+      <div class="mini-pill-row">
+        ${pillsHTML}
+      </div>
+      <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
+        <div style="max-width:180px; flex:0 0 auto;">
+          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
+        </div>
+        <div style="flex:1 1 auto;">
+          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
+            ${title}
+          </h4>
+          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
+            ${body}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
