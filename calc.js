@@ -753,10 +753,10 @@ function renderPieChartProgramShare(gatheredData) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "60%",
+      cutout: "65%",
       plugins: {
         legend: {
-          display: false,
+          display: true,
           labels: {
             generateLabels: function (chart) {
               const d = chart.data;
