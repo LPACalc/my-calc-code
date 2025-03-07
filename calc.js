@@ -648,10 +648,12 @@ function initUseCaseSwiper() {
 /*******************************************************
  * CHARTS
  *******************************************************/
-// We'll store the references in barChartInstance & pieChartInstance
-
+/**********************************************************************
+ * BAR CHART => Travel vs Cash
+ **********************************************************************/
+let barChartInstance = null;
 function renderValueComparisonChart(travelValue, cashValue) {
-  // Destroy any existing chart before re-creating
+  // Destroy any existing chart
   if (barChartInstance) {
     barChartInstance.destroy();
     barChartInstance = null;
@@ -682,31 +684,27 @@ function renderValueComparisonChart(travelValue, cashValue) {
       devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: 'y', // Horizontal bars
+      indexAxis: 'y',    // Horizontal bars
       layout: {
         padding: {
           top: 20,
           right: 20,
-          // (2) Increase bottom padding under the title
-          bottom: 40,
+          bottom: 40,  // extra space under the title
           left: 20
         }
       },
       scales: {
         x: {
           beginAtZero: true,
-          // Limit x-axis ticks
           ticks: {
+            // (1) Format axis labels with commas
+            callback: function(value) {
+              return "$" + Number(value).toLocaleString();
+            },
             maxTicksLimit: 4,
             font: {
               size: 14,
               weight: '600'
-            },
-            // (1) Format with commas if above $999
-            callback: function(value) {
-              // Convert numeric value to a string with commas
-              const formatted = Number(value).toLocaleString();
-              return '$' + formatted;
             }
           }
         },
@@ -722,23 +720,23 @@ function renderValueComparisonChart(travelValue, cashValue) {
         }
       },
       plugins: {
-        // (3) Increase the title size & add bottom padding
+        // (2) Increase the title size & extra bottom padding
         title: {
           display: true,
           text: "Your Current Value",
           font: {
-            size: 20, // bigger title
+            size: 20,     // bigger title
             weight: "bold"
           },
           padding: {
-            bottom: 20 // extra space under the title
+            bottom: 20    // space under title
           }
         },
         legend: {
           display: false
         },
         tooltip: {
-          // (4) Increase hover highlight (tooltip) text size
+          // (4) bigger hover text
           bodyFont: {
             size: 16
           },
@@ -746,9 +744,10 @@ function renderValueComparisonChart(travelValue, cashValue) {
           callbacks: {
             label: function(context) {
               const val = context.parsed.x || 0;
-              // Format with commas
-              const formatted = val.toLocaleString(undefined, { minimumFractionDigits: 2 });
-              return "$" + formatted;
+              // Format with commas and 2 decimals
+              return "$" + val.toLocaleString(undefined, { 
+                minimumFractionDigits: 2 
+              });
             }
           }
         }
@@ -759,36 +758,38 @@ function renderValueComparisonChart(travelValue, cashValue) {
   barChartInstance = new Chart(ctx, config);
 }
 
-
-
-// Example: renderPieChartProgramShare with a custom 2-column legend
+/**********************************************************************
+ * PIE CHART => Program Share
+ **********************************************************************/
+let pieChartInstance = null;
 function renderPieChartProgramShare(gatheredData) {
-  // 1) Destroy any existing instance
+  // Destroy existing chart if any
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
   }
 
-  // 2) Prepare the data
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
   const ctx = pieCanvas.getContext("2d");
 
+  // Sum total points
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-  if (!totalPoints) {
+  if (totalPoints < 1) {
+    // If no data, clear canvas and return
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
   }
 
+  // Build arrays
   const labels = gatheredData.map(x => x.programName);
   const values = gatheredData.map(x => x.points);
-  const backgroundColors = gatheredData.map(x => {
-    // if you have a color stored in loyaltyPrograms[x.recordId].Color, use it:
-    const color = loyaltyPrograms[x.recordId]?.Color;
+  const backgroundColors = gatheredData.map(item => {
+    // If you have stored colors in loyaltyPrograms[item.recordId], do so here:
+    const color = loyaltyPrograms[item.recordId]?.Color;
     return color || "#cccccc";
   });
 
-  // 3) Build the config
   const data = {
     labels,
     datasets: [
@@ -800,53 +801,48 @@ function renderPieChartProgramShare(gatheredData) {
     ]
   };
 
-  // 4) Create the doughnut, disabling the default legend
   const config = {
     type: "doughnut",
     data,
     options: {
       responsive: true,
-      // Keep aspect ratio off so we can fix the container height in CSS
-      maintainAspectRatio: false,
+      maintainAspectRatio: false, // let the container size the canvas
       layout: {
         padding: {
           top: 20,
           right: 20,
-          // (2) Increase padding under the title
-          bottom: 40,
+          bottom: 40, // more space under the title
           left: 20
         }
       },
-      // Donut thickness
-      cutout: "63%", // about 8% thinner than your previous 55%
+      cutout: "63%",    // donut thickness
       plugins: {
-        // (3) Increase the title size + bold + more bottom padding
+        // Chart title
         title: {
           display: true,
           text: "Program Breakdown",
           font: {
-            size: 20,     // bigger title
+            size: 20,
             weight: "bold"
           },
           padding: {
-            bottom: 20    // extra space under the title
+            bottom: 20
           }
         },
-        // Disable default legend so we can do our own 2-column
+        // Disable default legend => we'll use a custom legend
         legend: {
           display: false
         },
-        // (4) Increase font size in the tooltip (hover highlight)
         tooltip: {
           displayColors: false,
           bodyFont: {
             size: 16
           },
           callbacks: {
-            label: function(ctx) {
-              const val = ctx.parsed || 0;
+            label: function(context) {
+              const val = context.parsed || 0;
               const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
-              return `${ctx.label}: ${val.toLocaleString()} pts (${pct})`;
+              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
             }
           }
         }
@@ -854,36 +850,16 @@ function renderPieChartProgramShare(gatheredData) {
     }
   };
 
-  // 5) Render the chart
+  // Render the chart
   pieChartInstance = new Chart(ctx, config);
 
-  // 6) Generate the legend HTML & inject into our custom container
+  // Generate legend HTML and inject into #pieLegendContainer
   const legendContainer = document.getElementById("pieLegendContainer");
   if (legendContainer) {
     legendContainer.innerHTML = pieChartInstance.generateLegend();
   }
 }
 
-
-/*******************************************************
- * HELPER => UPDATE POPULAR PROGRAM VISUALS
- *******************************************************/
-function updateTopProgramSelection(rid, isSelected) {
-  const $box = $(`.top-program-box[data-record-id='${rid}']`);
-  if ($box.length) {
-    if (isSelected) {
-      $box.addClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $box.find(".add-btn").text("✓");
-      }
-    } else {
-      $box.removeClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $box.find(".add-btn").text("+");
-      }
-    }
-  }
-}
 
 /*******************************************************
  * SINGLE CLICK HANDLER => .all-program-row
