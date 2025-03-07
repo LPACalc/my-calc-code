@@ -662,13 +662,17 @@ function renderValueComparisonChart(travelValue, cashValue) {
   const ctx = barCanvas.getContext("2d");
 
   const data = {
-    labels: ["Travel", "Cash"], // Removed the “Concierge” label
+    labels: ["Travel", "Cash"],
     datasets: [
       {
         label: "Value",
         data: [travelValue, cashValue],
-        backgroundColor: ["#67829B", "#76F04F"],  // Travel & Cash colors
-        borderRadius: 8,   // Rounded corners
+        // Regular colors:
+        backgroundColor: ["#67829B", "#76F04F"],
+        // Hover highlight colors:
+        hoverBackgroundColor: ["#5A7389", "#69DB47"],
+        // Rounded corners:
+        borderRadius: 8,
         borderSkipped: false
       }
     ]
@@ -681,6 +685,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
       devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
+      indexAxis: 'y', // Horizontal bars
       layout: {
         padding: {
           top: 20,
@@ -689,26 +694,26 @@ function renderValueComparisonChart(travelValue, cashValue) {
           left: 20
         }
       },
-      // Horizontal bars
-      indexAxis: 'y',
       scales: {
         x: {
           beginAtZero: true,
-          // Only 4 axis labels
+          // Limit x-axis ticks to 4 total
           ticks: {
             maxTicksLimit: 4,
-            // Heavier/bigger label font
+            // Heavier/bigger font
             font: {
               size: 14,
               weight: '600'
             },
-            // Optionally prepend '$' to axis labels
             callback: function(value) {
-              return '$' + value;
+              return '$' + value; // optional $ prefix
             }
           }
         },
         y: {
+          // Reduce bar thickness (categoryPercentage + barPercentage):
+          categoryPercentage: 0.8,
+          barPercentage: 0.8,
           ticks: {
             font: {
               size: 14,
@@ -718,7 +723,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
         }
       },
       plugins: {
-        // Bold chart title
+        // Chart title in bold
         title: {
           display: true,
           text: "Your Current Value",
@@ -737,8 +742,8 @@ function renderValueComparisonChart(travelValue, cashValue) {
           // Hide the color box
           displayColors: false,
           callbacks: {
+            // Show "$xx.xx" on hover
             label: function(context) {
-              // Format hover label as "$00.00"
               const val = context.parsed.x || 0;
               return "$" + val.toFixed(2);
             }
@@ -750,6 +755,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
   barChartInstance = new Chart(ctx, config);
 }
+
 
 
 function renderPieChartProgramShare(gatheredData) {
