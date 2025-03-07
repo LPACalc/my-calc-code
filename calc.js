@@ -34,16 +34,10 @@ let chosenPrograms = [];
 let isTransitioning = false;
 let pointsMap = {};
 
-/**
- * NEW FLAGS to handle loading state and user input
- */
 let dataLoaded = false;           
 let userClickedGetStarted = false;
 
-/** 
- * We'll track these so we can destroy & rebuild charts each time 
- * the user re-enters the Output state with changed data.
- */
+/** For the bar & pie charts: */
 let barChartInstance = null;
 let pieChartInstance = null;
 
@@ -70,7 +64,7 @@ async function fetchClientIP() {
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return;
   try {
-    // If IP is IPv6, skip
+    // If IP is IPv6, skip location
     if (clientIP.includes(":")) {
       approximateLocation = null;
       return;
@@ -121,6 +115,7 @@ function logSessionEvent(eventName, payload = {}) {
   });
 }
 
+// Remove localStorage item at session_end
 let sessionStartTime = Date.now();
 window.addEventListener('beforeunload', () => {
   const sessionEndTime = Date.now();
@@ -270,6 +265,26 @@ function buildTopProgramsSection() {
 }
 
 /*******************************************************
+ * MISSING FUNCTION => updateTopProgramSelection
+ *******************************************************/
+function updateTopProgramSelection(rid, isSelected) {
+  const $box = $(`.top-program-box[data-record-id='${rid}']`);
+  if ($box.length) {
+    if (isSelected) {
+      $box.addClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $box.find(".add-btn").text("✓");
+      }
+    } else {
+      $box.removeClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $box.find(".add-btn").text("+");
+      }
+    }
+  }
+}
+
+/*******************************************************
  * FILTER PROGRAMS
  *******************************************************/
 function filterPrograms() {
@@ -328,18 +343,11 @@ hammerManager.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
 let isModalOpen = false;
 const PULL_DOWN_THRESHOLD = 100; // how many px to pull down before closing
 
-/**
- * Open the “All Programs” modal as a bottom sheet (on mobile).
- */
 function openAllProgramsModal() {
-  // Prevent pull-to-refresh in modern browsers
   document.documentElement.style.overscrollBehavior = 'none';
-
   buildAllProgramsList();
-  // Show the overlay
   modal.classList.add('show');
 
-  // Animate up from the bottom
   setTimeout(() => {
     sheetContent.style.transition = 'transform 0.4s ease';
     sheetContent.style.transform = 'translateY(0)';
@@ -347,36 +355,31 @@ function openAllProgramsModal() {
   }, 10);
 }
 
-/**
- * Close the “All Programs” modal
- */
 function closeAllProgramsModal() {
-  // Animate down
   sheetContent.style.transition = 'transform 0.4s ease';
   sheetContent.style.transform = 'translateY(100%)';
 
   setTimeout(() => {
     modal.classList.remove('show');
     isModalOpen = false;
-    // Re-enable normal scrolling
     document.documentElement.style.overscrollBehavior = '';
   }, 400);
 }
 
-/** Hammer => panstart => remove transitions, so it follows the finger. */
+// Hammer => panstart => no transitions
 hammerManager.on('panstart', () => {
   if (!isModalOpen) return;
   sheetContent.style.transition = 'none';
 });
 
-/** Hammer => panmove => follow user’s finger downward (clamp negative) */
+// Hammer => panmove => follow finger
 hammerManager.on('panmove', (ev) => {
   if (!isModalOpen) return;
   const clampedY = Math.max(0, ev.deltaY);
   sheetContent.style.transform = `translateY(${clampedY}px)`;
 });
 
-/** Hammer => panend => if pulled enough => close, else snap back */
+// Hammer => panend => if pulled enough => close
 hammerManager.on('panend', (ev) => {
   if (!isModalOpen) return;
   if (ev.deltaY > PULL_DOWN_THRESHOLD) {
@@ -387,7 +390,7 @@ hammerManager.on('panend', (ev) => {
   }
 });
 
-// Clicking the dark backdrop => close
+// backdrop click => close
 modal.addEventListener("click", (e) => {
   if (e.target.id === "all-programs-modal") {
     closeAllProgramsModal();
@@ -399,7 +402,6 @@ document.getElementById("all-programs-close-btn").addEventListener("click", () =
   closeAllProgramsModal();
 });
 
-
 /*******************************************************
  * ADD PROGRAM ROW
  *******************************************************/
@@ -407,10 +409,8 @@ function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
   if (!prog) return;
 
-  // Points persistence:
   const existingPoints = pointsMap[recordId] || 0;
   const formattedPoints = existingPoints ? existingPoints.toLocaleString() : "";
-
   const logoUrl = prog["Brand Logo URL"] || "";
   const programName = prog["Program Name"] || "Unnamed Program";
 
@@ -455,11 +455,9 @@ function toggleSearchItemSelection(itemEl) {
   if (!rid) return;
   chosenPrograms.push(rid);
   itemEl.remove();
-
   $("#program-search").val("");
   $("#program-preview").hide().empty();
   filterPrograms();
-
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
@@ -537,12 +535,11 @@ function clearAllPrograms() {
   pointsMap = {};
   $("#program-container").empty();
   $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
-
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
 
-  // If the All Programs modal is open, refresh:
+  // If modal is open, refresh
   if ($("#all-programs-modal").hasClass("show")) {
     buildAllProgramsList();
   }
@@ -553,12 +550,7 @@ function clearAllPrograms() {
  *******************************************************/
 function updateClearAllVisibility() {
   const $btn = $("#clear-all-btn");
-  const hasChosen = chosenPrograms.length > 0;
-  if (hasChosen) {
-    $btn.show();
-  } else {
-    $btn.hide();
-  }
+  $btn.toggle(chosenPrograms.length > 0);
 }
 
 /*******************************************************
@@ -576,7 +568,7 @@ function formatNumberInput(el) {
 }
 
 function calculateTotal() {
-  // optional real-time sum
+  // Optionally calculate a running total if you want
 }
 
 /*******************************************************
@@ -600,7 +592,7 @@ function gatherProgramData() {
 }
 
 /*******************************************************
- * SWIPER: BUILD + REBUILD
+ * BUILD USE CASE SLIDER
  *******************************************************/
 function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
@@ -631,7 +623,7 @@ function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
     slidesPerView: 1,
     direction: 'horizontal',
-    loop: true,               // loop through slides
+    loop: true,
     pagination: {
       el: '.swiper-pagination',
       clickable: true,
@@ -646,19 +638,13 @@ function initUseCaseSwiper() {
 }
 
 /*******************************************************
- * CHARTS
- *******************************************************/
-/**********************************************************************
  * BAR CHART => Travel vs Cash
- **********************************************************************/
-let barChartInstance = null;
+ *******************************************************/
 function renderValueComparisonChart(travelValue, cashValue) {
-  // Destroy any existing chart
   if (barChartInstance) {
     barChartInstance.destroy();
     barChartInstance = null;
   }
-
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
   const ctx = barCanvas.getContext("2d");
@@ -684,67 +670,46 @@ function renderValueComparisonChart(travelValue, cashValue) {
       devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
-      indexAxis: 'y',    // Horizontal bars
+      indexAxis: 'y',
       layout: {
-        padding: {
-          top: 20,
-          right: 20,
-          bottom: 40,  // extra space under the title
-          left: 20
-        }
+        padding: { top: 20, right: 20, bottom: 40, left: 20 }
       },
       scales: {
         x: {
           beginAtZero: true,
           ticks: {
-            // (1) Format axis labels with commas
             callback: function(value) {
               return "$" + Number(value).toLocaleString();
             },
             maxTicksLimit: 4,
-            font: {
-              size: 14,
-              weight: '600'
-            }
+            font: { size: 14, weight: '600' }
           }
         },
         y: {
           categoryPercentage: 0.8,
           barPercentage: 0.8,
           ticks: {
-            font: {
-              size: 14,
-              weight: '600'
-            }
+            font: { size: 14, weight: '600' }
           }
         }
       },
       plugins: {
-        // (2) Increase the title size & extra bottom padding
         title: {
           display: true,
           text: "Your Current Value",
           font: {
-            size: 20,     // bigger title
+            size: 20,
             weight: "bold"
           },
-          padding: {
-            bottom: 20    // space under title
-          }
+          padding: { bottom: 20 }
         },
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
-          // (4) bigger hover text
-          bodyFont: {
-            size: 16
-          },
           displayColors: false,
+          bodyFont: { size: 16 },
           callbacks: {
             label: function(context) {
               const val = context.parsed.x || 0;
-              // Format with commas and 2 decimals
               return "$" + val.toLocaleString(undefined, { 
                 minimumFractionDigits: 2 
               });
@@ -758,36 +723,29 @@ function renderValueComparisonChart(travelValue, cashValue) {
   barChartInstance = new Chart(ctx, config);
 }
 
-/**********************************************************************
+/*******************************************************
  * PIE CHART => Program Share
- **********************************************************************/
-let pieChartInstance = null;
+ *******************************************************/
 function renderPieChartProgramShare(gatheredData) {
-  // Destroy existing chart if any
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
   }
-
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
   const ctx = pieCanvas.getContext("2d");
 
-  // Sum total points
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
   if (totalPoints < 1) {
-    // If no data, clear canvas and return
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
   }
 
-  // Build arrays
   const labels = gatheredData.map(x => x.programName);
   const values = gatheredData.map(x => x.points);
   const backgroundColors = gatheredData.map(item => {
-    // If you have stored colors in loyaltyPrograms[item.recordId], do so here:
-    const color = loyaltyPrograms[item.recordId]?.Color;
-    return color || "#cccccc";
+    const storedColor = loyaltyPrograms[item.recordId]?.Color;
+    return storedColor || "#cccccc";
   });
 
   const data = {
@@ -806,18 +764,12 @@ function renderPieChartProgramShare(gatheredData) {
     data,
     options: {
       responsive: true,
-      maintainAspectRatio: false, // let the container size the canvas
+      maintainAspectRatio: false,
       layout: {
-        padding: {
-          top: 20,
-          right: 20,
-          bottom: 40, // more space under the title
-          left: 20
-        }
+        padding: { top: 20, right: 20, bottom: 40, left: 20 }
       },
-      cutout: "63%",    // donut thickness
+      cutout: "63%",
       plugins: {
-        // Chart title
         title: {
           display: true,
           text: "Program Breakdown",
@@ -825,23 +777,19 @@ function renderPieChartProgramShare(gatheredData) {
             size: 20,
             weight: "bold"
           },
-          padding: {
-            bottom: 20
-          }
+          padding: { bottom: 20 }
         },
-        // Disable default legend => we'll use a custom legend
         legend: {
           display: false
         },
         tooltip: {
           displayColors: false,
-          bodyFont: {
-            size: 16
-          },
+          bodyFont: { size: 16 },
           callbacks: {
             label: function(context) {
               const val = context.parsed || 0;
-              const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
+              const total = values.reduce((a, b) => a + b, 0);
+              const pct = ((val / total) * 100).toFixed(1) + "%";
               return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
             }
           }
@@ -850,21 +798,19 @@ function renderPieChartProgramShare(gatheredData) {
     }
   };
 
-  // Render the chart
   pieChartInstance = new Chart(ctx, config);
 
-  // Generate legend HTML and inject into #pieLegendContainer
+  // If you have a custom container for the legend:
   const legendContainer = document.getElementById("pieLegendContainer");
   if (legendContainer) {
     legendContainer.innerHTML = pieChartInstance.generateLegend();
   }
 }
 
-
 /*******************************************************
  * SINGLE CLICK HANDLER => .all-program-row
  *******************************************************/
-$(document).on("click", ".all-program-row", function(e) {
+$(document).on("click", ".all-program-row", function() {
   const rowEl = $(this);
   const rid = rowEl.data("record-id");
   if (!rid) return;
@@ -917,10 +863,14 @@ function gatherAllRecommendedUseCases() {
     });
   });
 
+  // Shuffle them randomly
   results.sort(() => Math.random() - 0.5);
   return results;
 }
 
+/*******************************************************
+ * BUILD ALL PROGRAMS LIST (for 'Explore All' modal)
+ *******************************************************/
 function buildAllProgramsList() {
   const container = $("#all-programs-list");
   container.empty();
@@ -948,7 +898,7 @@ function buildAllProgramsList() {
   });
 }
 
-// Open the modal on “Explore All” button click (mobile)
+// Click => open 'Explore All' modal
 $("#explore-all-btn").on("click", function() {
   openAllProgramsModal();
 });
@@ -972,7 +922,7 @@ async function sendReport(email) {
     throw new Error("Invalid email format");
   }
   const fullData = gatherProgramData();
-  const programsToSend = fullData.map((x) => ({
+  const programsToSend = fullData.map(x => ({
     programName: x.programName,
     points: x.points
   }));
@@ -980,9 +930,7 @@ async function sendReport(email) {
 
   const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, programs: programsToSend })
   });
   if (!response.ok) {
@@ -1017,12 +965,9 @@ async function sendReportFromModal() {
     setTimeout(() => {
       hideReportModal();
       sentMsgEl.hide();
-      $("#unlock-report-btn")
-        .removeClass("cta-dark cta-light-border")
-        .addClass("cta-light-border");
-      $("#explore-concierge-lower")
-        .removeClass("cta-dark cta-light-border")
-        .addClass("cta-dark");
+      // Switch button styling after user has unlocked
+      $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
+      $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
     }, 700);
   } catch (err) {
     console.error("Failed to send =>", err);
@@ -1039,7 +984,7 @@ function showHowItWorksStep(stepNum) {
   $(".hiw-step").hide();
   $(`.hiw-step[data-step='${stepNum}']`).show();
   $(".hiw-line").removeClass("active-line");
-  $(".hiw-line").each(function (idx) {
+  $(".hiw-line").each(function(idx) {
     if (idx < stepNum) {
       $(this).addClass("active-line");
     }
@@ -1047,16 +992,16 @@ function showHowItWorksStep(stepNum) {
 }
 
 /*******************************************************
- * DOC READY
+ * DOC READY => MAIN
  *******************************************************/
-$(document).ready(function () {
+$(document).ready(function() {
   (async () => {
     try {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
       await initializeApp();
       dataLoaded = true;
-      console.log("Data fully loaded => dataLoaded = true (re-confirmed)");
+      console.log("Data fully loaded => dataLoaded = true (confirmed)");
 
       if (userClickedGetStarted) {
         hideLoadingScreenAndShowInput();
@@ -1068,14 +1013,14 @@ $(document).ready(function () {
 
   logSessionEvent("session_load");
 
-  // Hide states except hero
+  // Hide all states except hero
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
   $("#default-hero").show();
   $("#program-preview").hide().empty();
   $(".left-column").hide();
 
-  // Hero => GET STARTED
-  $("#hero-get-started-btn").on("click", function () {
+  // =============== HERO => GET STARTED =================
+  $("#hero-get-started-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("hero_get_started_clicked");
@@ -1084,11 +1029,10 @@ $(document).ready(function () {
     if (dataLoaded) {
       hideLoadingScreenAndShowInput();
     } else {
+      // Hide hero content, show spinner
       $("#hero-how-it-works-btn").hide();
       $("#hero-get-started-btn").hide();
-      $(".hero-inner h1").hide();
-      $(".hero-inner h2").hide();
-      $(".hero-cta-container").hide();
+      $(".hero-inner h1, .hero-inner h2, .hero-cta-container").hide();
       $("#loading-screen").show();
       isTransitioning = false;
     }
@@ -1110,11 +1054,12 @@ $(document).ready(function () {
     });
   }
 
-  // Hero => HOW IT WORKS
-  $("#hero-how-it-works-btn").on("click", function () {
+  // =============== HERO => HOW IT WORKS =================
+  $("#hero-how-it-works-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("hero_how_it_works_clicked");
+
     if (window.innerWidth >= 992) {
       $(".left-column").show();
       $(".left-column").css({
@@ -1128,15 +1073,14 @@ $(document).ready(function () {
     });
   });
 
-  // Step transitions
+  // Step transitions in HIW
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
   $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
-  $("#hiw-final-start-btn").on("click", function () {
+  $("#hiw-final-start-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("hiw_final_get_started");
     $("#how-it-works-state").hide();
-
     userClickedGetStarted = true;
     if (dataLoaded) {
       hideLoadingScreenAndShowInput();
@@ -1146,25 +1090,21 @@ $(document).ready(function () {
     }
   });
 
-  // Input => back => hero
-  $("#input-back-btn").on("click", function () {
+  // =============== INPUT => BACK => HERO =================
+  $("#input-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("input_back_clicked");
     $("#input-state").hide();
     $(".left-column").hide();
-    $("#hero-how-it-works-btn").show();
-    $("#hero-get-started-btn").show();
-    $(".hero-inner h1").show();
-    $(".hero-inner h2").show();
-    $(".hero-cta-container").show();
+    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container").show();
     $("#default-hero").fadeIn(() => {
       isTransitioning = false;
     });
   });
 
-  // Input => next => calc
-  $("#input-next-btn").on("click", function () {
+  // =============== INPUT => NEXT => CALC =================
+  $("#input-next-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("input_next_clicked");
@@ -1178,8 +1118,8 @@ $(document).ready(function () {
     updateClearAllVisibility();
   });
 
-  // Calc => back => input
-  $("#calc-back-btn").on("click", function () {
+  // =============== CALC => BACK => INPUT =================
+  $("#calc-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("calc_back_clicked");
@@ -1191,25 +1131,24 @@ $(document).ready(function () {
     });
   });
 
-  // Calc => next => output
-  $("#to-output-btn").on("click", function () {
+  // =============== CALC => NEXT => OUTPUT =================
+  $("#to-output-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("calc_next_clicked");
     $("#calculator-state").hide();
     $("#output-state").fadeIn(() => {
       isTransitioning = false;
-      $("#unlock-report-btn").show();
-      $("#explore-concierge-lower").show();
+      $("#unlock-report-btn, #explore-concierge-lower").show();
     });
-    // Build TRAVEL view by default each time
+    // Build TRAVEL view by default
     buildOutputRows("travel");
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
   });
 
-  // Output => back => calc
-  $("#output-back-btn").on("click", function () {
+  // =============== OUTPUT => BACK => CALC =================
+  $("#output-back-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("output_back_clicked");
@@ -1220,18 +1159,17 @@ $(document).ready(function () {
   });
 
   // Switch between Travel / Cash
-  $(".tc-switch-btn").on("click", function () {
+  $(".tc-switch-btn").on("click", function() {
     $(".tc-switch-btn").removeClass("active-tc");
     $(this).addClass("active-tc");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
+    buildOutputRows($(this).data("view"));
   });
 
   // Real-time filter
   $("#program-search").on("input", filterPrograms);
 
-  // “Enter” => if only 1 result, pick it
-  $(document).on("keypress", "#program-search", function (e) {
+  // If Enter is pressed & only 1 result => auto-pick
+  $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       logSessionEvent("program_search_enter");
       $(".preview-item").click();
@@ -1239,21 +1177,21 @@ $(document).ready(function () {
   });
 
   // Toggle program from search
-  $(document).on("click", ".preview-item", function () {
+  $(document).on("click", ".preview-item", function() {
     const rid = $(this).data("record-id");
     logSessionEvent("program_preview_item_clicked", { rid });
     toggleSearchItemSelection($(this));
   });
 
   // Toggle program from “Popular Programs”
-  $(document).on("click", ".top-program-box", function () {
+  $(document).on("click", ".top-program-box", function() {
     const rid = $(this).data("record-id");
     logSessionEvent("top_program_box_clicked", { rid });
     toggleProgramSelection($(this));
   });
 
-  // Expand/collapse use case on row click
-  $(document).on("click", ".output-row", function () {
+  // Output => row click => expand/collapse use case
+  $(document).on("click", ".output-row", function() {
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
     if (nextAcc.is(":visible")) {
@@ -1271,8 +1209,6 @@ $(document).ready(function () {
     delete pointsMap[recordId];
   });
 
-
-
   // On typed input => update pointsMap
   $(document).on("input", ".points-input", function() {
     const rowEl = $(this).closest(".program-row");
@@ -1283,78 +1219,73 @@ $(document).ready(function () {
       return;
     }
     let num = parseInt(raw, 10);
-    if (isNaN(num)) num = 0;
-    pointsMap[recordId] = num;
+    pointsMap[recordId] = isNaN(num) ? 0 : num;
   });
 
-  // mini-pill => changing which use case is displayed
-  $(document).on("click", ".mini-pill", function () {
+  // Switch active use case mini-pill
+  $(document).on("click", ".mini-pill", function() {
     const useCaseId = $(this).data("usecaseId");
     logSessionEvent("mini_pill_clicked", { useCaseId });
     const container = $(this).closest("div[style*='flex-direction:column']");
-    $(this).siblings(".mini-pill").each(function () {
-      $(this).css({ backgroundColor: "#f0f0f0", color: "#333" }).removeClass("active");
-    });
+    $(this).siblings(".mini-pill").css({ backgroundColor: "#f0f0f0", color: "#333" }).removeClass("active");
     $(this).css({ backgroundColor: "#1a2732", color: "#fff" }).addClass("active");
 
-    const uc = Object.values(realWorldUseCases).find((x) => x.id === useCaseId);
+    const uc = Object.values(realWorldUseCases).find(x => x.id === useCaseId);
     if (!uc) return;
-    const newImg = uc["Use Case URL"] || "";
-    const newTitle = uc["Use Case Title"] || "Untitled";
-    const newBody = uc["Use Case Body"] || "No description";
-
-    container.find("img").attr("src", newImg);
-    container.find("h4").text(newTitle);
-    container.find("p").text(newBody);
+    container.find("img").attr("src", uc["Use Case URL"] || "");
+    container.find("h4").text(uc["Use Case Title"] || "Untitled");
+    container.find("p").text(uc["Use Case Body"] || "");
   });
 
   // Unlock => show email modal
-  $("#unlock-report-btn").on("click", function () {
+  $("#unlock-report-btn").on("click", function() {
     logSessionEvent("unlock_report_clicked");
     showReportModal();
   });
-  $("#modal-close-btn").on("click", function () {
+  $("#modal-close-btn").on("click", function() {
     logSessionEvent("modal_close_clicked");
     hideReportModal();
   });
-  $("#report-modal").on("click", function (event) {
-    if ($(event.target).attr("id") === "report-modal") {
+  $("#report-modal").on("click", function(e) {
+    if ($(e.target).attr("id") === "report-modal") {
       hideReportModal();
     }
   });
-  $("#modal-send-btn").on("click", async function () {
+  $("#modal-send-btn").on("click", async function() {
     const emailInput = $("#modal-email-input").val().trim();
     logSessionEvent("modal_send_clicked", { email: emailInput });
     await sendReportFromModal();
   });
 
   // Explore => external link (services modal)
-  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
+  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function() {
     logSessionEvent("explore_concierge_clicked");
     $("#services-modal").addClass("show");
   });
-  $("#services-modal-close-btn").on("click", function () {
+  $("#services-modal-close-btn").on("click", function() {
     $("#services-modal").removeClass("show");
   });
 
   // Usecase => back => output
-  $("#usecase-back-btn").on("click", function () {
+  $("#usecase-back-btn").on("click", function() {
     $("#usecase-state").hide();
     $("#output-state").fadeIn();
   });
 
-  $("#send-report-back-btn").on("click", function () {
+  // Send report => back => output
+  $("#send-report-back-btn").on("click", function() {
     $("#send-report-state").hide();
     $("#output-state").fadeIn();
   });
 
-  $("#go-back-btn").on("click", function () {
+  // Sub takeover => back => output
+  $("#go-back-btn").on("click", function() {
     $("#submission-takeover").hide();
     $("#output-state").fadeIn();
   });
 
-  // “Clear All”
-  $("#clear-all-btn").on("click", function () {
+  // Clear All
+  $("#clear-all-btn").on("click", function() {
     logSessionEvent("clear_all_clicked");
     clearAllPrograms();
   });
@@ -1367,25 +1298,21 @@ function buildOutputRows(viewType) {
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
-  // We'll calculate total travel/cash value, plus total points
   let scenarioTotal = 0;
-  let totalTravelValue = 0;  
-  let totalCashValue   = 0;
+  let totalTravelValue = 0;
+  let totalCashValue = 0;
 
-  // Calculate total points by summing user-entered points
-  let totalPoints = data.reduce((acc, item) => acc + item.points, 0);
+  // Sum user-entered points
+  const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
-
     const tVal = item.points * (prog?.["Travel Value"] || 0);
-    const cVal = item.points * (prog?.["Cash Value"]   || 0);
-
+    const cVal = item.points * (prog?.["Cash Value"] || 0);
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // Depending on whether user is viewing Travel or Cash
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
@@ -1404,7 +1331,7 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If Travel view, add the use-case accordion
+    // If Travel view => show recommended use-cases
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion"
@@ -1424,7 +1351,7 @@ function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Show either "Travel Value" or "Cash Value" label
+  // Show label & total
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -1438,26 +1365,22 @@ function buildOutputRows(viewType) {
     </div>
   `);
 
-  // (A) update the 3 "stat cards"
+  // Update stat cards
   $("#total-points-card .card-value").text(
     totalPoints.toLocaleString()
   );
   $("#travel-value-card .card-value").text(
-    "$" + totalTravelValue.toLocaleString(undefined, { 
-      minimumFractionDigits: 2 
-    })
+    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
   $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { 
-      minimumFractionDigits: 2 
-    })
+    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // (B) Rebuild or destroy charts
+  // Rebuild charts
   renderValueComparisonChart(totalTravelValue, totalCashValue);
   renderPieChartProgramShare(data);
 
-  // (C) If Travel => recommended use cases
+  // If Travel => build Use Case slider
   if (viewType === "travel") {
     const allUseCases = gatherAllRecommendedUseCases();
     buildUseCaseSlides(allUseCases);
@@ -1476,7 +1399,7 @@ function buildOutputRows(viewType) {
 }
 
 /*******************************************************
- * USE CASE => BUILD ACCORDION
+ * USE CASE => BUILD ACCORDION CONTENT
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -1492,8 +1415,11 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && uc["Points Required"] <= userPoints;
   });
 
+  // Sort by redemption value desc
   matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
+  // Take top 5
   matching = matching.slice(0, 5);
+  // Then sort by points ascending
   matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
 
   if (!matching.length) {
