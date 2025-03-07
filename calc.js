@@ -315,6 +315,103 @@ function filterPrograms() {
   $("#program-preview").html(previewHTML).show();
 }
 
+
+
+/*******************************************************
+ * BOTTOM SHEET DRAG-TO-DISMISS LOGIC
+ *******************************************************/
+
+let startY = 0;
+let currentY = 0;
+let isDragging = false;
+let initialTranslateY = 0; // Start at 0 => fully visible
+const DISMISS_THRESHOLD = 100; // Drag distance in px to trigger close
+
+const sheetContent = document.getElementById('all-programs-modal-content');
+
+/** 
+ * touchstart => record the initial touch Y 
+ */
+sheetContent.addEventListener('touchstart', (e) => {
+  // Only consider single-touch
+  if (e.touches.length !== 1) return;
+  isDragging = true;
+  startY = e.touches[0].clientY;
+  currentY = startY;
+  initialTranslateY = 0; 
+  // Make sure we remove any CSS transitions so it follows finger in real-time
+  sheetContent.style.transition = 'none';
+});
+
+/**
+ * touchmove => update the translation if dragging downward
+ */
+sheetContent.addEventListener('touchmove', (e) => {
+  if (!isDragging) return;
+  // Only consider single-touch
+  if (e.touches.length !== 1) return;
+
+  currentY = e.touches[0].clientY;
+  const deltaY = currentY - startY;
+
+  // We only want to drag down (deltaY > 0). If user drags upward, clamp to 0.
+  const translateY = Math.max(0, deltaY + initialTranslateY);
+
+  // Apply transform to move the sheet down
+  sheetContent.style.transform = `translateY(${translateY}px)`;
+});
+
+/**
+ * touchend => decide if we should close or snap back
+ */
+sheetContent.addEventListener('touchend', () => {
+  if (!isDragging) return;
+  isDragging = false;
+
+  // Calculate final distance
+  const finalDelta = currentY - startY;
+
+  // If user dragged down > DISMISS_THRESHOLD => close
+  if (finalDelta > DISMISS_THRESHOLD) {
+    closeAllProgramsModal();
+  } else {
+    // Snap back to fully visible
+    sheetContent.style.transition = 'transform 0.3s ease';
+    sheetContent.style.transform = 'translateY(0)';
+  }
+});
+
+/**
+ * Keep your existing open/close modal functions, just ensure
+ * they set or remove the .show class and reset transforms.
+ */
+function openAllProgramsModal() {
+  const modal = document.getElementById('all-programs-modal');
+  // Build or refresh the programs list, etc.
+  buildAllProgramsList();
+  sheetContent.style.transform = 'translateY(100%)'; // start off-screen
+  modal.classList.add('show');
+
+  // After a tiny delay, animate it up to 0
+  setTimeout(() => {
+    sheetContent.style.transition = 'transform 0.4s ease';
+    sheetContent.style.transform = 'translateY(0)';
+  }, 10);
+}
+
+function closeAllProgramsModal() {
+  const modal = document.getElementById('all-programs-modal');
+  // Animate down
+  sheetContent.style.transition = 'transform 0.4s ease';
+  sheetContent.style.transform = 'translateY(100%)';
+
+  // Hide completely after the transition
+  setTimeout(() => {
+    modal.classList.remove('show');
+  }, 400);
+}
+
+
 /*******************************************************
  * ADD PROGRAM ROW
  *******************************************************/
