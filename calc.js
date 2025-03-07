@@ -759,7 +759,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
 
 function renderPieChartProgramShare(gatheredData) {
-  // Destroy any existing pie chart instance
+  // Destroy any existing pie chart
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
@@ -770,25 +770,29 @@ function renderPieChartProgramShare(gatheredData) {
 
   const ctx = pieCanvas.getContext("2d");
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-
-  // If no points, clear canvas and exit
   if (totalPoints < 1) {
+    // If no points, clear and exit
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
   }
 
-  const donutLabels = gatheredData.map(x => x.programName);
-  const donutValues = gatheredData.map(x => x.points);
-  const donutColors = gatheredData.map(item =>
-    loyaltyPrograms[item.recordId]?.Color || "#cccccc"
-  );
+  // Build data arrays
+  const labels = gatheredData.map(x => x.programName);
+  const values = gatheredData.map(x => x.points);
 
+  // If your code previously used loyaltyPrograms[item.recordId]?.Color, keep it:
+  // For demonstration, I'm just specifying random colors or reusing your existing logic.
+  const backgroundColors = gatheredData.map(x => {
+    const c = loyaltyPrograms[x.recordId]?.Color;
+    return c || "#cccccc"; // fallback
+  });
+  
   const data = {
-    labels: donutLabels,
+    labels,
     datasets: [
       {
-        data: donutValues,
-        backgroundColor: donutColors,
+        data: values,
+        backgroundColor: backgroundColors,
         hoverOffset: 10
       }
     ]
@@ -798,29 +802,51 @@ function renderPieChartProgramShare(gatheredData) {
     type: "doughnut",
     data,
     options: {
-      devicePixelRatio: 2,
       responsive: true,
       maintainAspectRatio: false,
       layout: {
         padding: {
           top: 20,
           right: 20,
-          bottom: 40,
+          bottom: 30,
           left: 20
         }
       },
-      cutout: "55%",
+      // (3) Make the donut "8% thinner" => bigger cutout means a thinner ring
+      cutout: "63%", // Was "55%" before. Increase to ~63% to thin the ring
       plugins: {
+        // (2) Bold the title
+        title: {
+          display: true,
+          text: "Program Breakdown",
+          font: {
+            size: 16,
+            weight: "bold"
+          },
+          padding: {
+            bottom: 10
+          }
+        },
+        // (4) Legend at bottom, bigger/bold labels
         legend: {
+          display: true,
           position: "bottom",
           labels: {
+            // Increase size & boldness
+            font: {
+              size: 14,
+              weight: "600"
+            },
+            // Box size near the label
             boxWidth: 20,
+            boxHeight: 20,
             padding: 10
           }
         },
         tooltip: {
+          displayColors: false,
           callbacks: {
-            label: function (ctx) {
+            label: function(ctx) {
               const val = ctx.parsed || 0;
               const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
               return `${ctx.label}: ${val.toLocaleString()} pts (${pct})`;
@@ -833,6 +859,7 @@ function renderPieChartProgramShare(gatheredData) {
 
   pieChartInstance = new Chart(ctx, config);
 }
+
 
 /*******************************************************
  * HELPER => UPDATE POPULAR PROGRAM VISUALS
