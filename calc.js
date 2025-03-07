@@ -759,54 +759,63 @@ function renderPieChartProgramShare(gatheredData) {
     ]
   };
 
-  const config = {
-    type: "doughnut",
-    data,
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: { top: 20, right: 20, bottom: 40, left: 20 }
-      },
-      cutout: "63%",
-      plugins: {
-        title: {
-          display: true,
-          text: "Program Breakdown",
-          font: {
-            size: 20,
-            weight: "bold"
-          },
-          padding: { bottom: 20 }
-        },
-       legend: {
-    display: true,
-    position: "bottom", // or top, left, right
-        },
-        tooltip: {
-          displayColors: false,
-          bodyFont: { size: 16 },
-          callbacks: {
-            label: function(context) {
-              const val = context.parsed || 0;
-              const total = values.reduce((a, b) => a + b, 0);
-              const pct = ((val / total) * 100).toFixed(1) + "%";
-              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
+ const config = {
+  type: "doughnut",
+  data: {
+    labels: ["Delta", "AA", "United", "Southwest"],
+    datasets: [
+      {
+        data: [12000, 18000, 9000, 5000],
+        backgroundColor: ["#FF0000", "#00FF00", "#0000FF", "#FFA500"]
+      }
+    ]
+  },
+  options: {
+    // We'll provide a custom legend in HTML, so hide it in the canvas
+    plugins: {
+      legend: {
+        display: false, // no default in-canvas legend
+        labels: {
+          // (1) Override generateLabels so generateLegend() returns items
+          generateLabels: function (chart) {
+            const data = chart.data;
+            if (!data.labels.length || !data.datasets.length) {
+              return [];
             }
+            const dataset = data.datasets[0];
+            // Build an array of label objects
+            return data.labels.map((label, index) => {
+              const value = dataset.data[index];
+              const bgColor = dataset.backgroundColor[index];
+              return {
+                text: label,           // text to display
+                fillStyle: bgColor,    // color box
+                hidden: !value,        // or your logic
+                index                  // store the index
+              };
+            });
           }
         }
+      },
+      tooltip: {
+        // your tooltip config here
       }
-    }
-  };
-
-  pieChartInstance = new Chart(ctx, config);
-
-  // If you have a custom container for the legend:
-  const legendContainer = document.getElementById("pieLegendContainer");
-  if (legendContainer) {
-    legendContainer.innerHTML = pieChartInstance.generateLegend();
+    },
+    // Any other doughnut settings (cutout, etc.)
+    cutout: "63%",
+    maintainAspectRatio: false,
+    responsive: true
   }
-}
+};
+
+let pieChartInstance = new Chart(ctx, config);
+
+// After creation, call generateLegend():
+const legendHTML = pieChartInstance.generateLegend();
+
+// Put that HTML into your #pieLegendContainer
+document.getElementById("pieLegendContainer").innerHTML = legendHTML;
+
 
 /*******************************************************
  * SINGLE CLICK HANDLER => .all-program-row
