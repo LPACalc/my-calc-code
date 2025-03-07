@@ -315,12 +315,9 @@ function filterPrograms() {
   $("#program-preview").html(previewHTML).show();
 }
 
-
-
 /*******************************************************
  * BOTTOM SHEET DRAG-TO-DISMISS LOGIC
  *******************************************************/
-
 let startY = 0;
 let currentY = 0;
 let isDragging = false;
@@ -410,7 +407,6 @@ function closeAllProgramsModal() {
     modal.classList.remove('show');
   }, 400);
 }
-
 
 /*******************************************************
  * ADD PROGRAM ROW
@@ -647,8 +643,8 @@ function initUseCaseSwiper() {
     pagination: {
       el: '.swiper-pagination',
       clickable: true,
-       dynamicBullets: true,
-    dynamicMainBullets: 5,
+      dynamicBullets: true,
+      dynamicMainBullets: 5
     },
     navigation: {
       nextEl: '.swiper-button-next',
@@ -680,8 +676,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
     datasets: [
       {
         label: "Value",
-        data: [travelValue, cashValue, conciergeVal],
-        backgroundColor: ["#042940", "#005C53", "#D6D58E"]
+        data: [travelValue, cashValue, conciergeVal]
       }
     ]
   };
@@ -733,7 +728,6 @@ function renderValueComparisonChart(travelValue, cashValue) {
   barChartInstance = new Chart(ctx, config);
 }
 
-
 function renderPieChartProgramShare(gatheredData) {
   // Destroy any existing pie chart instance
   if (pieChartInstance) {
@@ -755,6 +749,7 @@ function renderPieChartProgramShare(gatheredData) {
 
   const donutLabels = gatheredData.map(x => x.programName);
   const donutValues = gatheredData.map(x => x.points);
+  // The original code used a “Color” field if present, you can keep or remove:
   const donutColors = gatheredData.map(item =>
     loyaltyPrograms[item.recordId]?.Color || "#cccccc"
   );
@@ -830,44 +825,39 @@ function updateTopProgramSelection(rid, isSelected) {
   }
 }
 
-/*******************************************************
- * TOGGLE PROGRAM => from “All Programs” modal
- *******************************************************/
+/**
+ * SINGLE CLICK HANDLER for .all-program-row
+ * Merged from the two previous duplicates.
+ */
 $(document).on("click", ".all-program-row", function(e) {
+  // If the user clicked the row or circle, let's unify logic:
   const rowEl = $(this);
   const rid = rowEl.data("record-id");
   if (!rid) return;
 
-  // Check if program is already selected
+  // Are we already selected?
   const index = chosenPrograms.indexOf(rid);
   const isSelected = (index !== -1);
 
   if (isSelected) {
-    // Remove
     chosenPrograms.splice(index, 1);
     rowEl.removeClass("selected-state");
     rowEl.find(".circle-btn").text("+");
-
     // ALSO update popular programs if it’s there
     updateTopProgramSelection(rid, false);
-
   } else {
-    // Add
     chosenPrograms.push(rid);
     rowEl.addClass("selected-state");
     rowEl.find(".circle-btn").text("✓");
-
     // ALSO update popular programs if it’s there
     updateTopProgramSelection(rid, true);
   }
 
-  // Reflect changes in “Selected Programs” row
+  // Reflect changes in your main Input state or “Selected Programs” row
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
 });
-
-
 
 /*******************************************************
  * USE CASE RECOMMENDATIONS
@@ -900,7 +890,6 @@ function gatherAllRecommendedUseCases() {
   results.sort(() => Math.random() - 0.5);
   return results;
 }
-
 
 function openAllProgramsModal() {
   // Populate #all-programs-list with rows for each program
@@ -948,7 +937,6 @@ if (window.innerWidth <= 576) {
     }
   });
 }
-
 
 /**
  * Build the entire list of programs, marking any that are already chosen.
@@ -1003,39 +991,6 @@ $("#all-programs-modal").on("click", function(e) {
     closeAllProgramsModal();
   }
 });
-
-/**
- * Toggle selection on click of the row or the circle.
- * We'll do a delegated event handler for .all-program-row
- */
-$(document).on("click", ".all-program-row", function(e) {
-  // If the user clicked the row or circle, let's unify logic:
-  const rowEl = $(this);
-  const rid = rowEl.data("record-id");
-  if (!rid) return;
-
-  // Are we already selected?
-  const index = chosenPrograms.indexOf(rid);
-  const isSelected = (index !== -1);
-
-  if (isSelected) {
-    // Remove from chosenPrograms
-    chosenPrograms.splice(index, 1);
-    rowEl.removeClass("selected-state");
-    rowEl.find(".circle-btn").text("+");
-  } else {
-    // Add to chosenPrograms
-    chosenPrograms.push(rid);
-    rowEl.addClass("selected-state");
-    rowEl.find(".circle-btn").text("✓");
-  }
-
-  // Also reflect changes in your main Input state or “Selected Programs” row
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-});
-
 
 /*******************************************************
  * BUILD OUTPUT => TRAVEL / CASH
@@ -1153,7 +1108,6 @@ function buildOutputRows(viewType) {
     }
   }
 }
-
 
 /*******************************************************
  * USE CASE => BUILD ACCORDION
