@@ -651,7 +651,7 @@ function initUseCaseSwiper() {
 // We'll store the references in barChartInstance & pieChartInstance
 
 function renderValueComparisonChart(travelValue, cashValue) {
-  // Destroy any existing chart before creating a fresh one
+  // Destroy any existing chart before re-creating
   if (barChartInstance) {
     barChartInstance.destroy();
     barChartInstance = null;
@@ -659,16 +659,17 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
   const barCanvas = document.getElementById("valueComparisonChart");
   if (!barCanvas) return;
-
-  const conciergeVal = travelValue > 1000 ? 125 : 99;
   const ctx = barCanvas.getContext("2d");
 
   const data = {
-    labels: ["Travel", "Cash", "Concierge"],
+    labels: ["Travel", "Cash"], // Removed the “Concierge” label
     datasets: [
       {
         label: "Value",
-        data: [travelValue, cashValue, conciergeVal]
+        data: [travelValue, cashValue],
+        backgroundColor: ["#67829B", "#76F04F"],  // Travel & Cash colors
+        borderRadius: 8,   // Rounded corners
+        borderSkipped: false
       }
     ]
   };
@@ -688,25 +689,58 @@ function renderValueComparisonChart(travelValue, cashValue) {
           left: 20
         }
       },
+      // Horizontal bars
       indexAxis: 'y',
       scales: {
         x: {
           beginAtZero: true,
-          title: {
-            display: true,
-            text: "Dollar Value"
+          // Only 4 axis labels
+          ticks: {
+            maxTicksLimit: 4,
+            // Heavier/bigger label font
+            font: {
+              size: 14,
+              weight: '600'
+            },
+            // Optionally prepend '$' to axis labels
+            callback: function(value) {
+              return '$' + value;
+            }
+          }
+        },
+        y: {
+          ticks: {
+            font: {
+              size: 14,
+              weight: '600'
+            }
           }
         }
       },
       plugins: {
+        // Bold chart title
+        title: {
+          display: true,
+          text: "Your Current Value",
+          font: {
+            size: 16,
+            weight: "bold"
+          },
+          padding: {
+            bottom: 10
+          }
+        },
         legend: {
           display: false
         },
         tooltip: {
+          // Hide the color box
+          displayColors: false,
           callbacks: {
-            label: function (context) {
+            label: function(context) {
+              // Format hover label as "$00.00"
               const val = context.parsed.x || 0;
-              return "$" + val.toLocaleString();
+              return "$" + val.toFixed(2);
             }
           }
         }
@@ -716,6 +750,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
   barChartInstance = new Chart(ctx, config);
 }
+
 
 function renderPieChartProgramShare(gatheredData) {
   // Destroy any existing pie chart instance
