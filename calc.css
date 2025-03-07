@@ -1473,36 +1473,31 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   height: 100%;
 }
 
-/* The container for the “two-column legend” */
+/* Force the <ul> from chartjs legend into two columns */
 #pieLegendContainer ul {
-  /* We want each <li> to show side-by-side in two columns:
-     2 equal columns => each is 1fr
-  */
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px 12px;       /* spacing between columns & rows */
-  list-style: none;    /* remove default bullet points */
-  margin: 0;
+  grid-template-columns: 1fr 1fr; /* 2 equal-width columns */
+  gap: 8px 12px;                  /* spacing between items */
+  list-style: none;
   padding: 0;
+  margin: 0;
 }
 
+/* Each <li> => place color box + label side by side */
 #pieLegendContainer li {
-  /* Slight spacing or line-height helps readability. 
-     You can tweak the font size, too.
-  */
-  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 4px; /* spacing under each label row */
+  gap: 8px;
+  font-weight: bold; /* bold text */
+  margin-bottom: 4px;
 }
 
-/* The colored box in each legend item: a <span> with backgroundColor */
+/* The color box is a small square span by default */
 #pieLegendContainer li span {
   display: inline-block;
-  width: 14px;
+  width: 14px;     /* smaller color box */
   height: 14px;
-  border-radius: 4px; /* optional: slightly rounded corners */
+  border-radius: 3px; /* optional rounding */
 }
 
 
