@@ -64,7 +64,7 @@ async function fetchClientIP() {
 async function fetchApproxLocationFromIP() {
   if (!clientIP) return;
   try {
-    // If IP is IPv6, skip location
+    // If IP is IPv6, skip
     if (clientIP.includes(":")) {
       approximateLocation = null;
       return;
@@ -568,7 +568,7 @@ function formatNumberInput(el) {
 }
 
 function calculateTotal() {
-  // Optionally calculate a running total if you want
+  // optional real-time sum
 }
 
 /*******************************************************
@@ -736,7 +736,7 @@ function renderPieChartProgramShare(gatheredData) {
   });
 
   // 2) Grab the canvas
-  const ctx = document.getElementById("programSharePieChart").getContext("2d");
+  const ctx = document.getElementById("myPieCanvas").getContext("2d");
 
   // 3) Build config with the custom legend logic
   const config = {
@@ -1011,7 +1011,6 @@ $(document).ready(function() {
     if (dataLoaded) {
       hideLoadingScreenAndShowInput();
     } else {
-      // Hide hero content, show spinner
       $("#hero-how-it-works-btn").hide();
       $("#hero-get-started-btn").hide();
       $(".hero-inner h1, .hero-inner h2, .hero-cta-container").hide();
@@ -1055,7 +1054,7 @@ $(document).ready(function() {
     });
   });
 
-  // Step transitions in HIW
+  // Step transitions
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
   $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
   $("#hiw-final-start-btn").on("click", function() {
@@ -1123,8 +1122,7 @@ $(document).ready(function() {
       isTransitioning = false;
       $("#unlock-report-btn, #explore-concierge-lower").show();
     });
-    // Build TRAVEL view by default
-    buildOutputRows("travel");
+    buildOutputRows("travel"); // "travel" is default
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
   });
@@ -1144,13 +1142,14 @@ $(document).ready(function() {
   $(".tc-switch-btn").on("click", function() {
     $(".tc-switch-btn").removeClass("active-tc");
     $(this).addClass("active-tc");
-    buildOutputRows($(this).data("view"));
+    const viewType = $(this).data("view");
+    buildOutputRows(viewType);
   });
 
   // Real-time filter
   $("#program-search").on("input", filterPrograms);
 
-  // If Enter is pressed & only 1 result => auto-pick
+  // Enter => if exactly 1 item => pick it
   $(document).on("keypress", "#program-search", function(e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       logSessionEvent("program_search_enter");
@@ -1158,21 +1157,21 @@ $(document).ready(function() {
     }
   });
 
-  // Toggle program from search
+  // Toggle program from search preview
   $(document).on("click", ".preview-item", function() {
     const rid = $(this).data("record-id");
     logSessionEvent("program_preview_item_clicked", { rid });
     toggleSearchItemSelection($(this));
   });
 
-  // Toggle program from “Popular Programs”
+  // Toggle program from popular
   $(document).on("click", ".top-program-box", function() {
     const rid = $(this).data("record-id");
     logSessionEvent("top_program_box_clicked", { rid });
     toggleProgramSelection($(this));
   });
 
-  // Output => row click => expand/collapse use case
+  // Output => row click => expand/collapse
   $(document).on("click", ".output-row", function() {
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
@@ -1183,7 +1182,7 @@ $(document).ready(function() {
     }
   });
 
-  // Remove single program row
+  // Remove single row
   $(document).on("click", ".remove-btn", function() {
     const rowEl = $(this).closest(".program-row");
     const recordId = rowEl.data("record-id");
@@ -1214,9 +1213,12 @@ $(document).ready(function() {
 
     const uc = Object.values(realWorldUseCases).find(x => x.id === useCaseId);
     if (!uc) return;
-    container.find("img").attr("src", uc["Use Case URL"] || "");
-    container.find("h4").text(uc["Use Case Title"] || "Untitled");
-    container.find("p").text(uc["Use Case Body"] || "");
+    const newImg = uc["Use Case URL"] || "";
+    const newTitle = uc["Use Case Title"] || "Untitled";
+    const newBody  = uc["Use Case Body"]  || "";
+    container.find("img").attr("src", newImg);
+    container.find("h4").text(newTitle);
+    container.find("p").text(newBody);
   });
 
   // Unlock => show email modal
@@ -1239,7 +1241,7 @@ $(document).ready(function() {
     await sendReportFromModal();
   });
 
-  // Explore => external link (services modal)
+  // Explore => external link
   $("#explore-concierge-lower, #explore-concierge-btn").on("click", function() {
     logSessionEvent("explore_concierge_clicked");
     $("#services-modal").addClass("show");
@@ -1254,13 +1256,13 @@ $(document).ready(function() {
     $("#output-state").fadeIn();
   });
 
-  // Send report => back => output
+  // Send-report => back => output
   $("#send-report-back-btn").on("click", function() {
     $("#send-report-state").hide();
     $("#output-state").fadeIn();
   });
 
-  // Sub takeover => back => output
+  // submission => back => output
   $("#go-back-btn").on("click", function() {
     $("#submission-takeover").hide();
     $("#output-state").fadeIn();
@@ -1292,17 +1294,21 @@ function buildOutputRows(viewType) {
     const logoUrl = prog?.["Brand Logo URL"] || "";
     const tVal = item.points * (prog?.["Travel Value"] || 0);
     const cVal = item.points * (prog?.["Cash Value"] || 0);
+
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
+    // Depending on viewType => travel or cash
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
+    // Format
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
+    // Build the “output row”
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -1313,7 +1319,7 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If Travel view => show recommended use-cases
+    // If Travel => recommended
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion"
@@ -1333,7 +1339,7 @@ function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Show label & total
+  // Label => Travel or Cash
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -1348,9 +1354,7 @@ function buildOutputRows(viewType) {
   `);
 
   // Update stat cards
-  $("#total-points-card .card-value").text(
-    totalPoints.toLocaleString()
-  );
+  $("#total-points-card .card-value").text( totalPoints.toLocaleString() );
   $("#travel-value-card .card-value").text(
     "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
@@ -1358,13 +1362,11 @@ function buildOutputRows(viewType) {
     "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // Rebuild charts
+  // Rebuild or destroy charts
   renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);For
+  renderPieChartProgramShare(data);
 
-  
-
-  // If Travel => build Use Case slider
+  // If Travel => use-case slider
   if (viewType === "travel") {
     const allUseCases = gatherAllRecommendedUseCases();
     buildUseCaseSlides(allUseCases);
@@ -1383,7 +1385,7 @@ function buildOutputRows(viewType) {
 }
 
 /*******************************************************
- * USE CASE => BUILD ACCORDION CONTENT
+ * USE CASE => BUILD ACCORDION
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -1401,9 +1403,8 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 
   // Sort by redemption value desc
   matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
-  // Take top 5
   matching = matching.slice(0, 5);
-  // Then sort by points ascending
+  // Then sort ascending by points
   matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
 
   if (!matching.length) {
@@ -1436,7 +1437,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   const first = matching[0];
   const imageURL = first["Use Case URL"] || "";
   const title = first["Use Case Title"] || "Untitled";
-  const body = first["Use Case Body"] || "No description";
+  const body  = first["Use Case Body"]  || "No description";
 
   return `
     <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
