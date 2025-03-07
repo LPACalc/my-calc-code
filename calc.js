@@ -726,13 +726,19 @@ function renderValueComparisonChart(travelValue, cashValue) {
 /*******************************************************
  * PIE CHART => Program Share
  *******************************************************/
-function renderPieChart(dataArr, labelsArr, colorsArr) {
-  // Suppose 'dataArr' is [100, 200, 300] etc.
-  //        'labelsArr' is ["Delta", "AA", "United"] etc.
-  //        'colorsArr' is ["#FF0000", "#00FF00", "#0000FF"] etc.
+function renderPieChartProgramShare(gatheredData) {
+  // 1) Extract numeric data, labels, colors from gatheredData
+  const dataArr   = gatheredData.map(item => item.points);
+  const labelsArr = gatheredData.map(item => item.programName);
+  const colorsArr = gatheredData.map(item => {
+    const c = loyaltyPrograms[item.recordId]?.Color;
+    return c || '#cccccc';
+  });
 
-  const ctx = document.getElementById("myPieCanvas").getContext("2d");
+  // 2) Grab the canvas
+  const ctx = document.getElementById("programSharePieChart").getContext("2d");
 
+  // 3) Build config with the custom legend logic
   const config = {
     type: "doughnut",
     data: {
@@ -747,28 +753,21 @@ function renderPieChart(dataArr, labelsArr, colorsArr) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "60%",   // how “thick” the donut is
+      cutout: "60%",
       plugins: {
         legend: {
-          display: false, // Turn off the default on-canvas legend
+          display: false,
           labels: {
-            // (A) Provide a custom function so .generateLegend() actually returns items
             generateLabels: function (chart) {
               const d = chart.data;
               if (!d.labels.length || !d.datasets.length) return [];
               const ds = d.datasets[0];
-
-              return d.labels.map((label, index) => {
-                const value = ds.data[index];
-                const color = ds.backgroundColor[index];
-                // Build the “label object” => text, fillStyle, etc.
-                return {
-                  text: label,
-                  fillStyle: color,
-                  hidden: !value, 
-                  index: index
-                };
-              });
+              return d.labels.map((label, index) => ({
+                text: label,
+                fillStyle: ds.backgroundColor[index],
+                hidden: !ds.data[index],
+                index
+              }));
             }
           }
         },
@@ -779,16 +778,14 @@ function renderPieChart(dataArr, labelsArr, colorsArr) {
     }
   };
 
-  // Create the chart
-  const myPieChart = new Chart(ctx, config);
+  // 4) Create the chart
+  pieChartInstance = new Chart(ctx, config);
 
-  // Now that it's created, generate the legend HTML
-  const legendHTML = myPieChart.generateLegend();
-
-  // Inject into your custom container
-  const legendContainer = document.getElementById("pieLegendContainer");
-  if (legendContainer) {
-    legendContainer.innerHTML = legendHTML;
+  // 5) If you want a custom legend in HTML:
+  const legendHTML = pieChartInstance.generateLegend();
+  const legendEl   = document.getElementById("pieLegendContainer");
+  if (legendEl) {
+    legendEl.innerHTML = legendHTML;
   }
 }
 
@@ -1363,7 +1360,9 @@ function buildOutputRows(viewType) {
 
   // Rebuild charts
   renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
+  renderPieChartProgramShare(data);For
+
+  
 
   // If Travel => build Use Case slider
   if (viewType === "travel") {
