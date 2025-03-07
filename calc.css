@@ -1473,32 +1473,32 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
   height: 100%;
 }
 
-/* Force the <ul> from chartjs legend into two columns */
+/* Force the <ul> into a grid with two equal-width columns */
 #pieLegendContainer ul {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 equal-width columns */
-  gap: 8px 12px;                  /* spacing between items */
+  grid-template-columns: 1fr 1fr;  /* 2 equal columns */
+  gap: 8px 12px;  /* spacing between items */
   list-style: none;
   padding: 0;
   margin: 0;
 }
 
-/* Each <li> => place color box + label side by side */
 #pieLegendContainer li {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: bold; /* bold text */
-  margin-bottom: 4px;
+  font-weight: bold;    /* bold label text */
+  margin-bottom: 4px;   /* spacing under each legend item */
 }
 
-/* The color box is a small square span by default */
+/* The color box */
 #pieLegendContainer li span {
   display: inline-block;
-  width: 14px;     /* smaller color box */
+  width: 14px;   /* smaller squares */
   height: 14px;
-  border-radius: 3px; /* optional rounding */
+  border-radius: 0; /* fully square corners */
 }
+
 
 
 .chart-cards-row {
