@@ -713,6 +713,62 @@ function renderPieChartProgramShare(gatheredData) {
   pieChartInstance = new Chart(ctx, config);
 }
 
+/*******************************************************
+ * HELPER => UPDATE POPULAR PROGRAM VISUALS
+ *******************************************************/
+function updateTopProgramSelection(rid, isSelected) {
+  const $box = $(`.top-program-box[data-record-id='${rid}']`);
+  if ($box.length) {
+    if (isSelected) {
+      $box.addClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $box.find(".add-btn").text("✓");
+      }
+    } else {
+      $box.removeClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $box.find(".add-btn").text("+");
+      }
+    }
+  }
+}
+
+/*******************************************************
+ * TOGGLE PROGRAM => from “All Programs” modal
+ *******************************************************/
+$(document).on("click", ".all-program-row", function(e) {
+  const rowEl = $(this);
+  const rid = rowEl.data("record-id");
+  if (!rid) return;
+
+  // Check if program is already selected
+  const index = chosenPrograms.indexOf(rid);
+  const isSelected = (index !== -1);
+
+  if (isSelected) {
+    // Remove
+    chosenPrograms.splice(index, 1);
+    rowEl.removeClass("selected-state");
+    rowEl.find(".circle-btn").text("+");
+
+    // ALSO update popular programs if it’s there
+    updateTopProgramSelection(rid, false);
+
+  } else {
+    // Add
+    chosenPrograms.push(rid);
+    rowEl.addClass("selected-state");
+    rowEl.find(".circle-btn").text("✓");
+
+    // ALSO update popular programs if it’s there
+    updateTopProgramSelection(rid, true);
+  }
+
+  // Reflect changes in “Selected Programs” row
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+});
 
 
 
