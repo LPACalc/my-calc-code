@@ -1445,6 +1445,67 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
  * smaller screens. 
  ****************************************************************************/
 
+/* The parent “card” container around the pie chart. 
+   We do NOT fix the chart itself smaller if there are many items;
+   we let it keep the same size (at least 450-500px). 
+*/
+.pie-chart-card {
+  flex: 0 0 48%;             /* side-by-side with bar chart (48% each) */
+  max-width: 48%;
+  position: relative;
+  /* Let’s set a minimum height so the chart won't scale down */
+  min-height: 500px;         
+  height: auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  box-sizing: border-box;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  overflow: visible; /* ensures tooltips and such aren’t clipped */
+}
+
+/* The canvas inside the pie-chart-card. 
+   Let Chart.js fill the card’s height by removing any max-height constraints. 
+*/
+#programSharePieChart {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* The container for the “two-column legend” */
+#pieLegendContainer ul {
+  /* We want each <li> to show side-by-side in two columns:
+     2 equal columns => each is 1fr
+  */
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 12px;       /* spacing between columns & rows */
+  list-style: none;    /* remove default bullet points */
+  margin: 0;
+  padding: 0;
+}
+
+#pieLegendContainer li {
+  /* Slight spacing or line-height helps readability. 
+     You can tweak the font size, too.
+  */
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px; /* spacing under each label row */
+}
+
+/* The colored box in each legend item: a <span> with backgroundColor */
+#pieLegendContainer li span {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px; /* optional: slightly rounded corners */
+}
+
+
 .chart-cards-row {
   display: flex;
   flex-wrap: wrap;
