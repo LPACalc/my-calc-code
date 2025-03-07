@@ -667,11 +667,8 @@ function renderValueComparisonChart(travelValue, cashValue) {
       {
         label: "Value",
         data: [travelValue, cashValue],
-        // Regular colors:
         backgroundColor: ["#67829B", "#76F04F"],
-        // Hover highlight colors:
         hoverBackgroundColor: ["#5A7389", "#69DB47"],
-        // Rounded corners:
         borderRadius: 8,
         borderSkipped: false
       }
@@ -690,6 +687,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
         padding: {
           top: 20,
           right: 20,
+          // (2) Increase bottom padding under the title
           bottom: 40,
           left: 20
         }
@@ -697,21 +695,22 @@ function renderValueComparisonChart(travelValue, cashValue) {
       scales: {
         x: {
           beginAtZero: true,
-          // Limit x-axis ticks to 4 total
+          // Limit x-axis ticks
           ticks: {
             maxTicksLimit: 4,
-            // Heavier/bigger font
             font: {
               size: 14,
               weight: '600'
             },
+            // (1) Format with commas if above $999
             callback: function(value) {
-              return '$' + value; // optional $ prefix
+              // Convert numeric value to a string with commas
+              const formatted = Number(value).toLocaleString();
+              return '$' + formatted;
             }
           }
         },
         y: {
-          // Reduce bar thickness (categoryPercentage + barPercentage):
           categoryPercentage: 0.8,
           barPercentage: 0.8,
           ticks: {
@@ -723,29 +722,33 @@ function renderValueComparisonChart(travelValue, cashValue) {
         }
       },
       plugins: {
-        // Chart title in bold
+        // (3) Increase the title size & add bottom padding
         title: {
           display: true,
           text: "Your Current Value",
           font: {
-            size: 16,
+            size: 20, // bigger title
             weight: "bold"
           },
           padding: {
-            bottom: 10
+            bottom: 20 // extra space under the title
           }
         },
         legend: {
           display: false
         },
         tooltip: {
-          // Hide the color box
+          // (4) Increase hover highlight (tooltip) text size
+          bodyFont: {
+            size: 16
+          },
           displayColors: false,
           callbacks: {
-            // Show "$xx.xx" on hover
             label: function(context) {
               const val = context.parsed.x || 0;
-              return "$" + val.toFixed(2);
+              // Format with commas
+              const formatted = val.toLocaleString(undefined, { minimumFractionDigits: 2 });
+              return "$" + formatted;
             }
           }
         }
@@ -758,35 +761,34 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
 
 
+// Example: renderPieChartProgramShare with a custom 2-column legend
 function renderPieChartProgramShare(gatheredData) {
-  // Destroy any existing pie chart
+  // 1) Destroy any existing instance
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
   }
 
+  // 2) Prepare the data
   const pieCanvas = document.getElementById("programSharePieChart");
   if (!pieCanvas) return;
-
   const ctx = pieCanvas.getContext("2d");
+
   const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-  if (totalPoints < 1) {
-    // If no points, clear and exit
+  if (!totalPoints) {
     ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
     return;
   }
 
-  // Build data arrays
   const labels = gatheredData.map(x => x.programName);
   const values = gatheredData.map(x => x.points);
-
-  // If your code previously used loyaltyPrograms[item.recordId]?.Color, keep it:
-  // For demonstration, I'm just specifying random colors or reusing your existing logic.
   const backgroundColors = gatheredData.map(x => {
-    const c = loyaltyPrograms[x.recordId]?.Color;
-    return c || "#cccccc"; // fallback
+    // if you have a color stored in loyaltyPrograms[x.recordId].Color, use it:
+    const color = loyaltyPrograms[x.recordId]?.Color;
+    return color || "#cccccc";
   });
-  
+
+  // 3) Build the config
   const data = {
     labels,
     datasets: [
@@ -798,53 +800,48 @@ function renderPieChartProgramShare(gatheredData) {
     ]
   };
 
+  // 4) Create the doughnut, disabling the default legend
   const config = {
     type: "doughnut",
     data,
     options: {
       responsive: true,
+      // Keep aspect ratio off so we can fix the container height in CSS
       maintainAspectRatio: false,
       layout: {
         padding: {
           top: 20,
           right: 20,
-          bottom: 30,
+          // (2) Increase padding under the title
+          bottom: 40,
           left: 20
         }
       },
-      // (3) Make the donut "8% thinner" => bigger cutout means a thinner ring
-      cutout: "63%", // Was "55%" before. Increase to ~63% to thin the ring
+      // Donut thickness
+      cutout: "63%", // about 8% thinner than your previous 55%
       plugins: {
-        // (2) Bold the title
+        // (3) Increase the title size + bold + more bottom padding
         title: {
           display: true,
           text: "Program Breakdown",
           font: {
-            size: 16,
+            size: 20,     // bigger title
             weight: "bold"
           },
           padding: {
-            bottom: 10
+            bottom: 20    // extra space under the title
           }
         },
-        // (4) Legend at bottom, bigger/bold labels
+        // Disable default legend so we can do our own 2-column
         legend: {
-          display: true,
-          position: "bottom",
-          labels: {
-            // Increase size & boldness
-            font: {
-              size: 14,
-              weight: "600"
-            },
-            // Box size near the label
-            boxWidth: 20,
-            boxHeight: 20,
-            padding: 10
-          }
+          display: false
         },
+        // (4) Increase font size in the tooltip (hover highlight)
         tooltip: {
           displayColors: false,
+          bodyFont: {
+            size: 16
+          },
           callbacks: {
             label: function(ctx) {
               const val = ctx.parsed || 0;
@@ -857,7 +854,14 @@ function renderPieChartProgramShare(gatheredData) {
     }
   };
 
+  // 5) Render the chart
   pieChartInstance = new Chart(ctx, config);
+
+  // 6) Generate the legend HTML & inject into our custom container
+  const legendContainer = document.getElementById("pieLegendContainer");
+  if (legendContainer) {
+    legendContainer.innerHTML = pieChartInstance.generateLegend();
+  }
 }
 
 
