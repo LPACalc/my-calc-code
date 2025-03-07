@@ -1455,15 +1455,18 @@ background: url("https://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c
 
 .bar-chart-card,
 .pie-chart-card {
-  flex: 0 0 48%;         /* side-by-side on wider screens */
+  flex: 0 0 48%;
   max-width: 48%;
+  position: relative;
+  /* Increase from 350px to, say, 450px or 500px: */
+  height: 450px;
+  
   background: #fff;
   border-radius: 8px;
+  padding: 1rem;
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  /* No fixed height => dynamic expansion. If you want a minimum: min-height: 350px; */
-  overflow: visible;      /* ensures tooltips & legend are not clipped */
-  padding: 1rem;         /* space for chart titles, legends, etc. */
+  overflow: hidden;
 }
 
 /* Title in bar chart card */
