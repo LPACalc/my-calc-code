@@ -726,98 +726,69 @@ function renderValueComparisonChart(travelValue, cashValue) {
 /*******************************************************
  * PIE CHART => Program Share
  *******************************************************/
-function renderPieChartProgramShare(gatheredData) {
-  if (pieChartInstance) {
-    pieChartInstance.destroy();
-    pieChartInstance = null;
-  }
+function renderPieChart(dataArr, labelsArr, colorsArr) {
+  // Suppose 'dataArr' is [100, 200, 300] etc.
+  //        'labelsArr' is ["Delta", "AA", "United"] etc.
+  //        'colorsArr' is ["#FF0000", "#00FF00", "#0000FF"] etc.
 
-  const pieCanvas = document.getElementById("programSharePieChart");
-  if (!pieCanvas) return;
-  const ctx = pieCanvas.getContext("2d");
+  const ctx = document.getElementById("myPieCanvas").getContext("2d");
 
-  // 1) Sum total points
-  const totalPoints = gatheredData.reduce((acc, x) => acc + x.points, 0);
-  if (totalPoints < 1) {
-    ctx.clearRect(0, 0, pieCanvas.width, pieCanvas.height);
-    return;
-  }
-
-  // 2) Build arrays from the gatheredData
-  const labels = gatheredData.map(x => x.programName);
-  const values = gatheredData.map(x => x.points);
-  const backgroundColors = gatheredData.map(item => {
-    const storedColor = loyaltyPrograms[item.recordId]?.Color;
-    return storedColor || "#cccccc";
-  });
-
-  // 3) Set up the data object
-  const data = {
-    labels,
-    datasets: [
-      {
-        data: values,
-        backgroundColor: backgroundColors,
-        hoverOffset: 10
-      }
-    ]
-  };
-
-  // 4) Create the config with a custom legend
   const config = {
     type: "doughnut",
-    data,
+    data: {
+      labels: labelsArr,
+      datasets: [
+        {
+          data: dataArr,
+          backgroundColor: colorsArr
+        }
+      ]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      cutout: "63%", // thickness
+      cutout: "60%",   // how “thick” the donut is
       plugins: {
-        // We want a custom HTML legend => disable default, but override generateLabels
         legend: {
-          display: false,
+          display: false, // Turn off the default on-canvas legend
           labels: {
-            // Provide a custom generateLabels so generateLegend() actually returns items
-            generateLabels(chart) {
+            // (A) Provide a custom function so .generateLegend() actually returns items
+            generateLabels: function (chart) {
               const d = chart.data;
-              if (!d.labels.length || !d.datasets.length) {
-                return [];
-              }
+              if (!d.labels.length || !d.datasets.length) return [];
               const ds = d.datasets[0];
-              return d.labels.map((label, idx) => {
-                const value = ds.data[idx];
-                const color = ds.backgroundColor[idx];
+
+              return d.labels.map((label, index) => {
+                const value = ds.data[index];
+                const color = ds.backgroundColor[index];
+                // Build the “label object” => text, fillStyle, etc.
                 return {
                   text: label,
                   fillStyle: color,
-                  hidden: !value, // or set your own logic for hidden
-                  index: idx
+                  hidden: !value, 
+                  index: index
                 };
               });
             }
           }
         },
         tooltip: {
-          displayColors: false,
-          callbacks: {
-            label: function(context) {
-              const val = context.parsed || 0;
-              // (Optional) Show percent:
-              const pct = ((val / totalPoints) * 100).toFixed(1) + "%";
-              return `${context.label}: ${val.toLocaleString()} pts (${pct})`;
-            }
-          }
+          displayColors: false
         }
       }
     }
   };
 
-  // 5) Build the pie chart
-  pieChartInstance = new Chart(ctx, config);
+  // Create the chart
+  const myPieChart = new Chart(ctx, config);
 
-  // 6) Insert the custom legend HTML
+  // Now that it's created, generate the legend HTML
+  const legendHTML = myPieChart.generateLegend();
+
+  // Inject into your custom container
   const legendContainer = document.getElementById("pieLegendContainer");
   if (legendContainer) {
-    legendContainer.innerHTML = pieChartInstance.generateLegend();
+    legendContainer.innerHTML = legendHTML;
   }
 }
 
