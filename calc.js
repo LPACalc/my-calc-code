@@ -779,8 +779,9 @@ function renderPieChartProgramShare(gatheredData) {
           },
           padding: { bottom: 20 }
         },
-        legend: {
-          display: false
+       legend: {
+    display: true,
+    position: "bottom", // or top, left, right
         },
         tooltip: {
           displayColors: false,
