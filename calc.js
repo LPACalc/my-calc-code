@@ -646,15 +646,22 @@ function gatherProgramData() {
 function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
 
-  allUseCases.forEach(uc => {
+  allUseCases.forEach((uc) => {
+    // Extract fields from the Airtable record
     const imageURL  = uc["Use Case URL"]   || "";
     const title     = uc["Use Case Title"] || "Untitled";
     const body      = uc["Use Case Body"]  || "No description";
     const pointsReq = uc["Points Required"] || 0;
-    const category  = uc["Category"]        || ""; // from Airtable
-    const programLogo = uc["Program Logo"]  || ""; // If you store a logo for the program here
+    const category  = uc["Category"]        || "";
 
-    // Build the Slide
+    // Safely extract the Program Logo URL (assuming "Program Logo" is an array of attachments)
+    let programLogo = "";
+    if (Array.isArray(uc["Program Logo"]) && uc["Program Logo"].length > 0) {
+      // The .url property is typically how Airtable attachments store the actual image link
+      programLogo = uc["Program Logo"][0].url || "";
+    }
+
+    // Build each slide’s HTML
     slideHTML += `
       <div class="swiper-slide">
 
@@ -666,7 +673,7 @@ function buildUseCaseSlides(allUseCases) {
             class="usecase-slide-image"
           />
           <!-- White circle with info icon in top-left -->
-          <div class="info-icon-circle">
+          <div class="info-icon-circle" style="pointer-events:none;">
             <img 
               src="https://cdn-icons-png.flaticon.com/512/4718/4718406.png" 
               alt="Info" 
@@ -708,6 +715,7 @@ function buildUseCaseSlides(allUseCases) {
     `;
   });
 
+  // Insert all slides into the Swiper wrapper
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
 
