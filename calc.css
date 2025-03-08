@@ -132,6 +132,13 @@ img {
   cursor: pointer;
 }
 
+.program-type-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain; 
+  vertical-align: middle; 
+}
+
 .all-program-row .row-left {
   display: flex;
   align-items: center;
