@@ -673,11 +673,11 @@ function buildUseCaseSlides(allUseCases) {
             class="usecase-slide-image"
           />
           <!-- White circle with info icon in top-left -->
-          <div class="info-icon-circle" style="pointer-events:none;">
+          <div>
             <img 
-              src="https://cdn-icons-png.flaticon.com/512/4718/4718406.png" 
+              src="http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/a9319f91-4153-4e39-b241-322efb1ff4da/50x50.png" 
               alt="Info" 
-              style="width:24px; height:24px;"
+              style="width:48px; height:48px;"
             />
           </div>
         </div>
