@@ -647,49 +647,70 @@ function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
 
   allUseCases.forEach(uc => {
-    const imageURL = uc["Use Case URL"] || "";
-    const title    = uc["Use Case Title"] || "Untitled";
-    const body     = uc["Use Case Body"]  || "No description";
-    const points   = uc["Points Required"] || 0;
+    const imageURL  = uc["Use Case URL"]   || "";
+    const title     = uc["Use Case Title"] || "Untitled";
+    const body      = uc["Use Case Body"]  || "No description";
+    const pointsReq = uc["Points Required"] || 0;
+    const category  = uc["Category"]        || ""; // from Airtable
+    const programLogo = uc["Program Logo"]  || ""; // If you store a logo for the program here
 
+    // Build the Slide
     slideHTML += `
       <div class="swiper-slide">
-        <img src="${imageURL}" alt="Use Case" class="usecase-slide-image" />
-        <div class="usecase-slide-content">
-          <h3 class="usecase-slide-title">${title}</h3>
-          <p class="usecase-slide-body">${body}</p>
-          <p class="usecase-slide-points">Points Required: ${points.toLocaleString()}</p>
+
+        <!-- (A) The image wrapper => full-width image -->
+        <div class="slide-image-wrapper">
+          <img 
+            src="${imageURL}" 
+            alt="Use Case" 
+            class="usecase-slide-image"
+          />
+          <!-- White circle with info icon in top-left -->
+          <div class="info-icon-circle">
+            <img 
+              src="https://cdn-icons-png.flaticon.com/512/4718/4718406.png" 
+              alt="Info" 
+              style="width:24px; height:24px;"
+            />
+          </div>
         </div>
-      </div>
+
+        <!-- (B) Text Container => top row, second row, divider, bottom text -->
+        <div class="usecase-slide-content">
+
+          <!-- Top row => Title (left) + Program Logo (right) -->
+          <div class="slide-top-row">
+            <h3 class="slide-title">${title}</h3>
+            ${
+              programLogo 
+                ? `<img src="${programLogo}" alt="program logo" class="slide-program-logo" />` 
+                : ""
+            }
+          </div>
+
+          <!-- Second row => Points Required (left) + Category (right) -->
+          <div class="slide-middle-row">
+            <div class="slide-points-left">Points Required: ${pointsReq.toLocaleString()}</div>
+            <div class="slide-category-right">${category}</div>
+          </div>
+
+          <!-- Light divider -->
+          <hr class="slide-divider" />
+
+          <!-- Bottom => Body text (centered) -->
+          <div class="slide-body-text">
+            <p>${body}</p>
+          </div>
+
+        </div><!-- /.usecase-slide-content -->
+
+      </div><!-- /.swiper-slide -->
     `;
   });
 
-  const slidesEl = document.getElementById("useCaseSlides");
-  slidesEl.innerHTML = slideHTML;
+  document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
 
-function initUseCaseSwiper() {
-  useCaseSwiper = new Swiper('#useCaseSwiper', {
-    // Force exactly one slide at a time:
-    slidesPerView: 1,
-    centeredSlides: false, // no partial slides peeking
-    spaceBetween: 0,
-
-    // Standard stuff:
-    direction: 'horizontal',
-    loop: true,
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-      dynamicBullets: true,
-      dynamicMainBullets: 5
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
-    }
-  });
-}
 
 
 /*******************************************************
