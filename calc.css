@@ -955,44 +955,50 @@ img {
  * USECASE SLIDER - REVERTED TO ORIGINAL
  *******************************************************/
 
-/* Desktop: Just center & stylize a bit */
+/* 
+   A single “card” container, 
+   max 350px wide, centered, 
+   no horizontal overflow 
+*/
 .usecase-slider-section {
-  margin: 2rem auto;
+  margin: 2rem auto;              /* Center horizontally */
+  max-width: 350px;               /* Never exceed 350px */
+  width: 100%;                    /* Let it shrink on small screens */
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   padding: 1rem;
-  /* On desktop, there's no forced max-width,
-     so it can expand as needed. */
+  overflow: hidden;               /* Hide any horizontal overflow */
 }
 
-/* Mobile: Force a narrower container, the original approach */
-@media (max-width: 576px) {
-  .usecase-slider-section {
-    margin: 2rem auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    padding: 1rem;
-    max-width: 350px !important;
-  }
+/* 
+   The Swiper container 
+   will fill that 350px card 
+*/
+.swiper-container {
+  width: 100% !important;
+  height: auto !important;
+  overflow: hidden;
+}
 
-  .swiper-container {
-    width: 100% !important;
-    height: auto !important;
-    overflow: hidden;
-  }
+/* 
+   Each slide is also 100%, 
+   so exactly one fits horizontally 
+*/
+.swiper-slide {
+  width: 100% !important;
+  box-sizing: border-box;
+}
 
-  .swiper-slide {
-    width: 100% !important;
-    box-sizing: border-box;
-  }
-
-  .usecase-slide-image {
-    display: block;
-    width: 100%;
-    height: 200px;
-    max-height: 200px;
-    object-fit: cover;
-  }
+/*
+   If you want the slide image 
+   locked to a certain height 
+   so it never overflows: 
+*/
+.usecase-slide-image {
+  display: block;
+  width: 100%;
+  height: 200px;       /* fixed height */
+  object-fit: cover;   /* crops if needed */
+  border-radius: 4px;
 }
