@@ -357,7 +357,7 @@ function filterPrograms() {
     // Construct each preview item
     previewHTML += `
       <div class="preview-item" data-record-id="${rid}">
-        <div>
+<div style="display:flex; align-items:center; gap:0.5rem;">
           <span class="program-name">${name}</span>
           ${
             typeIconUrl
