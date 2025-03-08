@@ -204,253 +204,6 @@ img {
 }
 
 /*******************************************************
- * MOBILE ONLY @media (max-width: 576px)
- *******************************************************/
-@media (max-width: 576px) {
-  .explore-all-btn {
-    display: inline-block !important;
-    background-color: #f0f0f0;
-    color: #333;
-    font-size: 0.9rem;
-    padding: 0.75rem;
-    margin-left: 0.5rem;
-    border-radius: 6px;
-  }
-
-  #all-programs-modal-content {
-    top: auto !important;
-    bottom: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    max-width: 100% !important;
-    transform: translateY(100%);
-    border-radius: 12px 12px 0 0 !important;
-    transition: transform 0.5s ease;
-  }
-
-  #all-programs-modal.show #all-programs-modal-content {
-    transform: translateY(0);
-  }
-
-  .usecase-slider-section {
-    margin: 2rem auto;
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    padding: 1rem;
-    /* Remove or override the hard-coded max-width */
-    /* max-width: 350px !important; */
-    width: 100%;
-    max-width: 100% !important;
-    overflow: hidden; 
-  }
-
- .swiper-container {
-  width: 100% !important;
-  height: auto !important;
-  overflow: hidden;
-}
-.swiper-wrapper,
-.swiper-slide {
-  width: 100% !important;
-  box-sizing: border-box;
-}
-
-  .usecase-slide-image {
-    display: block;
-    width: 100%;
-    height: 200px;
-    max-height: 200px;
-    object-fit: cover;
-  }
-
-  .state-header {
-    margin-top: 2.5rem !important;
-  }
-
-  .content-limiter {
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 1rem !important;
-  }
-
-  .back-btn {
-    margin-left: 1rem !important;
-  }
-
-  .points-info-box.input-points-info,
-  .points-info-box.calc-points-info {
-    margin: 1rem 1rem !important;
-    padding: 1rem !important;
-  }
-
-  .infobox-desktop-text {
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
-  }
-
-  .program-search-field {
-    width: 100% !important;
-    max-width: 100%;
-    margin: 0 auto;
-    padding: 1rem 2rem !important;
-  }
-
-  .program-search-field:focus {
-    outline: none !important;
-    box-shadow: none !important;
-    border-color: #dfe5eb !important;
-  }
-
-  .clear-all-btn {
-    background-color: #dc3545 !important;
-    color: #fff !important;
-  }
-
-  .point-option {
-    font-size: 0.8rem !important;
-    padding: 6px 12px !important;
-  }
-  .points-options {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    white-space: nowrap;
-  }
-  #modal-email-input {
-    width: 80% !important;
-    border-radius:8px;
-  }
-  .tip-text {
-    margin: 1rem !important;
-  }
-
-  .popular-programs-heading {
-    margin-left: 1rem !important;
-    font-size: 1rem !important;
-    font-weight: bold !important;
-  }
-  .dollar-input-container{
-    padding: 0rem 0.7rem 0rem 0.4rem!important;
-  }
-  #selected-programs-label {
-    margin-left: 1rem !important;
-    font-size: 1rem !important;
-    font-weight: bold !important;
-    margin-bottom: 1rem;
-    margin-top: 1rem;
-  }
-  #chosen-programs-row {
-    margin: 0 1rem !important;
-    display: flex;
-    gap: 10px;
-    min-height: 50px;
-  }
-  #top-programs-grid.top-programs-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    grid-template-rows: repeat(3, auto) !important;
-    margin: 0 1rem !important;
-    gap: 0.5rem !important;
-  }
-  .top-program-label {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-  }
-  .top-program-box .add-btn {
-    display: none !important;
-  }
-  .top-program-box.selected-state {
-    background-color: #1a2732 !important;
-    border-color: #1a2732 !important;
-  }
-  .top-program-box.selected-state .top-program-label {
-    color: #fff !important;
-  }
-
-  #calculator-state .state-header {
-    margin-top: 2.5rem !important;
-  }
-  #calculator-state #program-container {
-    margin: 0 1rem !important;
-  }
-  #calculator-state .program-row img {
-    width: 3rem !important;
-    height: auto !important;
-  }
-  .program-name {
-    font-size: 0.75rem !important;
-    line-height: 1rem !important;
-  }
-  .program-row,
-  .output-row {
-    padding: 0.5rem 0.5rem !important;
-  }
-  .points-input {
-    width: 85px !important;
-    font-size:16px !important;
-  }
-  .tc-btn-row {
-    margin: 2rem 1rem 0 1rem !important;
-  }
-  #output-programs-container {
-    margin: 0 1rem !important;
-  }
-  .output-state-bg {
-    background-color: #f5f5f5 !important; 
-  }
-  #output-state .state-header {
-    position: relative !important;
-    justify-content: center !important;
-  }
-  #output-state .state-header .back-btn {
-    position: absolute !important;
-    left: 1rem !important;
-    margin-left: 0 !important;
-  }
-  #output-state .state-header .state-title {
-    margin: 0 auto !important;
-    text-align: center !important;
-  }
-
-  .mini-pill-row {
-    display: flex !important;
-    flex-wrap: nowrap !important;
-    overflow-x: auto !important;
-    white-space: nowrap !important;
-    -webkit-overflow-scrolling: touch !important;
-    scroll-snap-type: x mandatory !important;
-    gap: 0.3rem !important;
-  }
-  .mini-pill-row .mini-pill {
-    flex: 0 0 auto !important;
-    padding: 0.4rem 0.6rem !important;
-    font-size: 0.8rem !important;
-    scroll-snap-align: center !important;
-    margin-right: 0 !important; 
-  }
-  .mini-pill-row .mini-pill.active {
-    margin-right: 0.2rem !important; 
-  }
-  #report-modal-content {
-    top: auto !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100% !important;
-    border-radius: 12px 12px 0 0 !important;
-    transform: translateY(100%);
-    transition: transform 1.0s ease;
-    max-width: 600px !important;
-  }
-  #report-modal.show #report-modal-content {
-    transform: translateY(0);
-  }
-  .clear-all-btn {
-    margin-right: 1rem !important;
-  }
-}
-
-/*******************************************************
  * HERO & CTA
  *******************************************************/
 .hero-section {
@@ -863,7 +616,7 @@ img {
 }
 
 /*******************************************************
- * USECASES => pills
+ * POINTS/USECASES => general
  *******************************************************/
 .points-options {
   display:flex;
@@ -1195,5 +948,51 @@ img {
     max-width: 48%;
     box-sizing: border-box;
     height: 300px;
+  }
+}
+
+/*******************************************************
+ * USECASE SLIDER - REVERTED TO ORIGINAL
+ *******************************************************/
+
+/* Desktop: Just center & stylize a bit */
+.usecase-slider-section {
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  padding: 1rem;
+  /* On desktop, there's no forced max-width,
+     so it can expand as needed. */
+}
+
+/* Mobile: Force a narrower container, the original approach */
+@media (max-width: 576px) {
+  .usecase-slider-section {
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    padding: 1rem;
+    max-width: 350px !important;
+  }
+
+  .swiper-container {
+    width: 100% !important;
+    height: auto !important;
+    overflow: hidden;
+  }
+
+  .swiper-slide {
+    width: 100% !important;
+    box-sizing: border-box;
+  }
+
+  .usecase-slide-image {
+    display: block;
+    width: 100%;
+    height: 200px;
+    max-height: 200px;
+    object-fit: cover;
   }
 }
