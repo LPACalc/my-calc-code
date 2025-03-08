@@ -138,6 +138,20 @@ img {
   gap: 0.5rem;
 }
 
+.program-type-icon {
+  width: 20px; 
+  height: 20px;
+  margin-left: 0.5rem;  /* tiny spacing to the left of the name */
+  vertical-align: middle;
+}
+
+.unknown-type {
+  font-size: 0.85rem;
+  color: #666;
+  margin-left: 0.5rem;
+}
+
+
 .all-program-row img {
   width: 40px;
   height: auto;
