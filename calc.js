@@ -621,7 +621,12 @@ function buildUseCaseSlides(allUseCases) {
 
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
+    // Force exactly one slide at a time:
     slidesPerView: 1,
+    centeredSlides: false, // no partial slides peeking
+    spaceBetween: 0,
+
+    // Standard stuff:
     direction: 'horizontal',
     loop: true,
     pagination: {
@@ -636,6 +641,7 @@ function initUseCaseSwiper() {
     }
   });
 }
+
 
 /*******************************************************
  * BAR CHART => Travel vs Cash
