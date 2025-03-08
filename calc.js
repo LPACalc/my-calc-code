@@ -727,18 +727,21 @@ function renderValueComparisonChart(travelValue, cashValue) {
  * PIE CHART => Program Share
  *******************************************************/
 function renderPieChartProgramShare(gatheredData) {
-  // 1) Extract numeric data, labels, colors from gatheredData
+  // 1) Prepare data
   const dataArr   = gatheredData.map(item => item.points);
   const labelsArr = gatheredData.map(item => item.programName);
-  const colorsArr = gatheredData.map(item => {
-    const c = loyaltyPrograms[item.recordId]?.Color;
-    return c || '#cccccc';
-  });
+  const colorsArr = gatheredData.map(item =>
+    loyaltyPrograms[item.recordId]?.Color || '#cccccc'
+  );
 
-  // 2) Grab the canvas
+  // If an old pie chart exists, destroy it first
+  if (pieChartInstance) {
+    pieChartInstance.destroy();
+    pieChartInstance = null;
+  }
+
+  // 2) Build chart config
   const ctx = document.getElementById("myPieCanvas").getContext("2d");
-
-  // 3) Build config with the custom legend logic
   const config = {
     type: "doughnut",
     data: {
@@ -751,25 +754,14 @@ function renderPieChartProgramShare(gatheredData) {
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "65%",
+       responsive: true,
+  maintainAspectRatio: true, // Let Chart.js enforce an aspect ratio
+  aspectRatio: 1.2,  
+      cutout: '45%', // Thinner/thicker donut
       plugins: {
+        // IMPORTANT: Hide Chart.js’s built-in legend
         legend: {
-          display: true,
-          labels: {
-            generateLabels: function (chart) {
-              const d = chart.data;
-              if (!d.labels.length || !d.datasets.length) return [];
-              const ds = d.datasets[0];
-              return d.labels.map((label, index) => ({
-                text: label,
-                fillStyle: ds.backgroundColor[index],
-                hidden: !ds.data[index],
-                index
-              }));
-            }
-          }
+          display: false
         },
         tooltip: {
           displayColors: false
@@ -778,16 +770,19 @@ function renderPieChartProgramShare(gatheredData) {
     }
   };
 
-  // 4) Create the chart
+  // 3) Create the chart
   pieChartInstance = new Chart(ctx, config);
 
-  // 5) If you want a custom legend in HTML:
+  // 4) Generate the custom HTML legend
   const legendHTML = pieChartInstance.generateLegend();
-  const legendEl   = document.getElementById("pieLegendContainer");
+
+  // 5) Place legend HTML in the #pieLegendContainer below the canvas
+  const legendEl = document.getElementById("pieLegendContainer");
   if (legendEl) {
     legendEl.innerHTML = legendHTML;
   }
 }
+
 
 /*******************************************************
  * SINGLE CLICK HANDLER => .all-program-row
