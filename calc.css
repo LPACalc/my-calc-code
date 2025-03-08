@@ -1344,20 +1344,20 @@ img {
 }
 
 #pieLegendContainer ul {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px 12px;
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  display: flex;             /* or grid, up to you */
+  flex-wrap: wrap;           /* let them wrap on multiple lines */
+  justify-content: center;   /* center horizontally */
+  gap: 8px;                  /* space out legend items */
 }
 
 #pieLegendContainer li {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   font-weight: bold;
-  margin-bottom: 4px;
 }
 
 #pieLegendContainer li span {
