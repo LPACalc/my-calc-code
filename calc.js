@@ -34,10 +34,10 @@ let chosenPrograms = [];
 let isTransitioning = false;
 let pointsMap = {};
 
-let dataLoaded = false;
+let dataLoaded = false;           
 let userClickedGetStarted = false;
 
-/** For the bar & pie charts: */
+/** For the bar & donut charts: */
 let barChartInstance = null;
 let pieChartInstance = null;
 
@@ -193,7 +193,6 @@ async function fetchAirtableTable(tableName) {
 async function initializeApp() {
   console.log("=== initializeApp() ===");
   try {
-    // Fetch Points Calculator table (loyalty programs)
     const resp = await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
@@ -217,7 +216,6 @@ async function initializeApp() {
   }
 
   try {
-    // Fetch Real-World Use Cases
     const useCasesData = await fetchAirtableTable("Real-World Use Cases");
     realWorldUseCases = useCasesData.reduce((acc, record) => {
       acc[record.id] = { id: record.id, ...record.fields };
@@ -230,6 +228,7 @@ async function initializeApp() {
 
   buildTopProgramsSection();
 
+  // Data is fully loaded
   dataLoaded = true;
   console.log("Data fully loaded => dataLoaded = true");
 }
@@ -266,7 +265,27 @@ function buildTopProgramsSection() {
 }
 
 /*******************************************************
- * FILTER PROGRAMS (search)
+ * MISSING FUNCTION => updateTopProgramSelection
+ *******************************************************/
+function updateTopProgramSelection(rid, isSelected) {
+  const $box = $(`.top-program-box[data-record-id='${rid}']`);
+  if ($box.length) {
+    if (isSelected) {
+      $box.addClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $box.find(".add-btn").text("✓");
+      }
+    } else {
+      $box.removeClass("selected-state");
+      if (window.innerWidth >= 992) {
+        $box.find(".add-btn").text("+");
+      }
+    }
+  }
+}
+
+/*******************************************************
+ * FILTER PROGRAMS
  *******************************************************/
 function filterPrograms() {
   if (!loyaltyPrograms || !Object.keys(loyaltyPrograms).length) {
@@ -312,35 +331,17 @@ function filterPrograms() {
 }
 
 /*******************************************************
- * UTILITY => updateTopProgramSelection
- *******************************************************/
-function updateTopProgramSelection(rid, isSelected) {
-  const $box = $(`.top-program-box[data-record-id='${rid}']`);
-  if ($box.length) {
-    if (isSelected) {
-      $box.addClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $box.find(".add-btn").text("✓");
-      }
-    } else {
-      $box.removeClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $box.find(".add-btn").text("+");
-      }
-    }
-  }
-}
-
-/*******************************************************
- * “Explore All” Programs Modal => with Hammer.js
+ * GLOBAL “BOTTOM SHEET” MODAL => with Hammer.js for pull-down
  *******************************************************/
 const modal = document.getElementById('all-programs-modal');
 const sheetContent = document.getElementById('all-programs-modal-content');
+
+// Create a Hammer manager for sheetContent
 const hammerManager = new Hammer(sheetContent);
 hammerManager.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
 
 let isModalOpen = false;
-const PULL_DOWN_THRESHOLD = 100;
+const PULL_DOWN_THRESHOLD = 100; // how many px to pull down before closing
 
 function openAllProgramsModal() {
   document.documentElement.style.overscrollBehavior = 'none';
@@ -378,7 +379,7 @@ hammerManager.on('panmove', (ev) => {
   sheetContent.style.transform = `translateY(${clampedY}px)`;
 });
 
-// Hammer => panend => if pulled down enough => close
+// Hammer => panend => if pulled enough => close
 hammerManager.on('panend', (ev) => {
   if (!isModalOpen) return;
   if (ev.deltaY > PULL_DOWN_THRESHOLD) {
@@ -389,155 +390,20 @@ hammerManager.on('panend', (ev) => {
   }
 });
 
-// backdrop click => close if clicked outside modal content
+// backdrop click => close
 modal.addEventListener("click", (e) => {
   if (e.target.id === "all-programs-modal") {
     closeAllProgramsModal();
   }
 });
 
-// close button => X
+// X button => close
 document.getElementById("all-programs-close-btn").addEventListener("click", () => {
   closeAllProgramsModal();
 });
 
 /*******************************************************
- * BUILD ALL PROGRAMS => for “Explore All”
- *******************************************************/
-function buildAllProgramsList() {
-  const container = $("#all-programs-list");
-  container.empty();
-
-  const allIds = Object.keys(loyaltyPrograms);
-  allIds.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"] || "Unknown Program";
-    const logo = prog["Brand Logo URL"] || "";
-
-    const isSelected = chosenPrograms.includes(rid);
-    const circleIcon = isSelected ? "✓" : "+";
-    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
-
-    const rowHtml = `
-      <div class="${rowClass}" data-record-id="${rid}">
-        <div class="row-left">
-          <img src="${logo}" alt="${name} logo" />
-          <span class="program-name">${name}</span>
-        </div>
-        <button class="circle-btn">${circleIcon}</button>
-      </div>
-    `;
-    container.append(rowHtml);
-  });
-}
-
-/*******************************************************
- * TOGGLE => search “preview-item”
- *******************************************************/
-function toggleSearchItemSelection(itemEl) {
-  const rid = itemEl.data("record-id");
-  if (!rid) return;
-  chosenPrograms.push(rid);
-  itemEl.remove();
-  $("#program-search").val("");
-  $("#program-preview").hide().empty();
-  filterPrograms();
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-}
-
-/*******************************************************
- * TOGGLE => top-program
- *******************************************************/
-function toggleProgramSelection(boxEl) {
-  const rid = boxEl.data("record-id");
-  const idx = chosenPrograms.indexOf(rid);
-  if (idx === -1) {
-    chosenPrograms.push(rid);
-    boxEl.addClass("selected-state");
-    if (window.innerWidth >= 992) {
-      boxEl.find(".add-btn").text("✓");
-    }
-  } else {
-    chosenPrograms.splice(idx, 1);
-    boxEl.removeClass("selected-state");
-    if (window.innerWidth >= 992) {
-      boxEl.find(".add-btn").text("+");
-    }
-  }
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-}
-
-/*******************************************************
- * UPDATE => Chosen Programs Display
- *******************************************************/
-function updateChosenProgramsDisplay() {
-  const container = $("#chosen-programs-row");
-  container.empty();
-  if (!chosenPrograms.length) {
-    $("#selected-programs-label").hide();
-    return;
-  }
-  $("#selected-programs-label").show();
-
-  chosenPrograms.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    if (!prog) return;
-    const logoUrl = prog["Brand Logo URL"] || "";
-    container.append(`
-      <div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
-        <img 
-          src="${logoUrl}" 
-          alt="${prog["Program Name"] || "N/A"}" 
-          style="width:100%; height:auto;"
-        />
-      </div>
-    `);
-  });
-}
-
-/*******************************************************
- * CLEAR ALL
- *******************************************************/
-function clearAllPrograms() {
-  chosenPrograms = [];
-  pointsMap = {};
-  $("#program-container").empty();
-  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-
-  if ($("#all-programs-modal").hasClass("show")) {
-    buildAllProgramsList();
-  }
-}
-
-/*******************************************************
- * SHOW/HIDE => Clear All
- *******************************************************/
-function updateClearAllVisibility() {
-  const $btn = $("#clear-all-btn");
-  $btn.toggle(chosenPrograms.length > 0);
-}
-
-/*******************************************************
- * NEXT CTA => enable/disable
- *******************************************************/
-function updateNextCTAVisibility() {
-  const $nextBtn = $("#input-next-btn");
-  if (chosenPrograms.length > 0) {
-    $nextBtn.removeClass("disabled-btn").prop("disabled", false);
-  } else {
-    $nextBtn.addClass("disabled-btn").prop("disabled", true);
-  }
-}
-
-/*******************************************************
- * ADD PROGRAM ROW => in the calculator state
+ * ADD PROGRAM ROW
  *******************************************************/
 function addProgramRow(recordId) {
   const prog = loyaltyPrograms[recordId];
@@ -582,7 +448,113 @@ function addProgramRow(recordId) {
 }
 
 /*******************************************************
- * FORMAT => Commas in number input
+ * TOGGLE SEARCH ITEM
+ *******************************************************/
+function toggleSearchItemSelection(itemEl) {
+  const rid = itemEl.data("record-id");
+  if (!rid) return;
+  chosenPrograms.push(rid);
+  itemEl.remove();
+  $("#program-search").val("");
+  $("#program-preview").hide().empty();
+  filterPrograms();
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+}
+
+/*******************************************************
+ * TOGGLE PROGRAM => popular
+ *******************************************************/
+function toggleProgramSelection(boxEl) {
+  const rid = boxEl.data("record-id");
+  const idx = chosenPrograms.indexOf(rid);
+  if (idx === -1) {
+    chosenPrograms.push(rid);
+    boxEl.addClass("selected-state");
+    if (window.innerWidth >= 992) {
+      boxEl.find(".add-btn").text("✓");
+    }
+  } else {
+    chosenPrograms.splice(idx, 1);
+    boxEl.removeClass("selected-state");
+    if (window.innerWidth >= 992) {
+      boxEl.find(".add-btn").text("+");
+    }
+  }
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+}
+
+/*******************************************************
+ * UPDATE CHOSEN PROGRAMS DISPLAY
+ *******************************************************/
+function updateChosenProgramsDisplay() {
+  const container = $("#chosen-programs-row");
+  container.empty();
+  if (!chosenPrograms.length) {
+    $("#selected-programs-label").hide();
+    return;
+  }
+  $("#selected-programs-label").show();
+
+  chosenPrograms.forEach((rid) => {
+    const prog = loyaltyPrograms[rid];
+    if (!prog) return;
+    const logoUrl = prog["Brand Logo URL"] || "";
+    container.append(`
+      <div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
+        <img 
+          src="${logoUrl}" 
+          alt="${prog["Program Name"] || "N/A"}" 
+          style="width:100%; height:auto;"
+        />
+      </div>
+    `);
+  });
+}
+
+/*******************************************************
+ * NEXT CTA VISIBILITY
+ *******************************************************/
+function updateNextCTAVisibility() {
+  const $nextBtn = $("#input-next-btn");
+  if (chosenPrograms.length > 0) {
+    $nextBtn.removeClass("disabled-btn").prop("disabled", false);
+  } else {
+    $nextBtn.addClass("disabled-btn").prop("disabled", true);
+  }
+}
+
+/*******************************************************
+ * CLEAR ALL
+ *******************************************************/
+function clearAllPrograms() {
+  chosenPrograms = [];
+  pointsMap = {};
+  $("#program-container").empty();
+  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+
+  // If modal is open, refresh
+  if ($("#all-programs-modal").hasClass("show")) {
+    buildAllProgramsList();
+  }
+}
+
+/*******************************************************
+ * SHOW/HIDE CLEAR-ALL
+ *******************************************************/
+function updateClearAllVisibility() {
+  const $btn = $("#clear-all-btn");
+  $btn.toggle(chosenPrograms.length > 0);
+}
+
+/*******************************************************
+ * FORMAT => auto commas
  *******************************************************/
 function formatNumberInput(el) {
   let raw = el.value.replace(/[^0-9]/g, "");
@@ -596,11 +568,11 @@ function formatNumberInput(el) {
 }
 
 function calculateTotal() {
-  // optional => real-time sum if needed
+  // optional real-time sum if needed
 }
 
 /*******************************************************
- * GATHER => Program Data
+ * GATHER PROGRAM DATA
  *******************************************************/
 function gatherProgramData() {
   const data = [];
@@ -617,6 +589,52 @@ function gatherProgramData() {
     });
   });
   return data;
+}
+
+/*******************************************************
+ * BUILD USE CASE SLIDES
+ *******************************************************/
+function buildUseCaseSlides(allUseCases) {
+  let slideHTML = "";
+
+  allUseCases.forEach(uc => {
+    const imageURL = uc["Use Case URL"] || "";
+    const title    = uc["Use Case Title"] || "Untitled";
+    const body     = uc["Use Case Body"]  || "No description";
+    const points   = uc["Points Required"] || 0;
+
+    slideHTML += `
+      <div class="swiper-slide">
+        <img src="${imageURL}" alt="Use Case" class="usecase-slide-image" />
+        <div class="usecase-slide-content">
+          <h3 class="usecase-slide-title">${title}</h3>
+          <p class="usecase-slide-body">${body}</p>
+          <p class="usecase-slide-points">Points Required: ${points.toLocaleString()}</p>
+        </div>
+      </div>
+    `;
+  });
+
+  const slidesEl = document.getElementById("useCaseSlides");
+  slidesEl.innerHTML = slideHTML;
+}
+
+function initUseCaseSwiper() {
+  useCaseSwiper = new Swiper('#useCaseSwiper', {
+    slidesPerView: 1,
+    direction: 'horizontal',
+    loop: true,
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+      dynamicBullets: true,
+      dynamicMainBullets: 5
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    }
+  });
 }
 
 /*******************************************************
@@ -706,23 +724,24 @@ function renderValueComparisonChart(travelValue, cashValue) {
 }
 
 /*******************************************************
- * PIE (DONUT) CHART => Program Share
+ * DONUT CHART => Program Share
  *******************************************************/
 function renderPieChartProgramShare(gatheredData) {
-  // If an old pie chart exists, destroy it
+  // 1) Prepare data
+  const dataArr   = gatheredData.map(item => item.points);
+  const labelsArr = gatheredData.map(item => item.programName);
+  // Use each program's color (or fallback)
+  const colorsArr = gatheredData.map(item => {
+    return loyaltyPrograms[item.recordId]?.Color || '#cccccc';
+  });
+
+  // Destroy old instance if it exists
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
   }
 
-  // Prepare data
-  const dataArr   = gatheredData.map(item => item.points);
-  const labelsArr = gatheredData.map(item => item.programName);
-  const colorsArr = gatheredData.map(item =>
-    loyaltyPrograms[item.recordId]?.Color || '#cccccc'
-  );
-
-  // Build chart
+  // 2) Build chart config
   const ctx = document.getElementById("myPieCanvas").getContext("2d");
   const config = {
     type: "doughnut",
@@ -731,201 +750,63 @@ function renderPieChartProgramShare(gatheredData) {
       datasets: [
         {
           data: dataArr,
-          backgroundColor: colorsArr
+          backgroundColor: colorsArr,
+          hoverOffset: 8,
+          borderWidth: 1,
+          borderColor: "#fff"
         }
       ]
     },
     options: {
       responsive: true,
-      maintainAspectRatio: false, // So it doesn't shrink if the legend is big
-      cutout: "45%",              // donut thickness
+      maintainAspectRatio: false,
+      cutout: "50%",
       plugins: {
         legend: {
-          display: false // We'll generate our custom HTML legend
+          display: true,
+          position: 'bottom'
         },
         tooltip: {
-          displayColors: false,
-          callbacks: {
-            label: function(context) {
-              // e.g. "5,000"
-              const val = context.parsed || 0;
-              return val.toLocaleString() + " pts";
-            }
-          }
+          displayColors: false
         }
       }
     }
   };
 
+  // 3) Create the chart
   pieChartInstance = new Chart(ctx, config);
-
-  // Generate custom HTML legend
-  const legendHTML = pieChartInstance.generateLegend();
-  const legendEl = document.getElementById("pieLegendContainer");
-  if (legendEl) {
-    legendEl.innerHTML = legendHTML;
-  }
 }
 
 /*******************************************************
- * BUILD OUTPUT => TRAVEL or CASH
+ * SINGLE CLICK HANDLER => .all-program-row
  *******************************************************/
-function buildOutputRows(viewType) {
-  const data = gatherProgramData();
-  $("#output-programs-list").empty();
+$(document).on("click", ".all-program-row", function() {
+  const rowEl = $(this);
+  const rid = rowEl.data("record-id");
+  if (!rid) return;
 
-  let scenarioTotal = 0;
-  let totalTravelValue = 0;
-  let totalCashValue = 0;
+  const index = chosenPrograms.indexOf(rid);
+  const isSelected = (index !== -1);
 
-  // Sum user-entered points
-  const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
-
-  data.forEach((item) => {
-    const prog = loyaltyPrograms[item.recordId];
-    const logoUrl = prog?.["Brand Logo URL"] || "";
-    const tVal = item.points * (prog?.["Travel Value"] || 0);
-    const cVal = item.points * (prog?.["Cash Value"] || 0);
-
-    totalTravelValue += tVal;
-    totalCashValue   += cVal;
-
-    // Depending on viewType => travel or cash
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
-
-    const formattedVal = `$${rowVal.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    // Build row
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>
-    `;
-
-    // If Travel => recommended use cases
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion"
-             style="
-               display:none; 
-               border:1px solid #dce3eb; 
-               border-radius:6px; 
-               margin-bottom:12px; 
-               padding:1rem; 
-               overflow-x:auto;
-             ">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  // Label => Travel or Cash
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-
-  $("#output-programs-list").append(`
-    <div class="total-value-row" 
-         style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>
-  `);
-
-  // Update stat cards
-  $("#total-points-card .card-value").text(totalPoints.toLocaleString());
-  $("#travel-value-card .card-value").text(
-    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
-  $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
-
-  // Render bar chart & donut chart
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
-
-  // If Travel => build use-case slider
-  if (viewType === "travel") {
-    const allUseCases = gatherAllRecommendedUseCases();
-    buildUseCaseSlides(allUseCases);
-
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    initUseCaseSwiper();
+  if (isSelected) {
+    chosenPrograms.splice(index, 1);
+    rowEl.removeClass("selected-state");
+    rowEl.find(".circle-btn").text("+");
+    updateTopProgramSelection(rid, false);
   } else {
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
+    chosenPrograms.push(rid);
+    rowEl.addClass("selected-state");
+    rowEl.find(".circle-btn").text("✓");
+    updateTopProgramSelection(rid, true);
   }
-}
+
+  updateChosenProgramsDisplay();
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+});
 
 /*******************************************************
- * USE CASE => Build slides
- *******************************************************/
-function buildUseCaseSlides(allUseCases) {
-  let slideHTML = "";
-
-  allUseCases.forEach(uc => {
-    const imageURL = uc["Use Case URL"] || "";
-    const title    = uc["Use Case Title"] || "Untitled";
-    const body     = uc["Use Case Body"]  || "No description";
-    const points   = uc["Points Required"] || 0;
-
-    slideHTML += `
-      <div class="swiper-slide">
-        <img src="${imageURL}" alt="Use Case" class="usecase-slide-image" />
-        <div class="usecase-slide-content">
-          <h3 class="usecase-slide-title">${title}</h3>
-          <p class="usecase-slide-body">${body}</p>
-          <p class="usecase-slide-points">Points Required: ${points.toLocaleString()}</p>
-        </div>
-      </div>
-    `;
-  });
-
-  const slidesEl = document.getElementById("useCaseSlides");
-  slidesEl.innerHTML = slideHTML;
-}
-
-/*******************************************************
- * Init Use Case Swiper
- *******************************************************/
-function initUseCaseSwiper() {
-  useCaseSwiper = new Swiper('#useCaseSwiper', {
-    slidesPerView: 1,
-    direction: 'horizontal',
-    loop: true,
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-      dynamicBullets: true,
-      dynamicMainBullets: 5
-    },
-    navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
-    }
-  });
-}
-
-/*******************************************************
- * GATHER => All recommended use cases
+ * USE CASE RECOMMENDATIONS
  *******************************************************/
 function gatherAllRecommendedUseCases() {
   const userProgramPoints = {};
@@ -958,81 +839,39 @@ function gatherAllRecommendedUseCases() {
 }
 
 /*******************************************************
- * BUILD => Use Case Accordion
+ * BUILD ALL PROGRAMS LIST (for 'Explore All' modal)
  *******************************************************/
-function buildUseCaseAccordionContent(recordId, userPoints) {
-  const program = loyaltyPrograms[recordId];
-  if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
-  }
-  let matching = Object.values(realWorldUseCases).filter((uc) => {
-    if (!uc.Recommended) return false;
-    if (!uc["Points Required"]) return false;
-    if (!uc["Use Case Title"]) return false;
-    if (!uc["Use Case Body"]) return false;
-    const linked = uc["Program Name"] || [];
-    return linked.includes(recordId) && uc["Points Required"] <= userPoints;
-  });
+function buildAllProgramsList() {
+  const container = $("#all-programs-list");
+  container.empty();
 
-  // Sort by redemption value desc
-  matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
-  matching = matching.slice(0, 5);
-  // Then sort ascending by points
-  matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
+  const allIds = Object.keys(loyaltyPrograms);
+  allIds.forEach((rid) => {
+    const prog = loyaltyPrograms[rid];
+    const name = prog["Program Name"] || "Unknown Program";
+    const logo = prog["Brand Logo URL"] || "";
 
-  if (!matching.length) {
-    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
-  }
+    const isSelected = chosenPrograms.includes(rid);
+    const circleIcon = isSelected ? "✓" : "+";
+    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
 
-  let pillsHTML = "";
-  matching.forEach((uc, i) => {
-    const pts = uc["Points Required"] || 0;
-    pillsHTML += `
-      <div
-        class="mini-pill ${i === 0 ? "active" : ""}"
-        data-usecase-id="${uc.id}"
-        style="
-          display:inline-block;
-          margin-right:8px;
-          margin-bottom:8px;
-          padding:6px 12px;
-          border-radius:9999px;
-          background-color:${i === 0 ? "#1a2732" : "#f0f0f0"};
-          color:${i === 0 ? "#fff" : "#333"};
-          cursor:pointer;
-        "
-      >
-        ${pts.toLocaleString()}
+    const rowHtml = `
+      <div class="${rowClass}" data-record-id="${rid}">
+        <div class="row-left">
+          <img src="${logo}" alt="${name} logo" />
+          <span class="program-name">${name}</span>
+        </div>
+        <button class="circle-btn">${circleIcon}</button>
       </div>
     `;
+    container.append(rowHtml);
   });
-
-  const first = matching[0];
-  const imageURL = first["Use Case URL"] || "";
-  const title = first["Use Case Title"] || "Untitled";
-  const body  = first["Use Case Body"]  || "No description";
-
-  return `
-    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
-      <div class="mini-pill-row">
-        ${pillsHTML}
-      </div>
-      <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
-        <div style="max-width:180px; flex:0 0 auto;">
-          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
-        </div>
-        <div style="flex:1 1 auto;">
-          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
-            ${title}
-          </h4>
-          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
-            ${body}
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
 }
+
+// Click => open 'Explore All' modal
+$("#explore-all-btn").on("click", function() {
+  openAllProgramsModal();
+});
 
 /*******************************************************
  * REPORT MODAL => show/hide
@@ -1109,7 +948,7 @@ async function sendReportFromModal() {
 }
 
 /*******************************************************
- * SHOW HOW IT WORKS => step
+ * SHOW HOW IT WORKS STEP
  *******************************************************/
 function showHowItWorksStep(stepNum) {
   $(".hiw-step").hide();
@@ -1132,7 +971,7 @@ $(document).ready(function() {
       await fetchApproxLocationFromIP();
       await initializeApp();
       dataLoaded = true;
-      console.log("Data fully loaded => dataLoaded = true");
+      console.log("Data fully loaded => dataLoaded = true (confirmed)");
 
       if (userClickedGetStarted) {
         hideLoadingScreenAndShowInput();
@@ -1320,7 +1159,7 @@ $(document).ready(function() {
     toggleProgramSelection($(this));
   });
 
-  // Expand/collapse recommended use cases
+  // Output => row click => expand/collapse
   $(document).on("click", ".output-row", function() {
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
@@ -1423,3 +1262,191 @@ $(document).ready(function() {
     clearAllPrograms();
   });
 });
+
+/*******************************************************
+ * BUILD OUTPUT => TRAVEL / CASH
+ *******************************************************/
+function buildOutputRows(viewType) {
+  const data = gatherProgramData();
+  $("#output-programs-list").empty();
+
+  let scenarioTotal = 0;
+  let totalTravelValue = 0;
+  let totalCashValue = 0;
+
+  // Sum user-entered points
+  const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
+
+  data.forEach((item) => {
+    const prog = loyaltyPrograms[item.recordId];
+    const logoUrl = prog?.["Brand Logo URL"] || "";
+    const tVal = item.points * (prog?.["Travel Value"] || 0);
+    const cVal = item.points * (prog?.["Cash Value"] || 0);
+
+    totalTravelValue += tVal;
+    totalCashValue   += cVal;
+
+    // Depending on viewType => travel or cash
+    const rowVal = (viewType === "travel") ? tVal : cVal;
+    scenarioTotal += rowVal;
+
+    // Format
+    const formattedVal = `$${rowVal.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    // Build the “output row”
+    let rowHtml = `
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="logo" style="width:50px;">
+          <span class="program-name">${item.programName}</span>
+        </div>
+        <div class="output-value">${formattedVal}</div>
+      </div>
+    `;
+
+    // If Travel => recommended
+    if (viewType === "travel") {
+      rowHtml += `
+        <div class="usecase-accordion"
+             style="
+               display:none; 
+               border:1px solid #dce3eb; 
+               border-radius:6px; 
+               margin-bottom:12px; 
+               padding:1rem; 
+               overflow-x:auto;
+             ">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+    }
+
+    $("#output-programs-list").append(rowHtml);
+  });
+
+  // Label => Travel or Cash
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+
+  $("#output-programs-list").append(`
+    <div class="total-value-row" 
+         style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${totalStr}
+    </div>
+  `);
+
+  // Update stat cards
+  $("#total-points-card .card-value").text( totalPoints.toLocaleString() );
+  $("#travel-value-card .card-value").text(
+    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+  );
+  $("#cash-value-card .card-value").text(
+    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+  );
+
+  // Rebuild the bar chart
+  renderValueComparisonChart(totalTravelValue, totalCashValue);
+
+  // Rebuild the donut chart
+  renderPieChartProgramShare(data);
+
+  // If Travel => use-case slider
+  if (viewType === "travel") {
+    const allUseCases = gatherAllRecommendedUseCases();
+    buildUseCaseSlides(allUseCases);
+
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+    initUseCaseSwiper();
+  } else {
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+  }
+}
+
+/*******************************************************
+ * USE CASE => BUILD ACCORDION
+ *******************************************************/
+function buildUseCaseAccordionContent(recordId, userPoints) {
+  const program = loyaltyPrograms[recordId];
+  if (!program) {
+    return `<div style="padding:1rem;">No data found.</div>`;
+  }
+  let matching = Object.values(realWorldUseCases).filter((uc) => {
+    if (!uc.Recommended) return false;
+    if (!uc["Points Required"]) return false;
+    if (!uc["Use Case Title"]) return false;
+    if (!uc["Use Case Body"]) return false;
+    const linked = uc["Program Name"] || [];
+    return linked.includes(recordId) && uc["Points Required"] <= userPoints;
+  });
+
+  // Sort by redemption value desc
+  matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
+  matching = matching.slice(0, 5);
+  // Then sort ascending by points
+  matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
+
+  if (!matching.length) {
+    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
+  }
+
+  let pillsHTML = "";
+  matching.forEach((uc, i) => {
+    const pts = uc["Points Required"] || 0;
+    pillsHTML += `
+      <div 
+        class="mini-pill ${i === 0 ? "active" : ""}"
+        data-usecase-id="${uc.id}"
+        style="
+          display:inline-block;
+          margin-right:8px; 
+          margin-bottom:8px;
+          padding:6px 12px;
+          border-radius:9999px;
+          background-color:${i === 0 ? "#1a2732" : "#f0f0f0"};
+          color:${i === 0 ? "#fff" : "#333"};
+          cursor:pointer;
+        "
+      >
+        ${pts.toLocaleString()}
+      </div>
+    `;
+  });
+
+  const first = matching[0];
+  const imageURL = first["Use Case URL"] || "";
+  const title = first["Use Case Title"] || "Untitled";
+  const body  = first["Use Case Body"]  || "No description";
+
+  return `
+    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
+      <div class="mini-pill-row">
+        ${pillsHTML}
+      </div>
+      <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
+        <div style="max-width:180px; flex:0 0 auto;">
+          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
+        </div>
+        <div style="flex:1 1 auto;">
+          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
+            ${title}
+          </h4>
+          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
+            ${body}
+          </p>
+        </div>
+      </div>
+    </div>
+  `;
+}
