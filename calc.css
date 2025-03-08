@@ -232,38 +232,33 @@ img {
     transform: translateY(0);
   }
 
-  .usecase-slider-section {
-    margin: 2rem auto; 
+ .usecase-slider-section {
+    margin: 2rem auto;
     background: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     padding: 1rem;
-    max-width: 350px !important; 
-  }
 
-  .chart-cards-row {
-    display: block !important;       
-  }
-  .chart-cards-row .bar-chart-card,
-  .chart-cards-row .pie-chart-card {
-    width: 100%!important;
-    max-width: 100%!important;
-    margin-bottom: 1rem;
-  }
+    /* Instead of forcing max-width:350px, 
+       let it fill the screen width comfortably. */
+    max-width: 100% !important; 
+    width: 100%;
 
-  #output-programs-list {
-    margin: 0 1rem;
+    /* If you do want any overflow hidden, 
+       be sure the Swiper `.swiper-container` uses 100% width as well: */
+    overflow: hidden; 
   }
 
   .swiper-container {
+    /* Already in your code, but worth confirming: */
     width: 100% !important;
     height: auto !important;
-    overflow: hidden;
+    overflow: hidden; 
   }
 
   .swiper-slide {
     width: 100% !important;
-    box-sizing: border-box; 
+    box-sizing: border-box;
   }
 
   .usecase-slide-image {
