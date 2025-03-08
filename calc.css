@@ -996,17 +996,42 @@ img {
   box-sizing: border-box;
 }
 
-/* If you want a fixed height on images: */
+.slide-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: auto;
+  overflow: hidden;
+}
+
+/* The image covers the entire width, height set in your existing .usecase-slide-image */
 .usecase-slide-image {
   display: block;
   width: 100%;
-  height: 400px;       /* or 180px, whichever you like */
-  object-fit: cover;   /* crops if needed */
-  border-radius: 6px;
+  height: 400px;   /* or however tall you want */
+  object-fit: cover;
+  border-radius: 0; /* or keep if you want round corners */
+  margin: 0;
 }
 
-.usecase-slide-content{
-padding:1rem;
+/* White circle in the top-left => absolute */
+.info-icon-circle {
+  position: absolute;
+  top: 10px; 
+  left: 10px; 
+  width: 50px; 
+  height: 50px;
+  background-color: #fff;
+  border-radius: 50%;
+  display: flex;    
+  align-items: center;  
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+/* The content container => padding around text */
+.usecase-slide-content {
+  background-color: #fff; /* or transparent if you want */
+  padding: 1rem;
 }
 
 /* === Pagination (Dots) => pinned inside container === */
@@ -1037,5 +1062,59 @@ padding:1rem;
 }
 .swiper-button-next {
   right: 8px;
+}
+
+/* Top row => Title on left, Program logo on right */
+.slide-top-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.slide-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1a2732;
+}
+.slide-program-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+/* Second row => Points Required (left) + Category (right, light blue) */
+.slide-middle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.slide-points-left {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+}
+.slide-category-right {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2E90E5; /* Lightish blue */
+}
+
+/* Thin divider => #eee or #ddd */
+.slide-divider {
+  border: 0;
+  height: 1px;
+  background-color: #ddd;
+  margin: 1rem 0;
+}
+
+/* Bottom => center the body text */
+.slide-body-text p {
+  font-size: 0.9rem;
+  line-height: 1.4;
+  color: #555;
+  text-align: center;
+  margin: 0; /* or some spacing if desired */
 }
 
