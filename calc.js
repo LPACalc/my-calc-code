@@ -1339,6 +1339,26 @@ $(document).ready(function() {
   });
 });
 
+
+function initUseCaseSwiper() {
+  useCaseSwiper = new Swiper('#useCaseSwiper', {
+    slidesPerView: 1,
+    centeredSlides: false,
+    loop: true,
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+      dynamicBullets: true,
+      dynamicMainBullets: 5
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    }
+  });
+}
+
+
 /*******************************************************
  * BUILD OUTPUT => TRAVEL / CASH
  *******************************************************/
