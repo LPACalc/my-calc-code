@@ -288,17 +288,27 @@ function updateTopProgramSelection(rid, isSelected) {
  * FILTER PROGRAMS
  *******************************************************/
 function filterPrograms() {
+  // If loyalty programs haven't loaded yet, display a "loading" message in preview
   if (!loyaltyPrograms || !Object.keys(loyaltyPrograms).length) {
     $("#program-preview")
       .html("<div style='padding:12px; color:#999;'>Still loading programs...</div>")
       .show();
     return;
   }
+
+  // Grab user input from the search field
   const val = $("#program-search").val().toLowerCase().trim();
+  // If empty, hide the preview dropdown
   if (!val) {
     $("#program-preview").hide().empty();
     return;
   }
+
+  // Filter out programs that:
+  // 1) Don't have a program name
+  // 2) Are already chosen
+  // 3) Are already added in the calculator
+  // 4) Don't match the user's search text
   const results = Object.keys(loyaltyPrograms).filter((id) => {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
@@ -307,28 +317,67 @@ function filterPrograms() {
     if (inCalc) return false;
     return prog["Program Name"].toLowerCase().includes(val);
   });
+
+  // Limit to the first 5 matches
   const limited = results.slice(0, 5);
+
+  // If no matches, hide the preview
   if (!limited.length) {
     $("#program-preview").hide().empty();
     return;
   }
+
+  // Build preview HTML
   let previewHTML = "";
   limited.forEach((rid) => {
     const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"];
+    const name = prog["Program Name"] || "Unknown Program";
     const logo = prog["Brand Logo URL"] || "";
+    
+    // Determine which Type icon to show
+    let typeIconUrl = "";
+    switch ((prog.Type || "").toLowerCase()) {
+      case "airline":
+        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/8a6ca255-cbeb-4300-b58e-597b98a0ff3b/512x512.png";
+        break;
+      case "cruise":
+        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/4ebf46e8-34e5-49a9-b0a1-1f769f55bf1b/512x512.png";
+        break;
+      case "hotel":
+        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/7a52dcc3-6776-4317-bb73-6bc231a87e63/512x512.png";
+        break;
+      case "credit card":
+        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/02b7c79b-011f-47ab-8d26-a8df6cb4da55/512x512.png";
+        break;
+      default:
+        typeIconUrl = "";
+        break;
+    }
+
+    // Construct each preview item
     previewHTML += `
       <div class="preview-item" data-record-id="${rid}">
         <div>
           <span class="program-name">${name}</span>
-          <span class="program-type">(${prog.Type || "Unknown"})</span>
+          ${
+            typeIconUrl
+              ? `<img src="${typeIconUrl}" alt="${prog.Type}" class="program-type-icon" />`
+              : `<span class="unknown-type">${prog.Type || "Unknown"}</span>`
+          }
         </div>
-        ${logo ? `<img src="${logo}" alt="logo" style="height:35px;">` : ""}
+        ${
+          logo
+            ? `<img src="${logo}" alt="logo" style="height:35px;">`
+            : ""
+        }
       </div>
     `;
   });
+
+  // Inject the generated HTML into #program-preview and show it
   $("#program-preview").html(previewHTML).show();
 }
+
 
 /*******************************************************
  * GLOBAL “BOTTOM SHEET” MODAL => with Hammer.js for pull-down
