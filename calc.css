@@ -99,12 +99,14 @@ img {
   width: 100%;
   max-width: 600px;
   height: auto;
-  max-height: 90%;
   border-radius: 6px;
   padding: 1rem;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
   cursor: grab; /* For drag handle effect */
+    max-height: 90% !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
 }
 #all-programs-modal-content:active {
   cursor: grabbing;
@@ -178,6 +180,10 @@ img {
   align-items: center;
   justify-content: center;
   font-weight: bold;
+   aspect-ratio: 1 / 1;
+  
+  border-radius: 50% !important;
+  overflow: hidden;
 }
 
 .all-program-row.selected-state .circle-btn {
