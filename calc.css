@@ -678,11 +678,7 @@ button {
   width: 70px;
 }
 
-@media (max-width: 992px) {
-  .chart-cards-row {
-    display: block;
-  }
-}
+
 
 /* =======================================================
    STICKY NEXT BTN
@@ -749,7 +745,9 @@ button {
 }
 @media (max-width: 992px) {
   .chart-cards-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr
+         display: block;
+
   }
 }
 .bar-chart-card,
