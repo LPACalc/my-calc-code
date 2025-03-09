@@ -1,6 +1,7 @@
-/*******************************************************
- * BASE RESETS
- *******************************************************/
+/* =======================================================
+   GLOBAL RESETS
+   ======================================================= */
+
 * {
   margin: 0;
   padding: 0;
@@ -13,7 +14,13 @@ html, body {
   font-family: "Inter", Arial, sans-serif;
   line-height: 1.5;
   color: #1D3A5F;
-  overflow-x: hidden; /* Prevent horizontal scroll if any small leftover overflow */
+  overflow-x: hidden; /* Prevent horizontal scroll if any leftover overflow */
+}
+
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
 button {
@@ -23,15 +30,146 @@ button {
   outline: none;
 }
 
-img {
-  display: block;
-  max-width: 100%;
-  height: auto;
+/* Utility classes for toggling (instead of .show() / .hide()) */
+.hidden {
+  display: none !important;
+}
+.block-display {
+  display: block !important;
+}
+.center-auto {
+  margin: 0 auto !important;
+}
+.text-center {
+  text-align: center;
+}
+.margin-top-0 {
+  margin-top: 0 !important;
+}
+.margin-top-1rem {
+  margin-top: 1rem !important;
+}
+.margin-bottom-1rem {
+  margin-bottom: 1rem !important;
+}
+.margin-20-0 {
+  margin: 20px 0 !important;
+}
+.red-text {
+  color: red !important;
+}
+.max-width-200 {
+  max-width: 200px !important;
+}
+.max-width-60rem {
+  max-width: 60rem !important;
+}
+.transparent-bg {
+  background-color: transparent !important;
 }
 
-/*******************************************************
- * PAGE LAYOUT => left + right
- *******************************************************/
+/* A spinner example if needed, or reuse your existing spinner classes */
+.spinner {
+  margin: 16px auto;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #1a2732;
+  border-top: 4px solid #f5f5f5;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* For fading or transitions (if you wish):
+.fade-in {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+*/
+
+/* Could define a .display-flex class if needed:
+.display-flex { display: flex !important; }
+*/
+
+/* Additional classes from inline style removal */
+.hero-h1 {
+  font-size: 3rem;
+  color: #fff;
+  margin-bottom: 1rem;
+}
+.hero-h2 {
+  max-width: 540px;
+  margin: 1rem auto;
+  color: #f0f0f0;
+  font-size: 1.2rem;
+}
+.hero-cta-left {
+  margin-right: 1rem;
+}
+
+/* The loading screen */
+.loading-screen {
+  text-align: center;
+  margin-top: 100px;
+}
+
+/* Hidden by default, we rely on .hidden for display none */
+.submission-takeover {
+  text-align: center;
+  padding: 20px;
+  margin: 0 auto;
+  max-width: 600px;
+}
+.submission-btn-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 20px;
+}
+.submit-back-btn {
+  padding: 12px 24px;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: #fff;
+}
+.explore-btn {
+  padding: 12px 24px;
+  border-radius: 4px;
+  background-color: #495057;
+  color: #fff;
+}
+
+.module-container {
+  /* was style="display:none; background-color:transparent;" originally */
+}
+.block-display {
+  display: block !important;
+}
+
+/* margin:4rem 1rem 8rem => define a helper if you like */
+.margin-top-bottom-large {
+  margin: 4rem 1rem 8rem;
+}
+.center-justify {
+  justify-content: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.padding-1rem-0 {
+  padding: 1rem 0;
+}
+
+/* =======================================================
+   PAGE LAYOUT => left + right
+   ======================================================= */
 .page-wrap {
   display: flex;
   flex-direction: row;
@@ -50,19 +188,18 @@ img {
   overflow: hidden;
 }
 
-/* At 992px and wider => show the left column */
+/* At 992px and wider => show the left column with background */
 @media (min-width: 992px) {
   .left-column {
-    display: flex; /* or display: block, whichever you prefer */
-    background: url("https://images.squarespace-cdn.com/.../Banner.jpeg") 
-                center/cover no-repeat;
+    display: flex;
+    background: url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat;
   }
 }
 
 @media (max-width: 991px) {
   .content-limiter {
     max-width: 100% !important;
-    padding: 0 1rem; /* optional padding */
+    padding: 0 1rem;
   }
 }
 
@@ -75,7 +212,7 @@ img {
 }
 
 .right-column {
-flex: 1;     /* or width: auto; */
+  flex: 1;
   min-width: 0; /* Ensures it can shrink under flex layout */
 }
 
@@ -85,169 +222,9 @@ flex: 1;     /* or width: auto; */
   flex-direction: column;
 }
 
-/*******************************************************
- * ALL-PROGRAMS MODAL
- *******************************************************/
-#all-programs-modal {
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100%; 
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 9999;     
-  display: none;
-}
-#all-programs-modal.show {
-  display: block;
-}
-
-#all-programs-modal-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  width: 100%;
-  max-width: 600px;
-  height: auto;
-  border-radius: 6px;
-  padding: 1rem;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-
-  cursor: grab; /* For drag handle effect */
-
-  /* scrollable on large content */
-  max-height: 90% !important;
-  overflow-y: auto !important;
-  -webkit-overflow-scrolling: touch; /* smooth iOS scrolling */
-}
-#all-programs-modal-content:active {
-  cursor: grabbing;
-}
-
-#all-programs-close-btn {
-  float: right;
-  font-size: 24px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  color: #1a2732;
-  margin-top: -8px; 
-}
-
-.all-programs-list {
-  margin-top: 1rem;
-  max-height: calc(100vh - 160px);
-  overflow-y: auto;
-  padding-right: 0.5rem;
-}
-
-.all-program-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.7rem;
-  border-bottom: 1px solid #dce3eb;
-  cursor: pointer;
-}
-
-.program-type-icon {
-  width: 25px;
-  height: 25px;
-  object-fit: contain; 
-  vertical-align: middle; 
-}
-
-.all-program-row .row-left {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.program-type-icon {
-  width: 20px; 
-  height: 20px;
-  margin-left: 0.5rem;
-  vertical-align: middle;
-}
-
-.unknown-type {
-  font-size: 0.85rem;
-  color: #666;
-  margin-left: 0.5rem;
-}
-
-.all-program-row img {
-  width: 40px;
-  height: auto;
-}
-
-.all-program-row .circle-btn {
-  width: 24px;
-  height: 24px;
-  border: 1px solid #aaa;
-  border-radius: 50%;
-  background-color: transparent;
-  color: #555;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  aspect-ratio: 1 / 1;
-  overflow: hidden;
-}
-.all-program-row.selected-state .circle-btn {
-  background-color: #1a2732;
-  border-color: #1a2732;
-  color: #fff;
-}
-
-/*******************************************************
- * DESKTOP ONLY @media (min-width: 992px)
- *******************************************************/
-@media (min-width: 992px) {
-  .top-program-box img {
-    width: 60px;
-    height: auto;
-  }
-
-  .sticky-next-btn {
-    margin: 1rem auto !important;
-    padding: 1rem 6rem;
-    display: block !important;
-  }
-
-  .points-info-box.input-points-info,
-  .points-info-box.calc-points-info {
-    padding: 20px 40px;
-    border: 1px solid #DFE5EB;
-    margin: 1rem 0;
-    align-items: center;
-    gap: 24px;
-  }
-
-  .infobox-desktop-text {
-    font-size: 1rem;
-    line-height: 1.4;
-  }
-
-  .points-input {
-    border: none !important;
-    outline: none !important;
-    width: 120px !important; 
-  }
-
-  #report-modal-content {
-    left: 60% !important;
-    transform: translate(-50%, -50%);
-  }
-}
-
-/*******************************************************
- * HERO & CTA
- *******************************************************/
+/* =======================================================
+   HERO & CTA
+   ======================================================= */
 .hero-section {
   position: relative;
   width: 100%;
@@ -272,6 +249,7 @@ flex: 1;     /* or width: auto; */
   gap: 1rem;
 }
 
+/* cta buttons */
 .cta-btn {
   font-size: 1rem;
   font-weight: 600;
@@ -309,17 +287,19 @@ flex: 1;     /* or width: auto; */
   border-radius: 9999px;
 }
 
-/*******************************************************
- * HOW IT WORKS
- *******************************************************/
+.out-cta {
+  font-size: 0.85rem;
+}
+
+/* =======================================================
+   HOW IT WORKS
+   ======================================================= */
 .hiw-mobile-stack {
   padding: 50px 80px 40px;
   text-align: center;
 }
-
 @media (min-width: 992px) {
   .hiw-main-image {
-    max-width: 60rem;
     margin: 0 auto;
     display: block;
   }
@@ -330,24 +310,15 @@ flex: 1;     /* or width: auto; */
     gap: 2rem;
   }
 }
-
-@media (max-width: 576px) {
-  .content-limiter {
-    max-width: 100% !important;
-  }
-}
-
 @media (max-width: 576px) {
   .hiw-flex-container {
     flex-direction: column;
   }
 }
-
 .hiw-main-image {
   width: 100%;
   border-radius: 8px;
 }
-
 .hiw-bottom-lines {
   display: flex;
   justify-content: center;
@@ -364,10 +335,17 @@ flex: 1;     /* or width: auto; */
 .hiw-line.active-line {
   background-color: #1a2732;
 }
+/* Steps hidden by default unless we add a .active or .hiw-step-first */
+.hiw-step {
+  display: none;
+}
+.hiw-step-first {
+  display: block;
+}
 
-/*******************************************************
- * STATE HEADERS => back + title
- *******************************************************/
+/* =======================================================
+   STATE HEADERS => back + title
+   ======================================================= */
 .state-header {
   display: flex;
   align-items: center;
@@ -376,46 +354,43 @@ flex: 1;     /* or width: auto; */
   padding: 1rem;
   background-color: #fff;
 }
-.state-header .state-title {
+.state-title {
   margin: 0 auto;
   font-size: 1.5rem;
   font-weight: bold;
   text-align: center;
 }
 
-/*******************************************************
- * BACK BTN
- *******************************************************/
+/* BACK BUTTON */
 .back-btn {
-  width:24px; 
-  height:24px;
-  margin-right:10px;
-  background:none;
-  cursor:pointer;
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  background: none;
+  cursor: pointer;
 }
 .back-btn::before {
-  content:"";
-  display:inline-block;
-  width:24px; 
-  height:24px;
-  background:url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='%231a2732' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M15.539 4.455c.377.364.391.979.03 1.356l-6.052 6.228 6.052 6.228c.361.377.347.992-.03 1.356-.376.362-.991.347-1.356-.03l-6.648-6.84c-.348-.358-.348-.922 0-1.28l6.648-6.84c.365-.376.98-.392 1.356-.03z'/%3E%3C/svg%3E")
     no-repeat center center;
-  background-size:24px 24px;
-  transition:opacity 0.2s ease;
+  background-size: 24px 24px;
+  transition: opacity 0.2s ease;
 }
 .back-btn:hover::before {
-  opacity:0.7;
+  opacity: 0.7;
 }
 
-/*******************************************************
- * STAT CARDS
- *******************************************************/
+/* =======================================================
+   STAT CARDS
+   ======================================================= */
 .stat-cards-row {
   display: flex;
   gap: 1rem;
   margin: 1rem 0;
 }
-
 .stat-card {
   position: relative;
   flex: 1;
@@ -447,7 +422,6 @@ flex: 1;     /* or width: auto; */
   width: 32px;
   height: auto;
 }
-
 @media (max-width: 576px) {
   .stat-cards-row {
     display: block;
@@ -457,426 +431,46 @@ flex: 1;     /* or width: auto; */
   }
 }
 
-/*******************************************************
- * POINTS INFO BOX
- *******************************************************/
+/* =======================================================
+   POINTS INFO BOX
+   ======================================================= */
 .points-info-box {
-  background-color:#f5f5f7;
-  border-radius:8px;
-  display:flex;
-  gap:12px;
-  align-items:flex-start;
-  margin:1rem 0;
+  background-color: #f5f5f7;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin: 1rem 0;
 }
 .info-icon {
-  width:24px;
-  height:24px;
-  object-fit:contain;
-  margin-top:auto;
-  margin-bottom:auto;
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-top: auto;
+  margin-bottom: auto;
 }
 .infobox-desktop-text {
-  font-size:0.9rem;
-  line-height:1.4;
+  font-size: 0.9rem;
+  line-height: 1.4;
   margin: 0;
 }
 
-/*******************************************************
- * SEARCH
- *******************************************************/
+/* =======================================================
+   SEARCH + PREVIEW
+   ======================================================= */
 .started-search-area {
-  position:relative;
-  margin:1rem 0;
+  position: relative;
+  margin: 1rem 0;
 }
 .program-search-field {
-  width:100%;
-  border-radius:0.5rem;
-  border:1px solid #DFE5EB;
-  padding:1rem;
-  outline:none;
-}
-
-/*******************************************************
- * POPULAR PROGRAMS => top-programs-grid
- *******************************************************/
-.top-programs-grid {
-  display:grid;
-  grid-template-columns: repeat(3,1fr);
-  gap:16px;
-}
-.top-program-box {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  background:#fff;
-  border:1px solid #dce3eb;
-  border-radius:8px;
-  padding:8px 10px;
-  cursor:pointer;
-  transition:box-shadow 0.2s ease;
-}
-.top-program-box img {
-  width: 40px;
-  height: auto;
-}
-.top-program-box:hover {
-  box-shadow:0 2px 6px rgba(0,0,0,0.06);
-}
-.top-program-label {
-  font-size:0.85rem;
-  font-weight:600;
-  color:#1a2732;
-}
-.add-btn {
-  width:24px; 
-  height:24px;
-  border:1px solid #aaa;
-  border-radius:50%;
-  background-color:transparent;
-  color:#555;
-  display:flex; 
-  align-items:center; 
-  justify-content:center;
-  font-weight:bold;
-}
-
-/*******************************************************
- * SELECTED PROGRAMS
- *******************************************************/
-.selected-programs-row {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin-bottom:0.75rem;
-}
-.clear-all-btn {
-  display:none;
-  background-color:#dc3545;
-  color:#fff;
-  padding:6px 12px;
-  border-radius:4px;
-  font-size:0.9rem;
-}
-
-/*******************************************************
- * PROGRAM & OUTPUT ROWS
- *******************************************************/
-.program-row,
-.output-row {
-  border:1px solid #DFE5EB;
-  border-radius:6px;
-  background-color:#fff;
-  margin-bottom:1rem;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:0.8rem 1rem;
-}
-.program-name {
-  font-size:0.9rem;
-  font-weight:600;
-  color:#1D3A5F;
-}
-.remove-btn {
-  background:none;
-  color:#dc3545;
-  font-size:1.25rem;
-}
-
-/*******************************************************
- * DOLLAR INPUT => remove black border
- *******************************************************/
-.dollar-input-container {
-  border:1px solid #DFE5EB;
-  border-radius:0.5rem;
-  background-color:#fff;
-  padding:0 0.5rem;
-  display:inline-flex;
-  align-items:center;
-}
-.points-input {
-  border:none;
-  outline:none;
-  background-color:transparent;
-  font-size:1rem;
-  padding:0.5rem 0;
-  width:70px;
-}
-
-/*******************************************************
- * STICKY NEXT BTN
- *******************************************************/
-.sticky-next-btn {
-  display: block !important;
-  position:static;
-  margin:2rem auto;
-  padding:0.9rem 6rem;
-}
-
-#input-next-btn.disabled-btn,
-#input-next-btn:disabled {
-  background-color: #ccc !important;
-  color: #fff !important;
-  pointer-events: none !important; 
-  opacity: 0.7; 
-}
-
-#input-next-btn {
-  background-color: #1a2732; 
-  color: #fff;
-  pointer-events: auto;
-  opacity: 1;
-}
-
-/*******************************************************
- * TRAVEL/CASH => switch
- *******************************************************/
-.tc-btn-row {
-  display:flex;
-  gap:1rem;
-  justify-content:center;
-  margin:1rem 0;
-}
-.tc-switch-btn {
-  padding:8px 16px;
-  border-radius:9999px;
-  background-color:#f0f0f0;
-  color:#333;
-  font-size:0.9rem;
-  font-weight:600;
-  cursor:pointer;
-  transition:background-color 0.2s ease;
-}
-.tc-switch-btn:hover {
-  background-color:#2e4461;
-  color:#fff;
-}
-.tc-switch-btn.active-tc {
-  background-color:#1a2732;
-  color:#fff;
-}
-
-/*******************************************************
- * OUT-CTA
- *******************************************************/
-.out-cta {
-  font-size:.85rem;
-}
-
-/*******************************************************
- * POINTS/USECASES => general
- *******************************************************/
-.points-options {
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  gap:40px;
-}
-.point-option {
-  font-size:16px;
-  font-weight:600;
-  color:#333;
-  background-color:#f0f0f0;
-  padding:8px 16px;
-  border-radius:20px;
-  margin:10px 0;
-  transition:background-color 0.2s;
-  cursor:pointer;
-}
-.point-option.active,
-.point-option:hover {
-  background-color:#1a2732;
-  color:#fff;
-}
-.points-view {
-  display:flex;
-  align-items:flex-start;
-  gap:30px;
-  flex-wrap:wrap;
-  justify-content:center;
-}
-.points-view-img {
-  flex:0 1 820px;
-  max-width:820px;
-}
-.image-wrapper img {
-  width:100%;
-  height:auto;
-  max-height:300px;
-  border-radius:8px;
-  box-shadow:0 2px 4px rgba(0,0,0,0.15);
-}
-.points-view-content {
-  flex:1 1 300px;
-  text-align:left;
-}
-.points-state-title {
-  font-size:20px;
-  font-weight:700;
-  margin-bottom:10px;
-}
-.points-state-description {
-  font-size:14px;
-  line-height:1.4;
-  max-width:400px;
-}
-.usecase-accordion,
-.usecase-accordion .mini-pill {
-  overflow-x:auto;
-  -webkit-overflow-scrolling:touch;
-}
-
-/*******************************************************
- * TIP-TEXT => output
- *******************************************************/
-.tip-text {
-  margin:1rem 0;
-  text-align:left;
-}
-
-/*******************************************************
- * SUBMISSION TAKEOVER
- *******************************************************/
-#submission-takeover {
-  position:absolute;
-  top:50%; 
-  left:50%;
-  transform:translate(-50%,-50%);
-  background-color:rgba(255,255,255,0.95);
-  z-index:9999;
-  text-align:center;
-  padding:20px;
-  max-width:50rem;
-}
-
-/*******************************************************
- * REPORT MODAL => #report-modal
- *******************************************************/
-#report-modal {
-  position: fixed; 
-  top: 0; 
-  left: 0; 
-  width: 100%; 
-  height: 100%; 
-  background-color: rgba(0,0,0,0.6);
-  z-index: 9999;
-  display: none;
-}
-#report-modal.show {
-  display: block;
-}
-#report-modal-content {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: #fff;
-  padding: 20px;
-  max-width: 400px;
-  width: 80%;
-  border-radius: 6px;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-#modal-close-btn {
-  float:right;
-  font-size:24px;
-  line-height:1;
-  cursor:pointer;
-  color: #1a2732; 
-}
-#modal-email-error {
-  color:red;
-  font-size:14px;
-  margin-bottom:8px;
-  text-align:center;
-  display:none;
-}
-#email-sent-message {
-  display:none;
-  color:green;
-  margin-top:10px;
-  font-weight:600;
-  text-align:center;
-}
-.email-field-container {
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background-color: #fff;
-  max-width: 100%;
-  box-sizing: border-box;
-  margin: 0 25px;
-}
-.email-field-container input {
-  border: none;
+  width: 100%;
+  border-radius: 0.5rem;
+  border: 1px solid #DFE5EB;
+  padding: 1rem;
   outline: none;
-  background-color: transparent;
-  width: 100%;
-  font-size: 1rem;
-  color: #333;
-  box-sizing: border-box;
-}
-.email-field-container:focus-within {
-  border-color: #DFE5EB;
-  box-shadow: 0 0 0 2px #dfe5eb;
-}
-#chosen-wrapper {
-  min-height: 115px;
-  margin-bottom: 1rem;
 }
 
-/*******************************************************
- * SERVICES MODAL
- *******************************************************/
-#services-modal {
-  position: fixed;
-  top: 0; 
-  left: 0;
-  width: 100%; 
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
-  z-index: 9999;
-  display: none;
-}
-#services-modal.show {
-  display: block;
-}
-#services-modal-content {
-  position: absolute;
-  top: 50%; 
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 80%;
-  height: 80%;
-  background: #fff;
-  padding: 20px;
-  border-radius: 6px;
-  overflow: hidden;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-#services-modal-close-btn {
-  float: right;
-  font-size: 24px;
-  cursor: pointer;
-  background: none;
-  border: none;
-  color: #1a2732;
-  margin-top: -8px;
-}
-.services-iframe-container {
-  width: 100%;
-  height: calc(100% - 40px); 
-  margin-top: 20px;
-}
-.services-iframe-container iframe {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
-/*******************************************************
- * SEARCH COMBO FIELD
- *******************************************************/
+/* Combined container so input + button are side-by-side */
 .search-combo-field {
   position: relative;
   display: flex;
@@ -885,7 +479,7 @@ flex: 1;     /* or width: auto; */
   border: 1px solid #DFE5EB;
   border-radius: 8px;
   overflow: hidden;
-  background-color: #fff; 
+  background-color: #fff;
   margin-bottom: 1rem;
 }
 .search-combo-field input {
@@ -912,9 +506,6 @@ flex: 1;     /* or width: auto; */
   background-color: #141d28;
 }
 
-/*******************************************************
- * PROGRAM PREVIEW
- *******************************************************/
 #program-preview {
   position: absolute;
   top: 100%;
@@ -924,7 +515,7 @@ flex: 1;     /* or width: auto; */
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   border-radius: 0 0 8px 8px;
   z-index: 9999;
-  display: none;
+  display: none; /* toggled by JS or classes */
 }
 .preview-item {
   padding: 12px 16px;
@@ -936,75 +527,254 @@ flex: 1;     /* or width: auto; */
 .preview-item:hover {
   background: #f8fafd;
 }
-
-/*******************************************************
- * OUTPUT / CHARTS
- *******************************************************/
-/* Force the output container to not exceed screen width */
-.output-state-bg {
-  background-color: #f5f5f5 !important; 
+.program-type-icon {
+  width: 25px;
+  height: 25px;
+  object-fit: contain;
+  vertical-align: middle;
+}
+.unknown-type {
+  font-size: 0.85rem;
+  color: #666;
+  margin-left: 0.5rem;
 }
 
-/* The row for your two columns => uses CSS Grid:
-   2 columns on desktop, 1 column on smaller screens */
+/* =======================================================
+   POPULAR PROGRAMS
+   ======================================================= */
+.top-programs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.top-program-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #dce3eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+}
+.top-program-box img {
+  width: 40px;
+  height: auto;
+}
+.top-program-box:hover {
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+.top-program-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #1a2732;
+}
+.add-btn {
+  width: 24px; 
+  height: 24px;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+/* On select => highlight etc. */
+.top-program-box.selected-state {
+  background-color: #1a2732;
+}
+.top-program-box.selected-state .top-program-label {
+  color: #fff;
+}
+.top-program-box.selected-state .add-btn {
+  background-color: #1a2732;
+  color: #fff;
+  border-color: #1a2732;
+}
+
+/* =======================================================
+   SELECTED PROGRAMS
+   ======================================================= */
+.selected-programs-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.hidden {
+  display: none !important;
+}
+.clear-all-btn {
+  background-color: #dc3545;
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+.chosen-programs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+/* =======================================================
+   PROGRAM ROWS
+   ======================================================= */
+.programs-list {}
+.program-row,
+.output-row {
+  border: 1px solid #DFE5EB;
+  border-radius: 6px;
+  background-color: #fff;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.8rem 1rem;
+}
+.program-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1D3A5F;
+}
+.remove-btn {
+  background: none;
+  color: #dc3545;
+  font-size: 1.25rem;
+}
+
+/* Input container => removed inline style */
+.dollar-input-container {
+  border: 1px solid #DFE5EB;
+  border-radius: 0.5rem;
+  background-color: #fff;
+  padding: 0 0.5rem;
+  display: inline-flex;
+  align-items: center;
+}
+.points-input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 1rem;
+  padding: 0.5rem 0;
+  width: 70px;
+}
+
+/* =======================================================
+   STICKY NEXT BTN
+   ======================================================= */
+.sticky-next-btn {
+  display: block !important;
+  position: static;
+  margin: 2rem auto;
+  padding: 0.9rem 6rem;
+}
+#input-next-btn.disabled-btn,
+#input-next-btn:disabled {
+  background-color: #ccc !important;
+  color: #fff !important;
+  pointer-events: none !important;
+  opacity: 0.7;
+}
+#input-next-btn {
+  background-color: #1a2732;
+  color: #fff;
+  pointer-events: auto;
+  opacity: 1;
+}
+
+/* =======================================================
+   OUTPUT SWITCH (TRAVEL/CASH)
+   ======================================================= */
+.tc-btn-row {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin: 1rem 0;
+}
+.tc-switch-btn {
+  padding: 8px 16px;
+  border-radius: 9999px;
+  background-color: #f0f0f0;
+  color: #333;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.tc-switch-btn:hover {
+  background-color: #2e4461;
+  color: #fff;
+}
+.tc-switch-btn.active-tc {
+  background-color: #1a2732;
+  color: #fff;
+}
+
+/* =======================================================
+   OUTPUT / CHARTS
+   ======================================================= */
+.output-state-bg {
+  background-color: #f5f5f5 !important;
+}
 .chart-cards-row {
   display: grid;
-  grid-template-columns: 1fr 1fr; /* 2 equal columns on larger screens */
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 @media (max-width: 992px) {
   .chart-cards-row {
-    grid-template-columns: 1fr; /* single column on mobile/tablet */
+    grid-template-columns: 1fr;
   }
 }
-
-/* The chart cards themselves */
 .bar-chart-card,
 .pie-chart-card {
   position: relative;
-  height: 350px; 
+  height: 350px;
   background: #fff;
   border-radius: 8px;
   padding: 1rem;
- box-sizing: border-box;
+  box-sizing: border-box;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  overflow: hidden;
-    width: 100%;      /* Let them fill their parent */
-  max-width: 100%;  /* Make sure they don’t exceed parent’s width */
-  height: 350px; 
+  width: 100%;
+  max-width: 100%;
+}
+.margin-top-1rem {
+  margin-top: 1rem;
 }
 
-/* === Use Case Slider Container === */
+/* Use Case Slider */
 .usecase-slider-section {
-  position: relative; 
+  position: relative;
   margin: 0;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   overflow: hidden;
 }
-
-/* === Swiper Container === */
 .swiper-container {
   position: relative;
-  width: 100% !important; 
+  width: 100% !important;
   height: auto !important;
   overflow: hidden;
 }
 .swiper-wrapper {
   width: 100% !important;
 }
-
-/* Critical fix: ensure each slide stays within container */
 .swiper-slide {
   width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
 }
-
-/* Slide image wrapper => optional 16:9 ratio cropping */
+/* Slide image wrapper => optional 16:9 ratio */
 .slide-image-wrapper {
   position: relative;
   width: 100%;
@@ -1016,36 +786,12 @@ flex: 1;     /* or width: auto; */
   height: 100%;
   object-fit: cover;
 }
-
-/* White circle in the top-left => optional info icon style */
-.info-icon-circle {
-  position: absolute;
-  top: 10px; 
-  left: 10px; 
-  width: 50px; 
-  height: 50px;
-  border: solid 2px #fff;
-  border-radius: 50%;
-  display: flex;    
-  align-items: center;  
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-  pointer-events: none;
-}
-
-/* Slide content container => top/bottom spacing, etc. */
-.usecase-slide-content {
-  background-color: #fff; 
-  padding: 1rem;
-}
-
-/* Swiper Pagination + Arrows */
 .swiper-pagination {
   position: absolute;
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;         
+  z-index: 10;
   text-align: center;
 }
 .swiper-button-prev,
@@ -1055,8 +801,8 @@ flex: 1;     /* or width: auto; */
   transform: translateY(-50%);
   width: 24px;
   height: 24px;
-  z-index: 10;         
-  color:#fff;
+  z-index: 10;
+  color: #fff;
 }
 .swiper-button-prev {
   left: 8px;
@@ -1064,8 +810,10 @@ flex: 1;     /* or width: auto; */
 .swiper-button-next {
   right: 8px;
 }
-
-/* Slide top row => Title + optional Program Logo */
+.usecase-slide-content {
+  background-color: #fff;
+  padding: 1rem;
+}
 .slide-top-row {
   display: flex;
   justify-content: space-between;
@@ -1083,8 +831,6 @@ flex: 1;     /* or width: auto; */
   height: 40px;
   object-fit: contain;
 }
-
-/* Slide middle row => Points + Category */
 .slide-middle-row {
   display: flex;
   justify-content: space-between;
@@ -1101,59 +847,284 @@ flex: 1;     /* or width: auto; */
   font-weight: 600;
   color: #2E90E5;
 }
-
-/* Light divider */
 .slide-divider {
   border: 0;
   height: 1px;
   background-color: #ddd;
   margin: 1rem 0;
 }
-
-/* Slide body text */
 .slide-body-text p {
   font-size: 0.9rem;
   line-height: 1.4;
   color: #555;
   text-align: center;
-  margin: 0; 
+  margin: 0;
   padding-bottom: 3rem;
 }
 
-/*******************************************************
- * ADD PADDING FOR CALCULATOR & OUTPUT
- *******************************************************/
-#calculator-state .content-limiter {
-  padding: 1rem;
-}
-#output-state .content-limiter {
-  padding: 1rem;
+@media (min-width: 992px) {
+  .usecase-slider-section {
+    max-width: 450px;
+  }
 }
 
-/*******************************************************
- * MOBILE-ONLY OVERRIDES (MAX-WIDTH: 576px)
- *******************************************************/
+/* =======================================================
+   POINTS/USECASES => general
+   ======================================================= */
+.points-options {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 40px;
+}
+.point-option {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  background-color: #f0f0f0;
+  padding: 8px 16px;
+  border-radius: 20px;
+  margin: 10px 0;
+  transition: background-color 0.2s;
+  cursor: pointer;
+}
+.point-option.active,
+.point-option:hover {
+  background-color: #1a2732;
+  color: #fff;
+}
+.points-view {
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.points-view-img {
+  flex: 0 1 820px;
+  max-width: 820px;
+}
+.image-wrapper img {
+  width: 100%;
+  height: auto;
+  max-height: 300px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.points-view-content {
+  flex: 1 1 300px;
+  text-align: left;
+}
+.points-state-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+.points-state-description {
+  font-size: 14px;
+  line-height: 1.4;
+  max-width: 400px;
+}
+.usecase-accordion {
+  display: none;
+  border: 1px solid #dce3eb;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+/* =======================================================
+   SUBMISSION TAKEOVER
+   ======================================================= */
+#submission-takeover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255,255,255,0.95);
+  z-index: 9999;
+  text-align: center;
+  padding: 20px;
+  max-width: 50rem;
+}
+
+/* =======================================================
+   MODALS
+   ======================================================= */
+.modal-overlay {
+  position: fixed;
+  top: 0; 
+  left: 0;
+  width: 100%; 
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  z-index: 9999;
+}
+.modal-content {
+  position: absolute;
+  top: 50%; 
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  width: 100%;
+  max-width: 600px;
+  height: auto;
+  border-radius: 6px;
+  padding: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  cursor: default;
+  max-height: 90%;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* close button in modals */
+.modal-close-btn {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #1a2732;
+  margin-top: -8px;
+}
+
+/* “Explore All” Programs => list etc. */
+.all-programs-list {
+  margin-top: 1rem;
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  padding-right: 0.5rem;
+}
+.all-program-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.7rem;
+  border-bottom: 1px solid #dce3eb;
+  cursor: pointer;
+}
+.all-program-row .row-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.all-program-row img {
+  width: 40px;
+  height: auto;
+}
+.all-program-row .circle-btn {
+  width: 24px;
+  height: 24px;
+  border: 1px solid #aaa;
+  border-radius: 50%;
+  background-color: transparent;
+  color: #555;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+.all-program-row.selected-state .circle-btn {
+  background-color: #1a2732;
+  border-color: #1a2732;
+  color: #fff;
+}
+
+/* Email modal content => “Unlock Your Full Report” */
+.modal-header {
+  font-weight: bold;
+  margin-top: 0;
+  text-align: center;
+}
+.modal-subheader-left {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.email-field-container {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 0 25px;
+}
+.modal-email-input {
+  border: none;
+  outline: none;
+  background-color: transparent;
+  width: 100%;
+  font-size: 1rem;
+  color: #333;
+  box-sizing: border-box;
+  padding: 0.75rem 1rem;
+}
+.modal-email-error {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.modal-send-btn {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  background-color: #1a2732;
+  color: #fff;
+}
+.email-sent-message {
+  color: green;
+  margin-top: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* Services modal */
+.services-iframe-container {
+  width: 100%;
+  height: calc(100% - 40px);
+  margin-top: 20px;
+}
+.services-iframe-container iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* =======================================================
+   RESPONSIVE OVERRIDES
+   ======================================================= */
 @media (max-width: 576px) {
-
-  /* Force 2 columns for popular programs => or 2 columns if 6 items. */
   .top-programs-grid {
     grid-template-columns: repeat(2, 1fr) !important;
   }
-
   .top-program-label {
     line-height: 1.2rem !important;
   }
-
   .top-program-box {
     padding: 8px 5px 8px 8px !important;
   }
-
   #selected-programs-label {
     margin: 1rem !important;
   }
-
+  #input-state .content-limiter {
+    padding: 1rem !important;
+  }
+  .top-program-box .add-btn {
+    display: none;
+  }
+  .points-input {
+    width: 90px !important;
+  }
   #all-programs-modal-content {
-    padding: 0 !important;
     padding-bottom: 2rem !important;
     top: auto !important;
     bottom: 0 !important;
@@ -1162,130 +1133,40 @@ flex: 1;     /* or width: auto; */
     width: 100% !important;
     max-width: 100% !important;
     border-radius: 16px 16px 0 0 !important;
-    height: auto !important;
-    max-height: 90% !important;
     animation: slideUp 0.3s ease-out forwards;
   }
-
-  .circle-btn {
-    width: 24px !important;
-    height: 24px !important;
-    border-radius: 50% !important;
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
   }
-
-  .program-name {
-    line-height: 1.2rem !important;
+  .all-programs-list {
+    padding: 1rem 1rem 0rem 0rem !important;
   }
-
-  .popular-programs-heading {
-    font-size: 1.2rem !important;
-    font-weight: 700 !important;
-  }
-
-  .top-program-box.selected-state .top-program-label {
-    color: #fff !important;
-  }
-
   .infobox-desktop-text {
     padding: 1rem;
   }
   .points-info-box {
     padding-left: 1rem;
   }
-
   .state-header {
     margin-top: 1.5rem !important;
   }
-
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-
-  #all-programs-modal-content h2 {
-    padding-top: 1rem !important;
-    padding-left: 1.5rem !important;
-  }
-
-  #all-programs-close-btn {
-    padding: 1.3rem 1.5rem 1rem 1rem !important;
-  }
-
-  .all-programs-list {
-    padding: 1rem 1rem 0rem 0rem !important;
-  }
-
-  #input-state .content-limiter {
-    padding: 1rem !important;
-  }
-
-  .top-program-box .add-btn {
-    display: none;
-  }
-  .top-program-box.selected-state {
-    background-color: #1a2732;
-    color: #fff;
-  }
-
-  .points-input {
-    width: 90px !important;
-  }
-
-  input:focus, select:focus, textarea:focus,
-  input[type="radio"]:focus-visible ~ .radio-outline,
-  .form-field-checkbox-type-button .field.checkbox input[type="checkbox"]:focus-visible + span,
-  .form-field-radio-type-button input[type="radio"]:focus-visible + .radio-label {
-    outline: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Hide horizontal scroll in output elements */
-  #output-state,
-  #output-state .content-limiter,
-  .chart-cards-row,
-  #output-programs-list {
-    overflow-x: hidden !important;
-  }
-
- .bar-chart-card,
+  .bar-chart-card,
   .pie-chart-card {
-    /* If you want them shorter on phones, do:
-    height: 300px; 
-    */
-    width: 100%; 
-    max-width: 100%;
-    height:300px;
+    height: 300px;
   }
-
-  /* === SWIPER MOBILE FIX === */
   .usecase-slider-section {
     max-width: 100% !important;
     width: 100% !important;
     overflow: hidden !important;
   }
-  .swiper-container {
-    width: 100% !important;
-    max-width: 100% !important;
-    overflow: hidden !important;
-  }
-  .swiper-wrapper {
-    width: 100% !important;
-  }
+  .swiper-container,
+  .swiper-wrapper,
   .swiper-slide {
     width: 100% !important;
-    min-width: 0 !important;
-    overflow: hidden !important;
   }
-
-  /* Override the 820px flex so it shrinks properly on phone screens */
   .points-view-img {
     flex: 0 1 auto !important;
     max-width: 100% !important;
-  }
-}
-
-@media (min-width: 992px) {
-  .usecase-slider-section {
-    max-width: 450px;
   }
 }
