@@ -317,6 +317,12 @@ img {
 }
 
 @media (max-width: 576px) {
+  .content-limiter {
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 576px) {
   .hiw-flex-container {
     flex-direction: column;
   }
