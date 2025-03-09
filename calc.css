@@ -967,9 +967,13 @@ flex: 1;     /* or width: auto; */
   background: #fff;
   border-radius: 8px;
   padding: 1rem;
-  box-sizing: border-box;
+ box-sizing: border-box;
+  overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow: hidden;
+    width: 100%;      /* Let them fill their parent */
+  max-width: 100%;  /* Make sure they don’t exceed parent’s width */
+  height: 350px; 
 }
 
 /* === Use Case Slider Container === */
@@ -1243,10 +1247,14 @@ flex: 1;     /* or width: auto; */
     overflow-x: hidden !important;
   }
 
-  .bar-chart-card,
+ .bar-chart-card,
   .pie-chart-card {
-    width: 100% !important;
-    height: 300px !important;
+    /* If you want them shorter on phones, do:
+    height: 300px; 
+    */
+    width: 100%; 
+    max-width: 100%;
+    height:300px;
   }
 
   /* === SWIPER MOBILE FIX === */
