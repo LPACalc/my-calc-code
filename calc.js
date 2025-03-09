@@ -272,14 +272,12 @@ function updateTopProgramSelection(rid, isSelected) {
   if ($box.length) {
     if (isSelected) {
       $box.addClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $box.find(".add-btn").text("✓");
-      }
+      // Always set the button text to "✓"
+      $box.find(".add-btn").text("✓");
     } else {
       $box.removeClass("selected-state");
-      if (window.innerWidth >= 992) {
-        $box.find(".add-btn").text("+");
-      }
+      // Always set the button text to "+"
+      $box.find(".add-btn").text("+");
     }
   }
 }
