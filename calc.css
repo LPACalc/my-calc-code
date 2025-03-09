@@ -83,21 +83,6 @@ button {
   100% { transform: rotate(360deg); }
 }
 
-/* For fading or transitions (if you wish):
-.fade-in {
-  opacity: 1;
-  transition: opacity 0.3s ease;
-}
-.fade-out {
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-*/
-
-/* Could define a .display-flex class if needed:
-.display-flex { display: flex !important; }
-*/
-
 /* Additional classes from inline style removal */
 .hero-h1 {
   font-size: 3rem;
@@ -311,7 +296,6 @@ button {
   }
 }
 
-
 .right-col-charts {
   /* Ensures it doesn't force a larger width on mobile */
   max-width: 100%;
@@ -452,19 +436,7 @@ button {
   display: flex;
   gap: 12px;
   align-items: flex-start;
-  margin: 1rem 0;
-}
-.info-icon {
-  width: 24px;
-  height: 24px;
-  object-fit: contain;
-  margin-top: auto;
-  margin-bottom: auto;
-}
-.infobox-desktop-text {
-  font-size: 0.9rem;
-  line-height: 1.4;
-  margin: 0;
+  margin: 1rem 0; /* default margin on all screens */
 }
 
 /* =======================================================
@@ -660,7 +632,6 @@ button {
   font-size: 1.25rem;
 }
 
-/* Input container => removed inline style */
 .dollar-input-container {
   border: 1px solid #DFE5EB;
   border-radius: 0.5rem;
@@ -677,8 +648,6 @@ button {
   padding: 0.5rem 0;
   width: 70px;
 }
-
-
 
 /* =======================================================
    STICKY NEXT BTN
@@ -746,8 +715,7 @@ button {
 @media (max-width: 992px) {
   .chart-cards-row {
     grid-template-columns: 1fr;
-         display: block;
-
+    display: block;
   }
 }
 .bar-chart-card,
@@ -790,7 +758,6 @@ button {
   min-width: 0 !important;
   overflow: hidden !important;
 }
-/* Slide image wrapper => optional 16:9 ratio */
 .slide-image-wrapper {
   position: relative;
   width: 100%;
@@ -1184,4 +1151,36 @@ button {
     flex: 0 1 auto !important;
     max-width: 100% !important;
   }
+}
+
+/* =======================================================
+   DESKTOP-SPECIFIC OVERRIDES (min-width: 992px)
+   ======================================================= */
+@media (min-width: 992px) {
+  /* 1) .points-info-box => padding & margin-bottom */
+  .points-info-box {
+    padding: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  /* 2) .points-input => width: 90px */
+  .points-input {
+    width: 90px;
+  }
+
+  /* 3) Remove solid outline on focus */
+  input:focus,
+  select:focus,
+  textarea:focus,
+  input[type="radio"]:focus-visible ~ .radio-outline,
+  .form-field-checkbox-type-button .field.checkbox input[type="checkbox"]:focus-visible + span,
+  .form-field-radio-type-button input[type="radio"]:focus-visible + .radio-label {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+}
+
+/* 4) #output-programs-container => margin-top: 2rem (global) */
+#output-programs-container {
+  margin-top: 2rem;
 }
