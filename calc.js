@@ -253,7 +253,6 @@ function buildTopProgramsSection() {
           <img 
             src="${logo}" 
             alt="${name} logo"
-            style="object-fit:contain;"
           />
           <span class="top-program-label">${name}</span>
         </div>
@@ -272,41 +271,33 @@ function updateTopProgramSelection(rid, isSelected) {
   if ($box.length) {
     if (isSelected) {
       $box.addClass("selected-state");
-      // Always set the button text to "✓"
       $box.find(".add-btn").text("✓");
     } else {
       $box.removeClass("selected-state");
-      // Always set the button text to "+"
       $box.find(".add-btn").text("+");
     }
   }
 }
 
 /*******************************************************
- * FILTER PROGRAMS
+ * FILTER PROGRAMS => dropdown preview
  *******************************************************/
 function filterPrograms() {
-  // If loyalty programs haven't loaded yet, display a "loading" message in preview
   if (!loyaltyPrograms || !Object.keys(loyaltyPrograms).length) {
     $("#program-preview")
       .html("<div style='padding:12px; color:#999;'>Still loading programs...</div>")
-      .show();
+      .removeClass("hidden");
     return;
   }
 
-  // Grab user input from the search field
   const val = $("#program-search").val().toLowerCase().trim();
-  // If empty, hide the preview dropdown
+  // If empty, hide the preview
   if (!val) {
-    $("#program-preview").hide().empty();
+    $("#program-preview").addClass("hidden").empty();
     return;
   }
 
-  // Filter out programs that:
-  // 1) Don't have a program name
-  // 2) Are already chosen
-  // 3) Are already added in the calculator
-  // 4) Don't match the user's search text
+  // Filter out programs already chosen or already in the calc
   const results = Object.keys(loyaltyPrograms).filter((id) => {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
@@ -316,23 +307,18 @@ function filterPrograms() {
     return prog["Program Name"].toLowerCase().includes(val);
   });
 
-  // Limit to the first 5 matches
   const limited = results.slice(0, 5);
-
-  // If no matches, hide the preview
   if (!limited.length) {
-    $("#program-preview").hide().empty();
+    $("#program-preview").addClass("hidden").empty();
     return;
   }
 
-  // Build preview HTML
   let previewHTML = "";
   limited.forEach((rid) => {
     const prog = loyaltyPrograms[rid];
     const name = prog["Program Name"] || "Unknown Program";
     const logo = prog["Brand Logo URL"] || "";
-    
-    // Determine which Type icon to show
+
     let typeIconUrl = "";
     switch ((prog.Type || "").toLowerCase()) {
       case "airline":
@@ -352,10 +338,9 @@ function filterPrograms() {
         break;
     }
 
-    // Construct each preview item
     previewHTML += `
       <div class="preview-item" data-record-id="${rid}">
-<div style="display:flex; align-items:center; gap:0.5rem;">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
           <span class="program-name">${name}</span>
           ${
             typeIconUrl
@@ -372,82 +357,8 @@ function filterPrograms() {
     `;
   });
 
-  // Inject the generated HTML into #program-preview and show it
-  $("#program-preview").html(previewHTML).show();
+  $("#program-preview").html(previewHTML).removeClass("hidden");
 }
-
-
-/*******************************************************
- * GLOBAL “BOTTOM SHEET” MODAL => with Hammer.js for pull-down
- *******************************************************/
-const modal = document.getElementById('all-programs-modal');
-const sheetContent = document.getElementById('all-programs-modal-content');
-
-// Create a Hammer manager for sheetContent
-const hammerManager = new Hammer(sheetContent);
-hammerManager.get('pan').set({ direction: Hammer.DIRECTION_VERTICAL });
-
-let isModalOpen = false;
-const PULL_DOWN_THRESHOLD = 100; // how many px to pull down before closing
-
-function openAllProgramsModal() {
-  document.documentElement.style.overscrollBehavior = 'none';
-  buildAllProgramsList();
-  modal.classList.add('show');
-
-  setTimeout(() => {
-    sheetContent.style.transition = 'transform 0.4s ease';
-    sheetContent.style.transform = 'translateY(0)';
-    isModalOpen = true;
-  }, 10);
-}
-
-function closeAllProgramsModal() {
-  sheetContent.style.transition = 'transform 0.4s ease';
-  sheetContent.style.transform = 'translateY(100%)';
-
-  setTimeout(() => {
-    modal.classList.remove('show');
-    isModalOpen = false;
-    document.documentElement.style.overscrollBehavior = '';
-  }, 400);
-}
-
-// Hammer => panstart => no transitions
-hammerManager.on('panstart', () => {
-  if (!isModalOpen) return;
-  sheetContent.style.transition = 'none';
-});
-
-// Hammer => panmove => follow finger
-hammerManager.on('panmove', (ev) => {
-  if (!isModalOpen) return;
-  const clampedY = Math.max(0, ev.deltaY);
-  sheetContent.style.transform = `translateY(${clampedY}px)`;
-});
-
-// Hammer => panend => if pulled enough => close
-hammerManager.on('panend', (ev) => {
-  if (!isModalOpen) return;
-  if (ev.deltaY > PULL_DOWN_THRESHOLD) {
-    closeAllProgramsModal();
-  } else {
-    sheetContent.style.transition = 'transform 0.3s ease';
-    sheetContent.style.transform = 'translateY(0)';
-  }
-});
-
-// backdrop click => close
-modal.addEventListener("click", (e) => {
-  if (e.target.id === "all-programs-modal") {
-    closeAllProgramsModal();
-  }
-});
-
-// X button => close
-document.getElementById("all-programs-close-btn").addEventListener("click", () => {
-  closeAllProgramsModal();
-});
 
 /*******************************************************
  * ADD PROGRAM ROW
@@ -466,11 +377,7 @@ function addProgramRow(recordId) {
       <div style="display:flex; align-items:center; gap:0.75rem;">
         ${
           logoUrl
-            ? `<img 
-                 src="${logoUrl}" 
-                 alt="${programName} logo"
-                 style="width:50px; height:auto;"
-               />`
+            ? `<img src="${logoUrl}" alt="${programName} logo" style="width:50px; height:auto;">`
             : ""
         }
         <span class="program-name">${programName}</span>
@@ -482,7 +389,6 @@ function addProgramRow(recordId) {
             inputmode="numeric"
             class="points-input"
             placeholder="Enter Total"
-            oninput="formatNumberInput(this); calculateTotal()"
             value="${formattedPoints}"
           />
         </div>
@@ -491,7 +397,7 @@ function addProgramRow(recordId) {
     </div>
   `;
   $("#program-container").append(rowHTML);
-  calculateTotal();
+  calculateTotal(); // optional real-time sum
 }
 
 /*******************************************************
@@ -503,7 +409,7 @@ function toggleSearchItemSelection(itemEl) {
   chosenPrograms.push(rid);
   itemEl.remove();
   $("#program-search").val("");
-  $("#program-preview").hide().empty();
+  $("#program-preview").addClass("hidden").empty();
   filterPrograms();
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
@@ -519,15 +425,11 @@ function toggleProgramSelection(boxEl) {
   if (idx === -1) {
     chosenPrograms.push(rid);
     boxEl.addClass("selected-state");
-    if (window.innerWidth >= 992) {
-      boxEl.find(".add-btn").text("✓");
-    }
+    boxEl.find(".add-btn").text("✓");
   } else {
     chosenPrograms.splice(idx, 1);
     boxEl.removeClass("selected-state");
-    if (window.innerWidth >= 992) {
-      boxEl.find(".add-btn").text("+");
-    }
+    boxEl.find(".add-btn").text("+");
   }
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
@@ -541,10 +443,10 @@ function updateChosenProgramsDisplay() {
   const container = $("#chosen-programs-row");
   container.empty();
   if (!chosenPrograms.length) {
-    $("#selected-programs-label").hide();
+    $("#selected-programs-label").addClass("hidden");
     return;
   }
-  $("#selected-programs-label").show();
+  $("#selected-programs-label").removeClass("hidden");
 
   chosenPrograms.forEach((rid) => {
     const prog = loyaltyPrograms[rid];
@@ -585,35 +487,40 @@ function clearAllPrograms() {
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
-
-  // If modal is open, refresh
-  if ($("#all-programs-modal").hasClass("show")) {
-    buildAllProgramsList();
-  }
 }
 
 /*******************************************************
  * SHOW/HIDE CLEAR-ALL
  *******************************************************/
 function updateClearAllVisibility() {
-  const $btn = $("#clear-all-btn");
-  $btn.toggle(chosenPrograms.length > 0);
+  if (chosenPrograms.length > 0) {
+    $("#clear-all-btn").removeClass("hidden");
+  } else {
+    $("#clear-all-btn").addClass("hidden");
+  }
 }
 
 /*******************************************************
  * FORMAT => auto commas
  *******************************************************/
-function formatNumberInput(el) {
-  let raw = el.value.replace(/[^0-9]/g, "");
+$(document).on("input", ".points-input", function(){
+  let raw = $(this).val().replace(/[^0-9]/g, "");
   if (!raw) {
-    el.value = "";
+    $(this).val("");
     return;
   }
   let num = parseInt(raw, 10);
   if (num > 10000000) num = 10000000;
-  el.value = num.toLocaleString();
-}
+  $(this).val(num.toLocaleString());
+  // Also store in pointsMap
+  const rowEl = $(this).closest(".program-row");
+  const recordId = rowEl.data("record-id");
+  pointsMap[recordId] = num;
+});
 
+/*******************************************************
+ * CALCULATE TOTAL
+ *******************************************************/
 function calculateTotal() {
   // optional real-time sum if needed
 }
@@ -645,45 +552,28 @@ function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
 
   allUseCases.forEach((uc) => {
-    // Extract fields from the Airtable record
     const imageURL  = uc["Use Case URL"]   || "";
     const title     = uc["Use Case Title"] || "Untitled";
     const body      = uc["Use Case Body"]  || "No description";
     const pointsReq = uc["Points Required"] || 0;
     const category  = uc["Category"]        || "";
 
-    // Safely extract the Program Logo URL (assuming "Program Logo" is an array of attachments)
     let programLogo = "";
     if (Array.isArray(uc["Program Logo"]) && uc["Program Logo"].length > 0) {
-      // The .url property is typically how Airtable attachments store the actual image link
       programLogo = uc["Program Logo"][0].url || "";
     }
 
-    // Build each slide’s HTML
     slideHTML += `
       <div class="swiper-slide">
-
-        <!-- (A) The image wrapper => full-width image -->
         <div class="slide-image-wrapper">
           <img 
             src="${imageURL}" 
             alt="Use Case" 
             class="usecase-slide-image"
           />
-          <!-- White circle with info icon in top-left -->
-          <div>
-            <img 
-              src="http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/a9319f91-4153-4e39-b241-322efb1ff4da/50x50.png" 
-              alt="Info" 
-              style="width:48px; height:48px;"
-            />
-          </div>
+          <!-- Could have an info icon here if needed -->
         </div>
-
-        <!-- (B) Text Container => top row, second row, divider, bottom text -->
         <div class="usecase-slide-content">
-
-          <!-- Top row => Title (left) + Program Logo (right) -->
           <div class="slide-top-row">
             <h3 class="slide-title">${title}</h3>
             ${
@@ -692,32 +582,21 @@ function buildUseCaseSlides(allUseCases) {
                 : ""
             }
           </div>
-
-          <!-- Second row => Points Required (left) + Category (right) -->
           <div class="slide-middle-row">
             <div class="slide-points-left">Points Required: ${pointsReq.toLocaleString()}</div>
             <div class="slide-category-right">${category}</div>
           </div>
-
-          <!-- Light divider -->
           <hr class="slide-divider" />
-
-          <!-- Bottom => Body text (centered) -->
           <div class="slide-body-text">
             <p>${body}</p>
           </div>
-
-        </div><!-- /.usecase-slide-content -->
-
-      </div><!-- /.swiper-slide -->
+        </div>
+      </div>
     `;
   });
 
-  // Insert all slides into the Swiper wrapper
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
-
-
 
 /*******************************************************
  * BAR CHART => Travel vs Cash
@@ -809,21 +688,17 @@ function renderValueComparisonChart(travelValue, cashValue) {
  * DONUT CHART => Program Share
  *******************************************************/
 function renderPieChartProgramShare(gatheredData) {
-  // 1) Prepare data
   const dataArr   = gatheredData.map(item => item.points);
   const labelsArr = gatheredData.map(item => item.programName);
-  // Use each program's color (or fallback)
   const colorsArr = gatheredData.map(item => {
     return loyaltyPrograms[item.recordId]?.Color || '#cccccc';
   });
 
-  // Destroy old instance if it exists
   if (pieChartInstance) {
     pieChartInstance.destroy();
     pieChartInstance = null;
   }
 
-  // 2) Build chart config
   const ctx = document.getElementById("myPieCanvas").getContext("2d");
   const config = {
     type: "doughnut",
@@ -855,40 +730,40 @@ function renderPieChartProgramShare(gatheredData) {
     }
   };
 
-  // 3) Create the chart
   pieChartInstance = new Chart(ctx, config);
 }
 
 /*******************************************************
- * SINGLE CLICK HANDLER => .all-program-row
+ * BUILD ALL PROGRAMS LIST (for 'Explore All' modal)
  *******************************************************/
-$(document).on("click", ".all-program-row", function() {
-  const rowEl = $(this);
-  const rid = rowEl.data("record-id");
-  if (!rid) return;
+function buildAllProgramsList() {
+  const container = $("#all-programs-list");
+  container.empty();
 
-  const index = chosenPrograms.indexOf(rid);
-  const isSelected = (index !== -1);
+  const allIds = Object.keys(loyaltyPrograms);
+  allIds.forEach((rid) => {
+    const prog = loyaltyPrograms[rid];
+    const name = prog["Program Name"] || "Unknown Program";
+    const logo = prog["Brand Logo URL"] || "";
+    const isSelected = chosenPrograms.includes(rid);
+    const circleIcon = isSelected ? "✓" : "+";
+    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
 
-  if (isSelected) {
-    chosenPrograms.splice(index, 1);
-    rowEl.removeClass("selected-state");
-    rowEl.find(".circle-btn").text("+");
-    updateTopProgramSelection(rid, false);
-  } else {
-    chosenPrograms.push(rid);
-    rowEl.addClass("selected-state");
-    rowEl.find(".circle-btn").text("✓");
-    updateTopProgramSelection(rid, true);
-  }
-
-  updateChosenProgramsDisplay();
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-});
+    const rowHtml = `
+      <div class="${rowClass}" data-record-id="${rid}">
+        <div class="row-left">
+          <img src="${logo}" alt="${name} logo" />
+          <span class="program-name">${name}</span>
+        </div>
+        <button class="circle-btn">${circleIcon}</button>
+      </div>
+    `;
+    container.append(rowHtml);
+  });
+}
 
 /*******************************************************
- * USE CASE RECOMMENDATIONS
+ * gatherAllRecommendedUseCases
  *******************************************************/
 function gatherAllRecommendedUseCases() {
   const userProgramPoints = {};
@@ -921,436 +796,12 @@ function gatherAllRecommendedUseCases() {
 }
 
 /*******************************************************
- * BUILD ALL PROGRAMS LIST (for 'Explore All' modal)
+ * initUseCaseSwiper
  *******************************************************/
-function buildAllProgramsList() {
-  const container = $("#all-programs-list");
-  container.empty();
-
-  const allIds = Object.keys(loyaltyPrograms);
-  allIds.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"] || "Unknown Program";
-    const logo = prog["Brand Logo URL"] || "";
-
-    const isSelected = chosenPrograms.includes(rid);
-    const circleIcon = isSelected ? "✓" : "+";
-    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
-
-    const rowHtml = `
-      <div class="${rowClass}" data-record-id="${rid}">
-        <div class="row-left">
-          <img src="${logo}" alt="${name} logo" />
-          <span class="program-name">${name}</span>
-        </div>
-        <button class="circle-btn">${circleIcon}</button>
-      </div>
-    `;
-    container.append(rowHtml);
-  });
-}
-
-// Click => open 'Explore All' modal
-$("#explore-all-btn").on("click", function() {
-  openAllProgramsModal();
-});
-
-/*******************************************************
- * REPORT MODAL => show/hide
- *******************************************************/
-function showReportModal() {
-  $("#report-modal").addClass("show");
-}
-function hideReportModal() {
-  $("#report-modal").removeClass("show");
-}
-
-/*******************************************************
- * SEND REPORT
- *******************************************************/
-async function sendReport(email) {
-  if (!email) return;
-  if (!isValidEmail(email)) {
-    throw new Error("Invalid email format");
-  }
-  const fullData = gatherProgramData();
-  const programsToSend = fullData.map(x => ({
-    programName: x.programName,
-    points: x.points
-  }));
-  console.log("Sending =>", { email, programsToSend });
-
-  const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, programs: programsToSend })
-  });
-  if (!response.ok) {
-    const result = await response.json();
-    throw new Error(result.error || `HTTP ${response.status}`);
-  }
-  return true;
-}
-
-async function sendReportFromModal() {
-  const emailInput = $("#modal-email-input").val().trim();
-  const errorEl = $("#modal-email-error");
-  const sentMsgEl = $("#email-sent-message");
-  const sendBtn = $("#modal-send-btn");
-
-  errorEl.hide().text("");
-  sentMsgEl.hide();
-
-  if (!isValidEmail(emailInput)) {
-    errorEl.text("Invalid email address.").show();
-    return;
-  }
-
-  sendBtn.prop("disabled", true).text("Sending...");
-  try {
-    await sendReport(emailInput);
-    sentMsgEl.show();
-    hasSentReport = true;
-    userEmail = emailInput;
-    logSessionEvent("email_submitted", { email: userEmail });
-
-    setTimeout(() => {
-      hideReportModal();
-      sentMsgEl.hide();
-      // Switch button styling after user has unlocked
-      $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
-      $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
-    }, 700);
-  } catch (err) {
-    console.error("Failed to send =>", err);
-    errorEl.text(err.message || "Error sending report").show();
-  } finally {
-    sendBtn.prop("disabled", false).text("Send Report");
-  }
-}
-
-/*******************************************************
- * SHOW HOW IT WORKS STEP
- *******************************************************/
-function showHowItWorksStep(stepNum) {
-  $(".hiw-step").hide();
-  $(`.hiw-step[data-step='${stepNum}']`).show();
-  $(".hiw-line").removeClass("active-line");
-  $(".hiw-line").each(function(idx) {
-    if (idx < stepNum) {
-      $(this).addClass("active-line");
-    }
-  });
-}
-
-/*******************************************************
- * DOC READY => MAIN
- *******************************************************/
-$(document).ready(function() {
-  (async () => {
-    try {
-      await fetchClientIP();
-      await fetchApproxLocationFromIP();
-      await initializeApp();
-      dataLoaded = true;
-      console.log("Data fully loaded => dataLoaded = true (confirmed)");
-
-      if (userClickedGetStarted) {
-        hideLoadingScreenAndShowInput();
-      }
-    } catch (err) {
-      console.error("Error while loading data =>", err);
-    }
-  })();
-
-  logSessionEvent("session_load");
-
-  // Hide all states except hero
-  $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").hide();
-  $("#default-hero").show();
-  $("#program-preview").hide().empty();
-  $(".left-column").hide();
-
-  // =============== HERO => GET STARTED =================
-  $("#hero-get-started-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hero_get_started_clicked");
-    userClickedGetStarted = true;
-
-    if (dataLoaded) {
-      hideLoadingScreenAndShowInput();
-    } else {
-      $("#hero-how-it-works-btn").hide();
-      $("#hero-get-started-btn").hide();
-      $(".hero-inner h1, .hero-inner h2, .hero-cta-container").hide();
-      $("#loading-screen").show();
-      isTransitioning = false;
-    }
-  });
-
-  function hideLoadingScreenAndShowInput() {
-    if (window.innerWidth >= 992) {
-      $(".left-column").show();
-      $(".left-column").css({
-        background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
-      });
-    }
-    $("#default-hero").hide();
-    $("#loading-screen").hide();
-    $("#input-state").fadeIn(() => {
-      isTransitioning = false;
-      updateNextCTAVisibility();
-      updateClearAllVisibility();
-    });
-  }
-
-  // =============== HERO => HOW IT WORKS =================
-  $("#hero-how-it-works-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hero_how_it_works_clicked");
-
-    if (window.innerWidth >= 992) {
-      $(".left-column").show();
-      $(".left-column").css({
-        background: `url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat`
-      });
-    }
-    $("#default-hero").hide();
-    $("#how-it-works-state").fadeIn(() => {
-      isTransitioning = false;
-      showHowItWorksStep(1);
-    });
-  });
-
-  // Step transitions
-  $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
-  $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
-  $("#hiw-final-start-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hiw_final_get_started");
-    $("#how-it-works-state").hide();
-    userClickedGetStarted = true;
-    if (dataLoaded) {
-      hideLoadingScreenAndShowInput();
-    } else {
-      $("#loading-screen").show();
-      isTransitioning = false;
-    }
-  });
-
-  // =============== INPUT => BACK => HERO =================
-  $("#input-back-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("input_back_clicked");
-    $("#input-state").hide();
-    $(".left-column").hide();
-    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container").show();
-    $("#default-hero").fadeIn(() => {
-      isTransitioning = false;
-    });
-  });
-
-  // =============== INPUT => NEXT => CALC =================
-  $("#input-next-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("input_next_clicked");
-    $("#input-state").hide();
-    $("#calculator-state").fadeIn(() => {
-      isTransitioning = false;
-      $("#to-output-btn").show();
-    });
-    $("#program-container").empty();
-    chosenPrograms.forEach((rid) => addProgramRow(rid));
-    updateClearAllVisibility();
-  });
-
-  // =============== CALC => BACK => INPUT =================
-  $("#calc-back-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("calc_back_clicked");
-    $("#calculator-state").hide();
-    $("#input-state").fadeIn(() => {
-      isTransitioning = false;
-      $("#to-output-btn").hide();
-      updateClearAllVisibility();
-    });
-  });
-
-  // =============== CALC => NEXT => OUTPUT =================
-  $("#to-output-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("calc_next_clicked");
-    $("#calculator-state").hide();
-    $("#output-state").fadeIn(() => {
-      isTransitioning = false;
-      $("#unlock-report-btn, #explore-concierge-lower").show();
-    });
-    buildOutputRows("travel"); // "travel" is default
-    $(".tc-switch-btn").removeClass("active-tc");
-    $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
-  });
-
-  // =============== OUTPUT => BACK => CALC =================
-  $("#output-back-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("output_back_clicked");
-    $("#output-state").hide();
-    $("#calculator-state").fadeIn(() => {
-      isTransitioning = false;
-    });
-  });
-
-  // Switch between Travel / Cash
-  $(".tc-switch-btn").on("click", function() {
-    $(".tc-switch-btn").removeClass("active-tc");
-    $(this).addClass("active-tc");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
-  });
-
-  // Real-time filter
-  $("#program-search").on("input", filterPrograms);
-
-  // Enter => if exactly 1 item => pick it
-  $(document).on("keypress", "#program-search", function(e) {
-    if (e.key === "Enter" && $(".preview-item").length === 1) {
-      logSessionEvent("program_search_enter");
-      $(".preview-item").click();
-    }
-  });
-
-  // Toggle program from search preview
-  $(document).on("click", ".preview-item", function() {
-    const rid = $(this).data("record-id");
-    logSessionEvent("program_preview_item_clicked", { rid });
-    toggleSearchItemSelection($(this));
-  });
-
-  // Toggle program from popular
-  $(document).on("click", ".top-program-box", function() {
-    const rid = $(this).data("record-id");
-    logSessionEvent("top_program_box_clicked", { rid });
-    toggleProgramSelection($(this));
-  });
-
-  // Output => row click => expand/collapse
-  $(document).on("click", ".output-row", function() {
-    $(".usecase-accordion:visible").slideUp();
-    const nextAcc = $(this).next(".usecase-accordion");
-    if (nextAcc.is(":visible")) {
-      nextAcc.slideUp();
-    } else {
-      nextAcc.slideDown();
-    }
-  });
-
-  // Remove single row
-  $(document).on("click", ".remove-btn", function() {
-    const rowEl = $(this).closest(".program-row");
-    const recordId = rowEl.data("record-id");
-    rowEl.remove();
-    delete pointsMap[recordId];
-  });
-
-  // On typed input => update pointsMap
-  $(document).on("input", ".points-input", function() {
-    const rowEl = $(this).closest(".program-row");
-    const recordId = rowEl.data("record-id");
-    let raw = $(this).val().replace(/[^0-9]/g, "");
-    if (!raw) {
-      pointsMap[recordId] = 0;
-      return;
-    }
-    let num = parseInt(raw, 10);
-    pointsMap[recordId] = isNaN(num) ? 0 : num;
-  });
-
-  // Switch active use case mini-pill
-  $(document).on("click", ".mini-pill", function() {
-    const useCaseId = $(this).data("usecaseId");
-    logSessionEvent("mini_pill_clicked", { useCaseId });
-    const container = $(this).closest("div[style*='flex-direction:column']");
-    $(this).siblings(".mini-pill").css({ backgroundColor: "#f0f0f0", color: "#333" }).removeClass("active");
-    $(this).css({ backgroundColor: "#1a2732", color: "#fff" }).addClass("active");
-
-    const uc = Object.values(realWorldUseCases).find(x => x.id === useCaseId);
-    if (!uc) return;
-    const newImg = uc["Use Case URL"] || "";
-    const newTitle = uc["Use Case Title"] || "Untitled";
-    const newBody  = uc["Use Case Body"]  || "";
-    container.find("img").attr("src", newImg);
-    container.find("h4").text(newTitle);
-    container.find("p").text(newBody);
-  });
-
-  // Unlock => show email modal
-  $("#unlock-report-btn").on("click", function() {
-    logSessionEvent("unlock_report_clicked");
-    showReportModal();
-  });
-  $("#modal-close-btn").on("click", function() {
-    logSessionEvent("modal_close_clicked");
-    hideReportModal();
-  });
-  $("#report-modal").on("click", function(e) {
-    if ($(e.target).attr("id") === "report-modal") {
-      hideReportModal();
-    }
-  });
-  $("#modal-send-btn").on("click", async function() {
-    const emailInput = $("#modal-email-input").val().trim();
-    logSessionEvent("modal_send_clicked", { email: emailInput });
-    await sendReportFromModal();
-  });
-
-  // Explore => external link
-  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function() {
-    logSessionEvent("explore_concierge_clicked");
-    $("#services-modal").addClass("show");
-  });
-  $("#services-modal-close-btn").on("click", function() {
-    $("#services-modal").removeClass("show");
-  });
-
-  // Usecase => back => output
-  $("#usecase-back-btn").on("click", function() {
-    $("#usecase-state").hide();
-    $("#output-state").fadeIn();
-  });
-
-  // Send-report => back => output
-  $("#send-report-back-btn").on("click", function() {
-    $("#send-report-state").hide();
-    $("#output-state").fadeIn();
-  });
-
-  // submission => back => output
-  $("#go-back-btn").on("click", function() {
-    $("#submission-takeover").hide();
-    $("#output-state").fadeIn();
-  });
-
-  // Clear All
-  $("#clear-all-btn").on("click", function() {
-    logSessionEvent("clear_all_clicked");
-    clearAllPrograms();
-  });
-});
-
-
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
     slidesPerView: 1,
-      spaceBetween: 0,
-
+    spaceBetween: 0,
     centeredSlides: false,
     loop: true,
     pagination: {
@@ -1366,9 +817,8 @@ function initUseCaseSwiper() {
   });
 }
 
-
 /*******************************************************
- * BUILD OUTPUT => TRAVEL / CASH
+ * buildOutputRows => travel/cash
  *******************************************************/
 function buildOutputRows(viewType) {
   const data = gatherProgramData();
@@ -1377,8 +827,6 @@ function buildOutputRows(viewType) {
   let scenarioTotal = 0;
   let totalTravelValue = 0;
   let totalCashValue = 0;
-
-  // Sum user-entered points
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
   data.forEach((item) => {
@@ -1389,18 +837,14 @@ function buildOutputRows(viewType) {
 
     totalTravelValue += tVal;
     totalCashValue   += cVal;
-
-    // Depending on viewType => travel or cash
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
-    // Format
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
-    // Build the “output row”
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -1411,18 +855,9 @@ function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If Travel => recommended
     if (viewType === "travel") {
       rowHtml += `
-        <div class="usecase-accordion"
-             style="
-               display:none; 
-               border:1px solid #dce3eb; 
-               border-radius:6px; 
-               margin-bottom:12px; 
-               padding:1rem; 
-               overflow-x:auto;
-             ">
+        <div class="usecase-accordion">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
         </div>
       `;
@@ -1431,13 +866,11 @@ function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
-  // Label => Travel or Cash
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   })}`;
-
   $("#output-programs-list").append(`
     <div class="total-value-row" 
          style="text-align:center; margin-top:1rem; font-weight:600;">
@@ -1446,7 +879,7 @@ function buildOutputRows(viewType) {
   `);
 
   // Update stat cards
-  $("#total-points-card .card-value").text( totalPoints.toLocaleString() );
+  $("#total-points-card .card-value").text(totalPoints.toLocaleString());
   $("#travel-value-card .card-value").text(
     "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
@@ -1479,7 +912,7 @@ function buildOutputRows(viewType) {
 }
 
 /*******************************************************
- * USE CASE => BUILD ACCORDION
+ * buildUseCaseAccordionContent
  *******************************************************/
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
@@ -1495,10 +928,8 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && uc["Points Required"] <= userPoints;
   });
 
-  // Sort by redemption value desc
   matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
   matching = matching.slice(0, 5);
-  // Then sort ascending by points
   matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
 
   if (!matching.length) {
@@ -1553,4 +984,390 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
       </div>
     </div>
   `;
+}
+
+/*******************************************************
+ * SETUP EVENT HANDLERS
+ *******************************************************/
+$(document).ready(function() {
+  (async () => {
+    try {
+      await fetchClientIP();
+      await fetchApproxLocationFromIP();
+      await initializeApp();
+      dataLoaded = true;
+      if (userClickedGetStarted) {
+        // show input
+        $("#default-hero").addClass("hidden");
+        $("#loading-screen").addClass("hidden");
+        $("#input-state").removeClass("hidden");
+        $(".left-column").removeClass("hidden");
+        updateNextCTAVisibility();
+        updateClearAllVisibility();
+      }
+    } catch (err) {
+      console.error("Error while loading data =>", err);
+    }
+  })();
+
+  logSessionEvent("session_load");
+
+  // Hide all states except hero
+  $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").addClass("hidden");
+  $("#default-hero").removeClass("hidden");
+  $("#program-preview").addClass("hidden").empty();
+  $(".left-column").addClass("hidden");
+
+  // =============== HERO => GET STARTED =================
+  $("#hero-get-started-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("hero_get_started_clicked");
+    userClickedGetStarted = true;
+
+    if (dataLoaded) {
+      $("#default-hero").addClass("hidden");
+      $("#loading-screen").addClass("hidden");
+      $("#input-state").removeClass("hidden");
+      if ($(window).width() >= 992) {
+        $(".left-column").removeClass("hidden");
+      }
+      updateNextCTAVisibility();
+      updateClearAllVisibility();
+      isTransitioning = false;
+    } else {
+      // Show the spinner
+      $("#hero-how-it-works-btn").addClass("hidden");
+      $("#hero-get-started-btn").addClass("hidden");
+      $(".hero-inner h1, .hero-inner h2, .hero-cta-container").addClass("hidden");
+      $("#loading-screen").removeClass("hidden");
+      isTransitioning = false;
+    }
+  });
+
+  // =============== HERO => HOW IT WORKS =================
+  $("#hero-how-it-works-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("hero_how_it_works_clicked");
+
+    if ($(window).width() >= 992) {
+      $(".left-column").removeClass("hidden");
+    }
+    $("#default-hero").addClass("hidden");
+    $("#how-it-works-state").removeClass("hidden");
+    showHowItWorksStep(1);
+    isTransitioning = false;
+  });
+
+  // Steps
+  $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
+  $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
+  $("#hiw-final-start-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("hiw_final_get_started");
+    $("#how-it-works-state").addClass("hidden");
+    userClickedGetStarted = true;
+    if (dataLoaded) {
+      $("#default-hero").addClass("hidden");
+      $("#loading-screen").addClass("hidden");
+      $("#input-state").removeClass("hidden");
+      if ($(window).width() >= 992) {
+        $(".left-column").removeClass("hidden");
+      }
+      updateNextCTAVisibility();
+      updateClearAllVisibility();
+      isTransitioning = false;
+    } else {
+      $("#loading-screen").removeClass("hidden");
+      isTransitioning = false;
+    }
+  });
+
+  function showHowItWorksStep(stepNum) {
+    $(".hiw-step").hide().removeClass("hiw-step-first");
+    $(`.hiw-step[data-step='${stepNum}']`).show();
+    $(".hiw-line").removeClass("active-line");
+    $(".hiw-line").each(function(idx) {
+      if (idx < stepNum) {
+        $(this).addClass("active-line");
+      }
+    });
+  }
+
+  // Input => BACK => hero
+  $("#input-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("input_back_clicked");
+    $("#input-state").addClass("hidden");
+    $(".left-column").addClass("hidden");
+    $("#default-hero").removeClass("hidden");
+    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container").removeClass("hidden");
+    isTransitioning = false;
+  });
+
+  // Input => NEXT => Calc
+  $("#input-next-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("input_next_clicked");
+    $("#input-state").addClass("hidden");
+    $("#calculator-state").removeClass("hidden");
+    $("#program-container").empty();
+    chosenPrograms.forEach((rid) => addProgramRow(rid));
+    $("#to-output-btn").removeClass("hidden");
+    isTransitioning = false;
+  });
+
+  // Calc => BACK => Input
+  $("#calc-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("calc_back_clicked");
+    $("#calculator-state").addClass("hidden");
+    $("#input-state").removeClass("hidden");
+    $("#to-output-btn").addClass("hidden");
+    updateClearAllVisibility();
+    isTransitioning = false;
+  });
+
+  // Calc => NEXT => Output
+  $("#to-output-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("calc_next_clicked");
+    $("#calculator-state").addClass("hidden");
+    $("#output-state").removeClass("hidden");
+    $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
+    buildOutputRows("travel");
+    $(".tc-switch-btn").removeClass("active-tc");
+    $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
+    isTransitioning = false;
+  });
+
+  // Output => BACK => Calc
+  $("#output-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("output_back_clicked");
+    $("#output-state").addClass("hidden");
+    $("#calculator-state").removeClass("hidden");
+    isTransitioning = false;
+  });
+
+  // Switch Travel/Cash
+  $(".tc-switch-btn").on("click", function() {
+    $(".tc-switch-btn").removeClass("active-tc");
+    $(this).addClass("active-tc");
+    const viewType = $(this).data("view");
+    buildOutputRows(viewType);
+  });
+
+  // Program search
+  $("#program-search").on("input", filterPrograms);
+  $(document).on("keypress", "#program-search", function(e) {
+    if (e.key === "Enter" && $(".preview-item").length === 1) {
+      logSessionEvent("program_search_enter");
+      $(".preview-item").click();
+    }
+  });
+
+  // Toggle program from search preview
+  $(document).on("click", ".preview-item", function() {
+    const rid = $(this).data("record-id");
+    logSessionEvent("program_preview_item_clicked", { rid });
+    toggleSearchItemSelection($(this));
+  });
+
+  // Toggle program from popular
+  $(document).on("click", ".top-program-box", function() {
+    const rid = $(this).data("record-id");
+    logSessionEvent("top_program_box_clicked", { rid });
+    toggleProgramSelection($(this));
+  });
+
+  // Output => row click => expand/collapse the next .usecase-accordion
+  $(document).on("click", ".output-row", function() {
+    // Hide all open:
+    $(".usecase-accordion:visible").slideUp();
+    const nextAcc = $(this).next(".usecase-accordion");
+    if (nextAcc.is(":visible")) {
+      nextAcc.slideUp();
+    } else {
+      nextAcc.slideDown();
+    }
+  });
+
+  // Remove single row in calculator
+  $(document).on("click", ".remove-btn", function() {
+    const rowEl = $(this).closest(".program-row");
+    const recordId = rowEl.data("record-id");
+    rowEl.remove();
+    delete pointsMap[recordId];
+  });
+
+  // All Programs => row click
+  $(document).on("click", ".all-program-row", function() {
+    const rowEl = $(this);
+    const rid = rowEl.data("record-id");
+    if (!rid) return;
+
+    const index = chosenPrograms.indexOf(rid);
+    const isSelected = (index !== -1);
+
+    if (isSelected) {
+      chosenPrograms.splice(index, 1);
+      rowEl.removeClass("selected-state");
+      rowEl.find(".circle-btn").text("+");
+      updateTopProgramSelection(rid, false);
+    } else {
+      chosenPrograms.push(rid);
+      rowEl.addClass("selected-state");
+      rowEl.find(".circle-btn").text("✓");
+      updateTopProgramSelection(rid, true);
+    }
+    updateChosenProgramsDisplay();
+    updateNextCTAVisibility();
+    updateClearAllVisibility();
+  });
+
+  // mini-pills => switch use case content
+  $(document).on("click", ".mini-pill", function() {
+    const useCaseId = $(this).data("usecaseId");
+    logSessionEvent("mini_pill_clicked", { useCaseId });
+    const container = $(this).closest("div[style*='flex-direction:column']");
+    $(this).siblings(".mini-pill").css({ backgroundColor: "#f0f0f0", color: "#333" }).removeClass("active");
+    $(this).css({ backgroundColor: "#1a2732", color: "#fff" }).addClass("active");
+
+    const uc = Object.values(realWorldUseCases).find(x => x.id === useCaseId);
+    if (!uc) return;
+    const newImg = uc["Use Case URL"] || "";
+    const newTitle = uc["Use Case Title"] || "Untitled";
+    const newBody  = uc["Use Case Body"]  || "";
+
+    container.find("img").attr("src", newImg);
+    container.find("h4").text(newTitle);
+    container.find("p").text(newBody);
+  });
+
+  // Unlock => show email modal
+  $("#unlock-report-btn").on("click", function() {
+    logSessionEvent("unlock_report_clicked");
+    $("#report-modal").removeClass("hidden");
+  });
+  $("#modal-close-btn").on("click", function() {
+    logSessionEvent("modal_close_clicked");
+    $("#report-modal").addClass("hidden");
+  });
+  $("#report-modal").on("click", function(e) {
+    if ($(e.target).attr("id") === "report-modal") {
+      $("#report-modal").addClass("hidden");
+    }
+  });
+
+  // Send from modal
+  $("#modal-send-btn").on("click", async function() {
+    const emailInput = $("#modal-email-input").val().trim();
+    logSessionEvent("modal_send_clicked", { email: emailInput });
+    await sendReportFromModal();
+  });
+
+  async function sendReportFromModal() {
+    const emailInput = $("#modal-email-input").val().trim();
+    const errorEl = $("#modal-email-error");
+    const sentMsgEl = $("#email-sent-message");
+    const sendBtn = $("#modal-send-btn");
+
+    errorEl.addClass("hidden").text("");
+    sentMsgEl.addClass("hidden");
+
+    if (!isValidEmail(emailInput)) {
+      errorEl.text("Invalid email address.").removeClass("hidden");
+      return;
+    }
+
+    sendBtn.prop("disabled", true).text("Sending...");
+    try {
+      await sendReport(emailInput);
+      sentMsgEl.removeClass("hidden");
+      hasSentReport = true;
+      userEmail = emailInput;
+      logSessionEvent("email_submitted", { email: userEmail });
+
+      setTimeout(() => {
+        $("#report-modal").addClass("hidden");
+        sentMsgEl.addClass("hidden");
+        // Switch button styling after user has unlocked
+        $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
+        $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
+      }, 700);
+    } catch (err) {
+      console.error("Failed to send =>", err);
+      errorEl.text(err.message || "Error sending report").removeClass("hidden");
+    } finally {
+      sendBtn.prop("disabled", false).text("Send Report");
+    }
+  }
+
+  // explore => open services modal
+  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function() {
+    logSessionEvent("explore_concierge_clicked");
+    $("#services-modal").removeClass("hidden");
+  });
+  $("#services-modal-close-btn").on("click", function() {
+    $("#services-modal").addClass("hidden");
+  });
+
+  // usecase => back => output
+  $("#usecase-back-btn").on("click", function() {
+    $("#usecase-state").addClass("hidden");
+    $("#output-state").removeClass("hidden");
+  });
+
+  // send-report => back => output
+  $("#send-report-back-btn").on("click", function() {
+    $("#send-report-state").addClass("hidden");
+    $("#output-state").removeClass("hidden");
+  });
+
+  // submission => back => output
+  $("#go-back-btn").on("click", function() {
+    $("#submission-takeover").addClass("hidden");
+    $("#output-state").removeClass("hidden");
+  });
+
+  // Clear All
+  $("#clear-all-btn").on("click", function() {
+    logSessionEvent("clear_all_clicked");
+    clearAllPrograms();
+  });
+});
+
+/*******************************************************
+ * SEND REPORT
+ *******************************************************/
+async function sendReport(email) {
+  if (!email) return;
+  if (!isValidEmail(email)) {
+    throw new Error("Invalid email format");
+  }
+  const fullData = gatherProgramData();
+  const programsToSend = fullData.map(x => ({
+    programName: x.programName,
+    points: x.points
+  }));
+  console.log("Sending =>", { email, programsToSend });
+
+  const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, programs: programsToSend })
+  });
+  if (!response.ok) {
+    const result = await response.json();
+    throw new Error(result.error || `HTTP ${response.status}`);
+  }
+  return true;
 }
