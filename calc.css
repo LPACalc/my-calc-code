@@ -1134,7 +1134,7 @@ button {
     padding: 1rem 1rem 0rem 0rem !important;
   }
   .infobox-desktop-text {
-    padding: 1rem;
+    line-height:1.5rem
   }
   .points-info-box {
     padding-left: 1rem;
