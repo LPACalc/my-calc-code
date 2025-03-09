@@ -924,20 +924,21 @@ img {
   background-color: #f5f5f5 !important; 
 }
 
-
-
-/*
-  Use a flexible approach for the two columns so 
-  rounding can’t push them past 100% total width.
-*/
-.left-col-swiper,
-.right-col-charts {
-  flex: 1 1 300px; 
-  /* can shrink to 300px on narrow screens */
-  max-width: 49%;
-  box-sizing: border-box;
+/* The row for your two columns => uses CSS Grid:
+   2 columns on desktop, 1 column on smaller screens */
+.chart-cards-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 equal columns on larger screens */
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+@media (max-width: 992px) {
+  .chart-cards-row {
+    grid-template-columns: 1fr; /* single column on mobile/tablet */
+  }
 }
 
+/* The chart cards themselves */
 .bar-chart-card,
 .pie-chart-card {
   position: relative;
@@ -948,29 +949,6 @@ img {
   box-sizing: border-box;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   overflow: hidden;
-}
-
-.chart-cards-row {
-  display: grid;
-  /* 2 equal columns on desktop */
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem; /* or 2%, or whatever spacing you want */
-  margin-top: 1.5rem; /* same margin if you like */
-}
-
-/* On mobile or tablet (<= 992px), switch to 1 column */
-@media (max-width: 992px) {
-  .chart-cards-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-  .left-col-swiper,
-  .right-col-charts {
-    flex: 0 0 auto;
-    max-width: 100%;
-    margin-bottom: 1.5rem;
-  }
 }
 
 /* === Use Case Slider Container === */
@@ -990,26 +968,23 @@ img {
   height: auto !important;
   overflow: hidden;
 }
-
-/* Force the wrapper to 100% width */
 .swiper-wrapper {
   width: 100% !important;
 }
 
-/* Critical fix: ensure slides don't exceed their container */
+/* Critical fix: ensure each slide stays within container */
 .swiper-slide {
   width: 100% !important;
   min-width: 0 !important;
   overflow: hidden !important;
 }
 
-/* === Swiper Slides === */
+/* Slide image wrapper => optional 16:9 ratio cropping */
 .slide-image-wrapper {
   position: relative;
   width: 100%;
   overflow: hidden;
-    aspect-ratio: 16/9; /* or 4/3, 3/2, etc. */
-
+  aspect-ratio: 16/9;
 }
 .usecase-slide-image {
   width: 100%;
@@ -1033,13 +1008,13 @@ img {
   pointer-events: none;
 }
 
-/* The content container => padding around text */
+/* Slide content container => top/bottom spacing, etc. */
 .usecase-slide-content {
   background-color: #fff; 
   padding: 1rem;
 }
 
-/* === Pagination (Dots) => pinned inside container === */
+/* Swiper Pagination + Arrows */
 .swiper-pagination {
   position: absolute;
   bottom: 10px;
@@ -1048,8 +1023,6 @@ img {
   z-index: 10;         
   text-align: center;
 }
-
-/* === Navigation Arrows => pinned inside container === */
 .swiper-button-prev,
 .swiper-button-next {
   position: absolute;
@@ -1067,7 +1040,7 @@ img {
   right: 8px;
 }
 
-/* Top row => Title on left, Program logo on right */
+/* Slide top row => Title + optional Program Logo */
 .slide-top-row {
   display: flex;
   justify-content: space-between;
@@ -1086,7 +1059,7 @@ img {
   object-fit: contain;
 }
 
-/* Second row => Points Required (left) + Category (right) */
+/* Slide middle row => Points + Category */
 .slide-middle-row {
   display: flex;
   justify-content: space-between;
@@ -1104,7 +1077,7 @@ img {
   color: #2E90E5;
 }
 
-/* Thin divider */
+/* Light divider */
 .slide-divider {
   border: 0;
   height: 1px;
@@ -1112,7 +1085,7 @@ img {
   margin: 1rem 0;
 }
 
-/* Bottom => center the body text */
+/* Slide body text */
 .slide-body-text p {
   font-size: 0.9rem;
   line-height: 1.4;
@@ -1249,12 +1222,6 @@ img {
     overflow-x: hidden !important;
   }
 
-  .chart-cards-row,
-  .left-col-swiper,
-  .right-col-charts {
-    width: 100% !important;
-    max-width: 100% !important;
-  }
   .bar-chart-card,
   .pie-chart-card {
     width: 100% !important;
