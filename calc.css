@@ -1256,4 +1256,21 @@ img {
     width: 100% !important;
     height: 300px !important;
   }
+
+   .usecase-slider-section {
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* Make sure the swiper container also respects 100% width */
+  .swiper-container {
+    max-width: 100% !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  /* Ensure each slide matches the container width */
+  .swiper-slide {
+    width: 100% !important;
+  }
 }
