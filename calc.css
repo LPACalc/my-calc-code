@@ -310,6 +310,18 @@ button {
     gap: 2rem;
   }
 }
+
+
+.right-col-charts {
+  /* Ensures it doesn't force a larger width on mobile */
+  max-width: 100%;
+
+  /* If you want to stack the bar chart and donut chart vertically 
+     with some spacing, you can do something like: */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; 
+}
 @media (max-width: 576px) {
   .hiw-flex-container {
     flex-direction: column;
