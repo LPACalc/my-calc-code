@@ -183,11 +183,10 @@ img {
   align-items: center;
   justify-content: center;
   font-weight: bold;
-
-  /* helps ensure perfect circle on real devices */
+  /* ensures a perfect circle even if scaled */
   aspect-ratio: 1 / 1;
-  border-radius: 50% !important;
   overflow: hidden;
+  padding: 0 !important:
 }
 
 .all-program-row.selected-state .circle-btn {
@@ -793,7 +792,7 @@ img {
   box-sizing: border-box;
   margin: 0 25px;
 }
-email-field-container input {
+.email-field-container input {
   border: none;
   outline: none;
   background-color: transparent;
@@ -802,7 +801,7 @@ email-field-container input {
   color: #333;
   box-sizing: border-box;
 }
-email-field-container:focus-within {
+.email-field-container:focus-within {
   border-color: #DFE5EB;
   box-shadow: 0 0 0 2px #dfe5eb;
 }
@@ -981,13 +980,12 @@ email-field-container:focus-within {
 /* === Use Case Slider Container === */
 .usecase-slider-section {
   position: relative; 
-  margin: 0rem;
-  max-width: 450px; 
-  width: 100%;
+  margin: 0; /* remove forced margin */
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   overflow: hidden;
+  /* REMOVE the fixed max-width: 450px => replaced with 100% on mobile below */
 }
 
 /* === Swiper Container === */
@@ -996,6 +994,10 @@ email-field-container:focus-within {
   width: 100% !important; 
   height: auto !important;
   overflow: hidden;
+}
+
+.swiper-wrapper {
+  width: 100% !important; /* ensure wrapper doesn't exceed container */
 }
 
 /* === Swiper Slides === */
@@ -1267,23 +1269,26 @@ email-field-container:focus-within {
     height: 300px !important;
   }
 
-  /* The slider container => full width, no forced overflow */
+  /* === SWIPER MOBILE FIX === */
   .usecase-slider-section {
-    max-width: 100% !important;
-    overflow: hidden !important;
-  }
-  /* The Swiper container => 100% */
-  .swiper-container {
-    max-width: 100% !important;
+    max-width: 100% !important; /* override the 450px limit */
     width: 100% !important;
     overflow: hidden !important;
   }
-  /* Each slide => 100% container width */
+  .swiper-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+  }
+  .swiper-wrapper {
+    width: 100% !important;
+  }
   .swiper-slide {
     width: 100% !important;
+    overflow: hidden !important;
   }
 
-  /* === ADDED FIX: override the 820px flex on mobile so it shrinks properly === */
+  /* Override the 820px flex so it shrinks properly on phone screens */
   .points-view-img {
     flex: 0 1 auto !important;
     max-width: 100% !important;
