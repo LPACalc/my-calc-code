@@ -1351,6 +1351,8 @@ $(document).ready(function() {
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
     slidesPerView: 1,
+      spaceBetween: 0,
+
     centeredSlides: false,
     loop: true,
     pagination: {
