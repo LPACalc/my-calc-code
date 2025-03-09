@@ -158,7 +158,6 @@ img {
   margin-left: 0.5rem;
 }
 
-
 .all-program-row img {
   width: 40px;
   height: auto;
@@ -969,12 +968,11 @@ img {
   }
 }
 
-
 /* === Use Case Slider Container === */
 .usecase-slider-section {
   position: relative;             /* let pagination/arrows position absolutely */
-  margin: 0rem ;              /* center horizontally */
-  max-width: 450px;               /* never exceed 350px */
+  margin: 0rem ;              
+  max-width: 450px;               /* limit the slider's width on desktop */
   width: 100%;
   background: #fff;
   border-radius: 8px;
@@ -984,10 +982,10 @@ img {
 
 /* === Swiper Container === */
 .swiper-container {
-  position: relative;     /* needed so pagination/arrows can be inside */
+  position: relative;     
   width: 100% !important; 
   height: auto !important;
-  overflow: hidden;       /* hide horizontal scroll */
+  overflow: hidden;       
 }
 
 /* === Swiper Slides === */
@@ -1003,17 +1001,17 @@ img {
   overflow: hidden;
 }
 
-/* The image covers the entire width, height set in your existing .usecase-slide-image */
+/* The image covers the entire width */
 .usecase-slide-image {
   display: block;
   width: 100%;
-  height: 400px;   /* or however tall you want */
+  height: 400px;   
   object-fit: cover;
-  border-radius: 0; /* or keep if you want round corners */
+  border-radius: 0; 
   margin: 0;
 }
 
-/* White circle in the top-left => absolute */
+/* White circle in the top-left => optional info icon style */
 .info-icon-circle {
   position: absolute;
   top: 10px; 
@@ -1026,13 +1024,12 @@ img {
   align-items: center;  
   justify-content: center;
   box-shadow: 0 1px 4px rgba(0,0,0,0.2);
-    pointer-events: none;
-
+  pointer-events: none;
 }
 
 /* The content container => padding around text */
 .usecase-slide-content {
-  background-color: #fff; /* or transparent if you want */
+  background-color: #fff; 
   padding: 1rem;
 }
 
@@ -1042,7 +1039,7 @@ img {
   bottom: 10px;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 10;         /* above the slides */
+  z-index: 10;         
   text-align: center;
 }
 
@@ -1054,12 +1051,10 @@ img {
   transform: translateY(-50%);
   width: 24px;
   height: 24px;
-  z-index: 10;         /* above the slides */
-  /* optionally style or use background images for your arrows */
+  z-index: 10;         
   color:#fff;
 }
 
-/* Move them off the edges so they're in the card */
 .swiper-button-prev {
   left: 8px;
 }
@@ -1086,7 +1081,7 @@ img {
   object-fit: contain;
 }
 
-/* Second row => Points Required (left) + Category (right, light blue) */
+/* Second row => Points Required (left) + Category (right) */
 .slide-middle-row {
   display: flex;
   justify-content: space-between;
@@ -1101,10 +1096,10 @@ img {
 .slide-category-right {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #2E90E5; /* Lightish blue */
+  color: #2E90E5;
 }
 
-/* Thin divider => #eee or #ddd */
+/* Thin divider */
 .slide-divider {
   border: 0;
   height: 1px;
@@ -1118,7 +1113,87 @@ img {
   line-height: 1.4;
   color: #555;
   text-align: center;
-  margin: 0; /* or some spacing if desired */
+  margin: 0; 
   padding-bottom: 3rem;
 }
 
+
+/* ==================== ADDITIONAL CHANGES BELOW ==================== */
+
+/* 
+   2) Global: Add 1rem padding to #calculator-state 
+   3) Global: Add 1rem padding to #output-state 
+*/
+#calculator-state .content-limiter {
+  padding: 1rem;
+}
+#output-state .content-limiter {
+  padding: 1rem;
+}
+
+/* 
+   1a–1g) Mobile-specific overrides (max-width: 576px) 
+*/
+@media (max-width: 576px) {
+
+  /* 1a) Input screen => 1rem padding around */
+  #input-state .content-limiter {
+    padding: 1rem !important;
+  }
+
+  /* 1b) Popular programs => hide the plus button entirely;
+       box itself toggles dark blue + white text on selection */
+  .top-program-box .add-btn {
+    display: none;
+  }
+  .top-program-box.selected-state {
+    background-color: #1a2732;
+    color: #fff;
+  }
+
+  /* 1c) Two columns, three rows for top programs => grid-template-columns: repeat(2,1fr) */
+  .top-programs-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* 1d) .infobox-desktop-text => padding:1rem, .points-info-box => padding-left:1rem */
+  .infobox-desktop-text {
+    padding: 1rem;
+  }
+  .points-info-box {
+    padding-left: 1rem;
+  }
+
+  /* 1e) .state-header => margin-top:1.5rem */
+  .state-header {
+    margin-top: 1.5rem !important;
+  }
+
+  /* 1f) Explore All modal => rise up from bottom */
+  #all-programs-modal-content {
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: 16px 16px 0 0 !important;
+    height: auto !important;
+    max-height: 90% !important;
+  }
+  #all-programs-modal.show #all-programs-modal-content {
+    animation: slideUp 0.3s ease-out forwards;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  /* 1g) .popular-programs-heading & #selected-programs-label => font-size:1.5rem */
+  .popular-programs-heading {
+    font-size: 1.5rem !important;
+  }
+  #selected-programs-label {
+    font-size: 1.5rem !important;
+  }
+}
