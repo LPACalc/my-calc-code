@@ -1090,6 +1090,11 @@ button {
   border: none;
 }
 
+  .infobox-desktop-text {
+    line-height:1.5rem
+     margin: 0rem !important;
+  }
+
 /* =======================================================
    RESPONSIVE OVERRIDES
    ======================================================= */
@@ -1135,7 +1140,7 @@ button {
   }
   .infobox-desktop-text {
     line-height:1.5rem
-     margin: 0rem;
+     margin: 0rem !important;
   }
   .points-info-box {
     padding-left: 1rem;
