@@ -437,6 +437,8 @@ button {
   gap: 12px;
   align-items: flex-start;
   margin: 1rem 0; /* default margin on all screens */
+       padding: 1rem;
+    margin-bottom: 2.5rem;
 }
 
 /* =======================================================
@@ -1156,12 +1158,7 @@ button {
 /* =======================================================
    DESKTOP-SPECIFIC OVERRIDES (min-width: 992px)
    ======================================================= */
-@media (min-width: 992px) {
-  /* 1) .points-info-box => padding & margin-bottom */
-  .points-info-box {
-    padding: 1rem;
-    margin-bottom: 2.5rem;
-  }
+
 
   /* 2) .points-input => width: 90px */
   .points-input {
