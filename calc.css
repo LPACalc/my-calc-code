@@ -779,7 +779,6 @@ button {
   position: relative;
   width: 100%;
   overflow: hidden;
-  aspect-ratio: 16/9;
 }
 .usecase-slide-image {
   width: 100%;
@@ -902,7 +901,7 @@ button {
 }
 .points-view-img {
   flex: 0 1 820px;
-  max-width: 820px;
+  max-width: 100%;
 }
 .image-wrapper img {
   width: 100%;
