@@ -378,6 +378,13 @@ button {
 .back-btn:hover::before {
   opacity: 0.7;
 }
+.info-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-top: auto;
+  margin-bottom: auto;
+}
 
 /* =======================================================
    STAT CARDS
