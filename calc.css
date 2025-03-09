@@ -42,12 +42,21 @@ img {
 
 .left-column {
   position: relative;
-  display: none; /* Hidden on mobile or smaller screens (if desired) */
+  display: none;
   width: 25%;
   min-width: 250px;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+/* At 992px and wider => show the left column */
+@media (min-width: 992px) {
+  .left-column {
+    display: flex; /* or display: block, whichever you prefer */
+    background: url("https://images.squarespace-cdn.com/.../Banner.jpeg") 
+                center/cover no-repeat;
+  }
 }
 
 #left-col-logo {
