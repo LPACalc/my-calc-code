@@ -104,6 +104,11 @@ img {
   padding: 1rem;
   overflow: hidden;
   box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  /* (4) Draggable: Indicate via cursor. Actual dragging logic is in JS (Hammer). */
+  cursor: grab; 
+}
+#all-programs-modal-content:active {
+  cursor: grabbing;
 }
 
 #all-programs-close-btn {
@@ -955,7 +960,6 @@ img {
   overflow: hidden;
 }
 
-/* On narrower screens => single column */
 @media (max-width: 992px) {
   .chart-cards-row {
     display: block;
@@ -970,7 +974,7 @@ img {
 
 /* === Use Case Slider Container === */
 .usecase-slider-section {
-  position: relative;  /* let pagination/arrows position absolutely */
+  position: relative; 
   margin: 0rem;
   max-width: 450px; 
   width: 100%;
@@ -1132,51 +1136,34 @@ img {
  *******************************************************/
 @media (max-width: 576px) {
 
-  /* 1a) Input screen => .top-program-label goes white on selected state */
+  /* 1) #all-programs-modal-content remove right padding */
+  #all-programs-modal-content {
+    padding-right: 0 !important;
+  }
+
+  /* .popular-programs-heading => 1.2rem & bold */
+  .popular-programs-heading {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+  }
+
+  /* #selected-programs-label => 1.2rem & bold */
+  #selected-programs-label {
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+  }
+
+  /* (Existing) .top-program-box.selected-state => label goes white */
   .top-program-box.selected-state .top-program-label {
     color: #fff !important;
   }
 
-  /* 2) & 3) Overriding headings for mobile: 
-        popular-programs-heading => 1rem 
-        selected-programs-label  => 1rem 
-  */
-  .popular-programs-heading {
-    font-size: 1rem !important;
-  }
-  #selected-programs-label {
-    font-size: 1rem !important;
-    /* 5) margin: 1rem */
-    margin: 1rem !important;
-  }
-
-  /* 4) .top-program-label => line-height: 1.2rem */
-  .top-program-label {
-    line-height: 1.2rem !important;
-  }
-
-  /* 1a - repeated from prior iteration => 1rem padding on input screen */
-  #input-state .content-limiter {
-    padding: 1rem !important;
-  }
-
-  /* 1b) Hide plus button; use .selected-state for highlight */
-  .top-program-box .add-btn {
-    display: none;
-  }
-  .top-program-box.selected-state {
-    background-color: #1a2732;
-    color: #fff;
-  }
-
-  /* 1c) Switch top programs to 2 columns => 3 rows if needed */
+  /* Switch top programs to 2 columns => 3 rows if needed */
   .top-programs-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  /* 1d) .infobox-desktop-text => padding:1rem, 
-        .points-info-box => padding-left:1rem 
-  */
+  /* .infobox-desktop-text => padding:1rem, .points-info-box => padding-left:1rem */
   .infobox-desktop-text {
     padding: 1rem;
   }
@@ -1184,12 +1171,12 @@ img {
     padding-left: 1rem;
   }
 
-  /* 1e) .state-header => margin-top:1.5rem */
+  /* .state-header => margin-top:1.5rem */
   .state-header {
     margin-top: 1.5rem !important;
   }
 
-  /* 1f) Explore All modal => bottom sheet style */
+  /* Explore All modal => bottom sheet style */
   #all-programs-modal-content {
     top: auto !important;
     bottom: 0 !important;
@@ -1209,34 +1196,45 @@ img {
     to   { transform: translateY(0); }
   }
 
-  /* 6) <h2>All Programs => padding-top:1rem, padding-left:1.5rem 
-     (assuming direct override if #all-programs-modal-content h2 is used)
-  */
+  /* #all-programs-modal-content h2 => padding-top:1rem, padding-left:1.5rem */
   #all-programs-modal-content h2 {
     padding-top: 1rem !important;
     padding-left: 1.5rem !important;
   }
 
-  /* 7) #all-programs-close-btn => padding:1.3rem 1.5rem 1rem 1rem */
+  /* #all-programs-close-btn => padding:1.3rem 1.5rem 1rem 1rem */
   #all-programs-close-btn {
     padding: 1.3rem 1.5rem 1rem 1rem !important;
   }
 
-  /* 8) .all-programs-list => padding: 1rem 1rem 0 0 */
+  /* .all-programs-list => padding: 1rem 1rem 0 0 */
   .all-programs-list {
     padding: 1rem 1rem 0rem 0rem !important;
   }
 
-  /* 9) .points-input => width:90px */
+  /* .points-input => width:90px */
   .points-input {
     width: 90px !important;
   }
 
-  /* 10) The snippet for gap = .5rem is presumably inline in HTML, 
-     so no extra override needed unless you want a class-based approach.
-  */
+  /* 5) Remove focus outlines for input, select, etc. */
+  input:focus, select:focus, textarea:focus,
+  input[type="radio"]:focus-visible ~ .radio-outline,
+  .form-field-checkbox-type-button .field.checkbox input[type="checkbox"]:focus-visible + span,
+  .form-field-radio-type-button input[type="radio"]:focus-visible + .radio-label {
+    outline: none !important;
+    box-shadow: none !important;
+  }
 
-  /* 12) Ensure charts shrink properly on mobile */
+  /* 6) Fix overflow on output => hide any horizontal scroll */
+  #output-state,
+  #output-state .content-limiter,
+  .chart-cards-row,
+  #output-programs-list {
+    overflow-x: hidden !important;
+  }
+
+  /* Make charts scale to full width on mobile */
   .chart-cards-row,
   .left-col-swiper,
   .right-col-charts {
@@ -1247,5 +1245,19 @@ img {
   .pie-chart-card {
     width: 100% !important;
     height: 300px !important;
+  }
+
+  /* Input screen => 1rem total padding (already included above) */
+  #input-state .content-limiter {
+    padding: 1rem !important;
+  }
+
+  /* Hide the .add-btn in popular programs on mobile */
+  .top-program-box .add-btn {
+    display: none;
+  }
+  .top-program-box.selected-state {
+    background-color: #1a2732;
+    color: #fff;
   }
 }
