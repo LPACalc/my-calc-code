@@ -1270,8 +1270,8 @@ img {
   }
 
   /* === SWIPER MOBILE FIX === */
-  .usecase-slider-section {
-    max-width: 100% !important; /* override the 450px limit */
+ .usecase-slider-section {
+    max-width: 100% !important;
     width: 100% !important;
     overflow: hidden !important;
   }
@@ -1285,6 +1285,7 @@ img {
   }
   .swiper-slide {
     width: 100% !important;
+    min-width: 0 !important; /* helps if Swiper tries to auto-size the slides */
     overflow: hidden !important;
   }
 
@@ -1292,5 +1293,11 @@ img {
   .points-view-img {
     flex: 0 1 auto !important;
     max-width: 100% !important;
+  }
+}
+
+@media (min-width: 992px) {
+  .usecase-slider-section {
+    max-width: 450px;
   }
 }
