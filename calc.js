@@ -1064,7 +1064,7 @@ $("#hero-get-started-btn").on("click", function() {
 
     // Now conditionally show the left column if wide enough
     if (window.innerWidth >= 992) {
-  document.querySelector(".left-column").style.display = "flex";
+  document.querySelector(".left-column").style.display = "flex !important";
     }
 
     updateNextCTAVisibility();
