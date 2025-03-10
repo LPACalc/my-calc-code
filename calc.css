@@ -1205,3 +1205,55 @@ button {
 #output-programs-container {
   margin-top: 2rem;
 }
+
+.usecase-filter-bar {
+  background-color: #fff; /* A white section */
+  padding: 1rem 1rem;
+  border-radius: 8px; 
+  margin-bottom: 1rem; /* some spacing before the slider */
+  text-align: center; 
+}
+
+.usecase-filter-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.pill-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+/* Basic pill styles */
+.usecase-pill {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  width: 80px;             /* or something that fits your design */
+  height: 100px;           /* etc. */
+  border-radius: 12px;     /* decent border radius */
+  background-color: #e9f2ff; /* a light color */
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.usecase-pill img {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.usecase-pill:hover {
+  background-color: #dce6f9; /* hover effect if you like */
+}
+
+.usecase-pill.active-pill {
+  background-color: #1a2732; /* “dark blue” selected state */
+  color: #fff;
+}
+
