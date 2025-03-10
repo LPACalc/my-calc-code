@@ -1081,9 +1081,11 @@ $("#hero-get-started-btn").on("click", function() {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("hero_how_it_works_clicked");
-
-    if ($(window).width() >= 992) {
-      $(".left-column").removeClass("hidden");
+  
+    // Now conditionally show the left column if wide enough
+    if (window.innerWidth >= 992) {
+  document.querySelector(".left-column").style.display = "flex !important";
+    
     }
     $("#default-hero").addClass("hidden");
     $("#how-it-works-state").removeClass("hidden");
