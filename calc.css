@@ -173,13 +173,7 @@ button {
   overflow: hidden;
 }
 
-/* At 992px and wider => show the left column with background */
-@media (min-width: 992px) {
-  .left-column {
-    display: flex;
-    background: url("https://images.squarespace-cdn.com/content/663411fe4c62894a561eeb66/9d2f0865-2660-45d8-82d0-f6ac7d3b2248/Banner.jpeg") center/cover no-repeat;
-  }
-}
+
 
 @media (max-width: 991px) {
   .content-limiter {
