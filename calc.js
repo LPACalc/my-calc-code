@@ -616,28 +616,30 @@ function buildUseCaseSlides(allUseCases) {
 }
 
 
-function buildFilteredUseCaseSlides(category) {
-  // gather all your use cases (or loadUseCasesIfNeeded) 
-  // or simply store them somewhere as "allUseCases"
 
+  // Now call buildFilteredUseCaseSlides(category or null)
+  buildFilteredUseCaseSlides(currentUseCaseCategory);
+});
+
+/**
+ * buildFilteredUseCaseSlides => filters realWorldUseCases by category
+ * or shows all if category is null
+ */
+function buildFilteredUseCaseSlides(category) {
   let allUseCasesArr = Object.values(realWorldUseCases);
 
-  // If a category is set, filter them
   if (category) {
     allUseCasesArr = allUseCasesArr.filter(uc => uc["Category"] === category);
   }
 
-  // Now pass that filtered array to buildUseCaseSlides
-  buildUseCaseSlides(allUseCasesArr);
+  buildUseCaseSlides(allUseCasesArr); // your existing function
 
-  // Re-init the Swiper
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
   }
   initUseCaseSwiper();
 }
-
 
 /*******************************************************
  * BAR CHART => Travel vs Cash
@@ -1072,7 +1074,38 @@ $(document).ready(function() {
   $("img").not("#default-hero img, #input-state img").attr("loading", "lazy");
 
   // =============== HERO => GET STARTED =================
-$("#hero-get-started-btn").on("click", function() {
+$(document).on("click", ".usecase-pill", function() {
+  const $pill = $(this);
+  const category = $pill.data("category");
+  
+  // Check if the clicked pill is already active
+  const isAlreadyActive = $pill.hasClass("active-pill");
+  
+  // Remove active state from all pills first
+  $(".usecase-pill").removeClass("active-pill").each(function() {
+    // re-set icons to black
+    const $this = $(this);
+    const blackIcon = $this.data("iconBlack");
+    $this.find(".pill-icon").attr("src", blackIcon);
+  });
+
+  if (isAlreadyActive) {
+    // (1) It was active => user re-click => remove filter
+    currentUseCaseCategory = null;
+  } else {
+    // (2) Make this pill active
+    $pill.addClass("active-pill");
+    currentUseCaseCategory = category;
+
+    // swap icon to white
+    const whiteIcon = $pill.data("iconWhite");
+    $pill.find(".pill-icon").attr("src", whiteIcon);
+  }
+
+
+  
+  
+  $("#hero-get-started-btn").on("click", function() {
   if (isTransitioning) return;
   isTransitioning = true;
   logSessionEvent("hero_get_started_clicked");
@@ -1206,19 +1239,6 @@ $("#hero-get-started-btn").on("click", function() {
   });
 
   
-$(document).on("click", ".usecase-pill", function() {
-  // Remove the active state from all pills
-  $(".usecase-pill").removeClass("active-pill");
-
-  // Add active state to the clicked pill
-  $(this).addClass("active-pill");
-
-  // Grab the category from data-attribute
-  currentUseCaseCategory = $(this).data("category");
-
-  // Then rebuild the slides
-  buildFilteredUseCaseSlides(currentUseCaseCategory);
-});
 
   // Output => BACK => Calc
   $("#output-back-btn").on("click", function() {
