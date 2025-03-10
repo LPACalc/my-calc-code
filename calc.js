@@ -1102,6 +1102,11 @@ $(document).on("click", ".usecase-pill", function() {
     $pill.find(".pill-icon").attr("src", whiteIcon);
   }
 
+  // 3) Now rebuild your Swiper slides based on the new category
+  buildFilteredUseCaseSlides(currentUseCaseCategory);
+});
+
+
 
   
   
