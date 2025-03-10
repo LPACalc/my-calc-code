@@ -584,9 +584,9 @@ function buildUseCaseSlides(allUseCases) {
     slideHTML += `
       <div class="swiper-slide">
         <div class="slide-image-wrapper">
-          <img 
-            src="${imageURL}" 
-            alt="Use Case" 
+          <img
+            src="${imageURL}"
+            alt="Use Case"
             class="usecase-slide-image"
           />
         </div>
@@ -594,8 +594,8 @@ function buildUseCaseSlides(allUseCases) {
           <div class="slide-top-row">
             <h3 class="slide-title">${title}</h3>
             ${
-              programLogo 
-                ? `<img src="${programLogo}" alt="program logo" class="slide-program-logo" />` 
+              programLogo
+                ? `<img src="${programLogo}" alt="program logo" class="slide-program-logo" />`
                 : ""
             }
           </div>
@@ -612,34 +612,36 @@ function buildUseCaseSlides(allUseCases) {
     `;
   });
 
+  // Insert all slides into the DOM.
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
 
-
-
-  // Now call buildFilteredUseCaseSlides(category or null)
-  buildFilteredUseCaseSlides(currentUseCaseCategory);
-});
+// Now call buildFilteredUseCaseSlides(category or null)
+buildFilteredUseCaseSlides(currentUseCaseCategory);
 
 /**
  * buildFilteredUseCaseSlides => filters realWorldUseCases by category
- * or shows all if category is null
+ * or shows all if category is null, then re-initializes Swiper
  */
 function buildFilteredUseCaseSlides(category) {
   let allUseCasesArr = Object.values(realWorldUseCases);
 
   if (category) {
+    // Filter only those with the matching Category
     allUseCasesArr = allUseCasesArr.filter(uc => uc["Category"] === category);
   }
 
-  buildUseCaseSlides(allUseCasesArr); // your existing function
+  // Render slides
+  buildUseCaseSlides(allUseCasesArr);
 
+  // Re-init the Swiper
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
   }
   initUseCaseSwiper();
 }
+
 
 /*******************************************************
  * BAR CHART => Travel vs Cash
