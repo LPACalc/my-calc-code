@@ -1059,7 +1059,7 @@ $(document).ready(function() {
       $("#loading-screen").addClass("hidden");
       $("#input-state").removeClass("hidden");
       if ($(window).width() >= 992) {
-        $(".left-column").removeClass("hidden");
+      document.querySelector(".left-column").style.display = "flex";
       }
       updateNextCTAVisibility();
       updateClearAllVisibility();
@@ -1130,7 +1130,7 @@ $(document).ready(function() {
     isTransitioning = true;
     logSessionEvent("input_back_clicked");
     $("#input-state").addClass("hidden");
-    $(".left-column").addClass("hidden");
+      document.querySelector(".left-column").style.display = "flex";
     $("#default-hero").removeClass("hidden");
     $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container").removeClass("hidden");
     isTransitioning = false;
