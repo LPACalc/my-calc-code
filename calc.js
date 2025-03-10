@@ -1064,7 +1064,8 @@ $("#hero-get-started-btn").on("click", function() {
 
     // Now conditionally show the left column if wide enough
     if (window.innerWidth >= 992) {
-  document.querySelector(".left-column").style.display = "flex !important";
+        $(".left-column").removeClass("hidden");
+  document.querySelector(".left-column").style.display = "flex";
     }
 
     updateNextCTAVisibility();
@@ -1084,6 +1085,7 @@ $("#hero-get-started-btn").on("click", function() {
   
     // Now conditionally show the left column if wide enough
     if (window.innerWidth >= 992) {
+        $(".left-column").removeClass("hidden");
   document.querySelector(".left-column").style.display = "flex !important";
     
     }
