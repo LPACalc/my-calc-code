@@ -1206,54 +1206,67 @@ button {
   margin-top: 2rem;
 }
 
-.usecase-filter-bar {
-  background-color: #fff; /* A white section */
-  padding: 1rem 1rem;
-  border-radius: 8px; 
-  margin-bottom: 1rem; /* some spacing before the slider */
-  text-align: center; 
+/* Container that holds both the filter bar and the swiper. 
+   We'll make them share the same background (white), so there's no gray gap. */
+.usecase-filter-and-slider {
+  background-color: #fff; 
+  border-radius: 8px;
+  padding: 1rem; /* If you want a bit of outer padding overall */
 }
 
+/* The filter bar itself, removing extra margin to keep it flush with the swiper */
+.usecase-filter-bar {
+  background-color: transparent; /* Already have white in the parent container */
+  padding: 0; /* We'll rely on the parent's padding. 
+                 Or you can do something like padding-bottom: 1rem for spacing. */
+  text-align: center;
+}
+
+/* Title spacing from the pills */
 .usecase-filter-title {
+  margin-bottom: 1rem; /* This is the vertical gap to the pills */
   font-size: 1.2rem;
   font-weight: 600;
-  margin-bottom: 0.5rem;
 }
 
+/* Pill row => horizontally spaced pills */
 .pill-row {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: 1rem; 
 }
 
-/* Basic pill styles */
+/* Pill base style */
 .usecase-pill {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.25rem;
-  width: 80px;             /* or something that fits your design */
-  height: 100px;           /* etc. */
-  border-radius: 12px;     /* decent border radius */
-  background-color: #e9f2ff; /* a light color */
+  width: 80px;   
+  height: 80px; 
+  border-radius: 12px;
+  background-color: #f0f0f0; 
   color: #333;
   cursor: pointer;
   transition: background-color 0.2s;
+  user-select: none; 
 }
 
-.usecase-pill img {
+.usecase-pill img.pill-icon {
   width: 32px;
   height: 32px;
   object-fit: contain;
 }
 
+/* On hover, you might lighten/darken the background a bit, optional. */
 .usecase-pill:hover {
-  background-color: #dce6f9; /* hover effect if you like */
+  background-color: #e0e0e0;
 }
 
+/* The "active" state => dark blue background, white text. 
+   We'll also swap to white icons in JS. */
 .usecase-pill.active-pill {
-  background-color: #1a2732; /* “dark blue” selected state */
+  background-color: #1a2732;
   color: #fff;
 }
-
