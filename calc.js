@@ -31,7 +31,7 @@ let hasSentReport = false;
 let loyaltyPrograms = {};
 // We'll store realWorldUseCases in an object; it starts empty:
 let realWorldUseCases = {};
-
+let currentUseCaseCategory = null;
 let chosenPrograms = [];
 let isTransitioning = false;
 let pointsMap = {};
@@ -615,6 +615,30 @@ function buildUseCaseSlides(allUseCases) {
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
 
+
+function buildFilteredUseCaseSlides(category) {
+  // gather all your use cases (or loadUseCasesIfNeeded) 
+  // or simply store them somewhere as "allUseCases"
+
+  let allUseCasesArr = Object.values(realWorldUseCases);
+
+  // If a category is set, filter them
+  if (category) {
+    allUseCasesArr = allUseCasesArr.filter(uc => uc["Category"] === category);
+  }
+
+  // Now pass that filtered array to buildUseCaseSlides
+  buildUseCaseSlides(allUseCasesArr);
+
+  // Re-init the Swiper
+  if (useCaseSwiper) {
+    useCaseSwiper.destroy(true, true);
+    useCaseSwiper = null;
+  }
+  initUseCaseSwiper();
+}
+
+
 /*******************************************************
  * BAR CHART => Travel vs Cash
  *******************************************************/
@@ -1180,6 +1204,21 @@ $("#hero-get-started-btn").on("click", function() {
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
     isTransitioning = false;
   });
+
+  
+$(document).on("click", ".usecase-pill", function() {
+  // Remove the active state from all pills
+  $(".usecase-pill").removeClass("active-pill");
+
+  // Add active state to the clicked pill
+  $(this).addClass("active-pill");
+
+  // Grab the category from data-attribute
+  currentUseCaseCategory = $(this).data("category");
+
+  // Then rebuild the slides
+  buildFilteredUseCaseSlides(currentUseCaseCategory);
+});
 
   // Output => BACK => Calc
   $("#output-back-btn").on("click", function() {
