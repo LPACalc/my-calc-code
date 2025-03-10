@@ -508,7 +508,6 @@ button {
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   border-radius: 0 0 8px 8px;
   z-index: 9999;
-  display: none; /* toggled by JS or classes */
 }
 .preview-item {
   padding: 12px 16px;
