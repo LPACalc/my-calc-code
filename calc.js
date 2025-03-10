@@ -1157,6 +1157,27 @@ $(document).ready(function() {
     isTransitioning = false;
   });
 
+  // “Explore All” => open All Programs modal
+$("#explore-all-btn").on("click", function() {
+  // Build or rebuild the list each time
+  buildAllProgramsList();
+
+  // Show the modal
+  $("#all-programs-modal").removeClass("hidden");
+});
+
+  $("#all-programs-close-btn").on("click", function() {
+  $("#all-programs-modal").addClass("hidden");
+});
+
+  $("#all-programs-modal").on("click", function(e) {
+  // If the user clicked directly on the dark overlay, close the modal
+  if ($(e.target).attr("id") === "all-programs-modal") {
+    $("#all-programs-modal").addClass("hidden");
+  }
+});
+
+
   // Switch Travel/Cash
   $(".tc-switch-btn").on("click", function() {
     $(".tc-switch-btn").removeClass("active-tc");
