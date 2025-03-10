@@ -29,12 +29,14 @@ let approximateLocation = null;
 let userEmail = null;
 let hasSentReport = false;
 let loyaltyPrograms = {};
-let realWorldUseCases = [];
+// We'll store realWorldUseCases in an object; it starts empty:
+let realWorldUseCases = {};
+
 let chosenPrograms = [];
 let isTransitioning = false;
 let pointsMap = {};
 
-let dataLoaded = false;           
+let dataLoaded = false;
 let userClickedGetStarted = false;
 
 /** For the bar & donut charts: */
@@ -188,7 +190,28 @@ async function fetchAirtableTable(tableName) {
 }
 
 /*******************************************************
- * INIT APP
+ * loadUseCasesIfNeeded => BACKGROUND LOAD
+ *******************************************************/
+async function loadUseCasesIfNeeded() {
+  // Already fetched? skip
+  if (Object.keys(realWorldUseCases).length > 0) {
+    return;
+  }
+  try {
+    const useCasesData = await fetchAirtableTable("Real-World Use Cases");
+    // Build the object
+    realWorldUseCases = useCasesData.reduce((acc, record) => {
+      acc[record.id] = { id: record.id, ...record.fields };
+      return acc;
+    }, {});
+    console.log("Real-World Use Cases =>", realWorldUseCases);
+  } catch (err) {
+    console.error("Error fetching Real-World =>", err);
+  }
+}
+
+/*******************************************************
+ * INIT APP => fetch loyalty programs, background load use cases
  *******************************************************/
 async function initializeApp() {
   console.log("=== initializeApp() ===");
@@ -215,22 +238,15 @@ async function initializeApp() {
     console.error("Error fetching Points Calc =>", err);
   }
 
-  try {
-    const useCasesData = await fetchAirtableTable("Real-World Use Cases");
-    realWorldUseCases = useCasesData.reduce((acc, record) => {
-      acc[record.id] = { id: record.id, ...record.fields };
-      return acc;
-    }, {});
-    console.log("Real-World Use Cases =>", realWorldUseCases);
-  } catch (err) {
-    console.error("Error fetching Real-World =>", err);
-  }
-
+  // Build popular programs UI
   buildTopProgramsSection();
 
-  // Data is fully loaded
+  // Mark that essential data is loaded
   dataLoaded = true;
   console.log("Data fully loaded => dataLoaded = true");
+
+  // Start loading use cases in the background (not awaited)
+  loadUseCasesIfNeeded();
 }
 
 /*******************************************************
@@ -264,7 +280,7 @@ function buildTopProgramsSection() {
 }
 
 /*******************************************************
- * MISSING FUNCTION => updateTopProgramSelection
+ * updateTopProgramSelection
  *******************************************************/
 function updateTopProgramSelection(rid, isSelected) {
   const $box = $(`.top-program-box[data-record-id='${rid}']`);
@@ -283,6 +299,8 @@ function updateTopProgramSelection(rid, isSelected) {
  * FILTER PROGRAMS => dropdown preview
  *******************************************************/
 function filterPrograms() {
+  console.log("Filtering for:", $("#program-search").val());
+
   if (!loyaltyPrograms || !Object.keys(loyaltyPrograms).length) {
     $("#program-preview")
       .html("<div style='padding:12px; color:#999;'>Still loading programs...</div>")
@@ -297,7 +315,7 @@ function filterPrograms() {
     return;
   }
 
-  // Filter out programs already chosen or already in the calc
+  // Filter out programs already chosen or in the calc
   const results = Object.keys(loyaltyPrograms).filter((id) => {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
@@ -571,7 +589,6 @@ function buildUseCaseSlides(allUseCases) {
             alt="Use Case" 
             class="usecase-slide-image"
           />
-          <!-- Could have an info icon here if needed -->
         </div>
         <div class="usecase-slide-content">
           <div class="slide-top-row">
@@ -818,9 +835,9 @@ function initUseCaseSwiper() {
 }
 
 /*******************************************************
- * buildOutputRows => travel/cash
+ * buildOutputRows => ensure use cases are loaded if Travel
  *******************************************************/
-function buildOutputRows(viewType) {
+async function buildOutputRows(viewType) {
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
@@ -836,7 +853,7 @@ function buildOutputRows(viewType) {
     const cVal = item.points * (prog?.["Cash Value"] || 0);
 
     totalTravelValue += tVal;
-    totalCashValue   += cVal;
+    totalCashValue += cVal;
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
@@ -893,8 +910,10 @@ function buildOutputRows(viewType) {
   // Rebuild the donut chart
   renderPieChartProgramShare(data);
 
-  // If Travel => use-case slider
+  // If Travel => ensure use cases are loaded, then build slider
   if (viewType === "travel") {
+    await loadUseCasesIfNeeded();  // make sure they're loaded
+
     const allUseCases = gatherAllRecommendedUseCases();
     buildUseCaseSlides(allUseCases);
 
@@ -928,8 +947,10 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     return linked.includes(recordId) && uc["Points Required"] <= userPoints;
   });
 
+  // Sort by redemption value descending, then slice top 5
   matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
   matching = matching.slice(0, 5);
+  // Then sort by points ascending so the smallest requirement is first
   matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
 
   if (!matching.length) {
@@ -990,14 +1011,16 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
  * SETUP EVENT HANDLERS
  *******************************************************/
 $(document).ready(function() {
+  // 1) Immediately fetch IP, location, and main loyalty programs
   (async () => {
     try {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
       await initializeApp();
       dataLoaded = true;
+
+      // If the user clicked "Get Started" before data was loaded, reveal input now
       if (userClickedGetStarted) {
-        // show input
         $("#default-hero").addClass("hidden");
         $("#loading-screen").addClass("hidden");
         $("#input-state").removeClass("hidden");
@@ -1010,13 +1033,19 @@ $(document).ready(function() {
     }
   })();
 
+  // 2) Log the session load
   logSessionEvent("session_load");
 
-  // Hide all states except hero
+  // 3) Hide all states except hero at first
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").addClass("hidden");
   $("#default-hero").removeClass("hidden");
   $("#program-preview").addClass("hidden").empty();
   $(".left-column").addClass("hidden");
+
+  // 4) Apply lazy loading to all images except those in #default-hero or #input-state
+  //    This helps avoid downloading images for deeper states until needed
+  $("#default-hero img, #input-state img").attr("loading", "eager");
+  $("img").not("#default-hero img, #input-state img").attr("loading", "lazy");
 
   // =============== HERO => GET STARTED =================
   $("#hero-get-started-btn").on("click", function() {
@@ -1036,7 +1065,7 @@ $(document).ready(function() {
       updateClearAllVisibility();
       isTransitioning = false;
     } else {
-      // Show the spinner
+      // Show the spinner while data is still loading
       $("#hero-how-it-works-btn").addClass("hidden");
       $("#hero-get-started-btn").addClass("hidden");
       $(".hero-inner h1, .hero-inner h2, .hero-cta-container").addClass("hidden");
@@ -1060,7 +1089,17 @@ $(document).ready(function() {
     isTransitioning = false;
   });
 
-  // Steps
+  function showHowItWorksStep(stepNum) {
+    $(".hiw-step").hide().removeClass("hiw-step-first");
+    $(`.hiw-step[data-step='${stepNum}']`).show();
+    $(".hiw-line").removeClass("active-line");
+    $(".hiw-line").each(function(idx) {
+      if (idx < stepNum) {
+        $(this).addClass("active-line");
+      }
+    });
+  }
+
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
   $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
   $("#hiw-final-start-btn").on("click", function() {
@@ -1084,17 +1123,6 @@ $(document).ready(function() {
       isTransitioning = false;
     }
   });
-
-  function showHowItWorksStep(stepNum) {
-    $(".hiw-step").hide().removeClass("hiw-step-first");
-    $(`.hiw-step[data-step='${stepNum}']`).show();
-    $(".hiw-line").removeClass("active-line");
-    $(".hiw-line").each(function(idx) {
-      if (idx < stepNum) {
-        $(this).addClass("active-line");
-      }
-    });
-  }
 
   // Input => BACK => hero
   $("#input-back-btn").on("click", function() {
@@ -1158,25 +1186,18 @@ $(document).ready(function() {
   });
 
   // “Explore All” => open All Programs modal
-$("#explore-all-btn").on("click", function() {
-  // Build or rebuild the list each time
-  buildAllProgramsList();
-
-  // Show the modal
-  $("#all-programs-modal").removeClass("hidden");
-});
-
+  $("#explore-all-btn").on("click", function() {
+    buildAllProgramsList();
+    $("#all-programs-modal").removeClass("hidden");
+  });
   $("#all-programs-close-btn").on("click", function() {
-  $("#all-programs-modal").addClass("hidden");
-});
-
-  $("#all-programs-modal").on("click", function(e) {
-  // If the user clicked directly on the dark overlay, close the modal
-  if ($(e.target).attr("id") === "all-programs-modal") {
     $("#all-programs-modal").addClass("hidden");
-  }
-});
-
+  });
+  $("#all-programs-modal").on("click", function(e) {
+    if ($(e.target).attr("id") === "all-programs-modal") {
+      $("#all-programs-modal").addClass("hidden");
+    }
+  });
 
   // Switch Travel/Cash
   $(".tc-switch-btn").on("click", function() {
@@ -1209,9 +1230,8 @@ $("#explore-all-btn").on("click", function() {
     toggleProgramSelection($(this));
   });
 
-  // Output => row click => expand/collapse the next .usecase-accordion
+  // Output => row click => expand/collapse next .usecase-accordion
   $(document).on("click", ".output-row", function() {
-    // Hide all open:
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
     if (nextAcc.is(":visible")) {
