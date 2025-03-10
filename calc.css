@@ -1148,12 +1148,21 @@ button {
     padding-left: 1rem;
   }
   .state-header {
-    margin-top: 1.5rem !important;
+    margin-top: 1rem !important;
   }
   .bar-chart-card,
   .pie-chart-card {
     height: 300px;
   }
+   .popular-programs-heading{
+    font-size: 1.2rem;
+    margin: 1rem 0;
+   }
+.seleted-program-title {
+    font-size: 1.2rem;
+    margin: 0.5rem 0;
+}
+   
   .usecase-slider-section {
     max-width: 100% !important;
     width: 100% !important;
