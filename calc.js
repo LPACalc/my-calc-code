@@ -1048,31 +1048,33 @@ $(document).ready(function() {
   $("img").not("#default-hero img, #input-state img").attr("loading", "lazy");
 
   // =============== HERO => GET STARTED =================
-  $("#hero-get-started-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hero_get_started_clicked");
-    userClickedGetStarted = true;
+$("#hero-get-started-btn").on("click", function() {
+  if (isTransitioning) return;
+  isTransitioning = true;
+  logSessionEvent("hero_get_started_clicked");
+  userClickedGetStarted = true;
 
-    if (dataLoaded) {
-      $("#default-hero").addClass("hidden");
-      $("#loading-screen").addClass("hidden");
-      $("#input-state").removeClass("hidden");
-      if ($(window).width() >= 992) {
+  if (dataLoaded) {
+    // Hide the hero
+    $("#default-hero").addClass("hidden");
+    $("#loading-screen").addClass("hidden");
+
+    // Show the input state
+    $("#input-state").removeClass("hidden");
+
+    // Now conditionally show the left column if wide enough
+    if (window.innerWidth >= 992) {
       document.querySelector(".left-column").style.display = "flex";
-      }
-      updateNextCTAVisibility();
-      updateClearAllVisibility();
-      isTransitioning = false;
-    } else {
-      // Show the spinner while data is still loading
-      $("#hero-how-it-works-btn").addClass("hidden");
-      $("#hero-get-started-btn").addClass("hidden");
-      $(".hero-inner h1, .hero-inner h2, .hero-cta-container").addClass("hidden");
-      $("#loading-screen").removeClass("hidden");
-      isTransitioning = false;
     }
-  });
+
+    updateNextCTAVisibility();
+    updateClearAllVisibility();
+    isTransitioning = false;
+  } else {
+    // ...
+  }
+});
+
 
   // =============== HERO => HOW IT WORKS =================
   $("#hero-how-it-works-btn").on("click", function() {
