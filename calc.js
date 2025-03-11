@@ -1436,16 +1436,25 @@ $("#hero-get-started-btn").on("click", function() {
   });
 
   // Input => BACK => hero
-  $("#input-back-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("input_back_clicked");
-    $("#input-state").addClass("hidden");
-      document.querySelector(".left-column").style.display = "flex";
-    $("#default-hero").removeClass("hidden");
-    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container").removeClass("hidden");
-    isTransitioning = false;
-  });
+ $("#input-back-btn").on("click", function() {
+  if (isTransitioning) return;
+  isTransitioning = true;
+
+  // Hide input
+  $("#input-state").addClass("hidden");
+
+  // Hide left column again
+  $(".left-column").addClass("hidden");
+  // OR document.querySelector(".left-column").style.display = "none";
+
+  // Show hero
+  $("#default-hero").removeClass("hidden");
+  $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container")
+    .removeClass("hidden");
+
+  isTransitioning = false;
+});
+
 
   // Input => NEXT => Calc
   $("#input-next-btn").on("click", function() {
