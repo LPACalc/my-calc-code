@@ -1363,33 +1363,30 @@ $("#hero-get-started-btn").on("click", function() {
   if (isTransitioning) return;
   isTransitioning = true;
 
-  // If still not loaded, show a spinner or do something else:
+  // If the required data isn't ready, you can either do nothing,
+  // show an alert, or just remove these checks altogether:
   if (!dataLoaded) {
-    // e.g. show spinner
-    $("#loading-screen").removeClass("hidden");
-
-    // Revert isTransitioning if we’re not actually moving states
+    alert("Data is still loading—please wait a moment!");
     isTransitioning = false;
     return;
   }
 
-  // Otherwise, data is loaded => proceed to the Input state
+  // Otherwise, data has loaded => move on to the Input state
   $("#default-hero").addClass("hidden");
-  $("#loading-screen").addClass("hidden");
   $("#input-state").removeClass("hidden");
 
-  // If desktop, show the left column
+  // If we're on a wide screen, show the left column
   if (window.innerWidth >= 992) {
     $(".left-column").removeClass("hidden");
     document.querySelector(".left-column").style.display = "flex";
   }
 
-  // Possibly call updateNextCTAVisibility, etc.
   updateNextCTAVisibility();
   updateClearAllVisibility();
 
   isTransitioning = false;
 });
+
 
 
 
