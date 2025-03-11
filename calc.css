@@ -395,16 +395,20 @@ button {
   margin: 1rem 0;
 }
 .stat-card {
-  position: relative;
-  flex: 1;
   background-color: #fff;
   border: 1px solid #DFE5EB;
-  border-radius: 6px;
-  padding: 0rem 1rem;
-  min-height: 80px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  /* Make the top border thick & dark blue */
+  border-top: 6px solid #1a2732;
+  /* Give the entire card rounded corners */
+  border-radius: 8px;
+  /* Because we’re overriding the top border, the top corners
+     might look slightly squared if the border is thick;
+     but usually this still looks good. */
+  padding: 1rem;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  position: relative;
+  width: 100%;
+  max-width: 250px; /* or your preferred width */
 }
 .card-label {
   font-size: 0.9rem;
