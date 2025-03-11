@@ -1266,80 +1266,94 @@ $(document).ready(function() {
 $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
   const category = $pill.data("category");
+  const wasActive = $pill.hasClass("active-pill");
 
-  // 1) Toggle the pill in selectedCategories
-  if ($pill.hasClass("active-pill")) {
-    // It was active => remove it
+  // Step A: Toggle the pill in selectedCategories
+  if (wasActive) {
+    // Deselect
     $pill.removeClass("active-pill");
     const blackIcon = $pill.data("iconBlack");
     $pill.find(".pill-icon").attr("src", blackIcon);
     selectedCategories.delete(category);
-
   } else {
-    // It was inactive => add it
+    // Select
     $pill.addClass("active-pill");
     const whiteIcon = $pill.data("iconWhite");
     $pill.find(".pill-icon").attr("src", whiteIcon);
     selectedCategories.add(category);
   }
 
-  // 2) Identify the *current* visible slide’s ID
-  //    (If loop=true, consider .realIndex instead)
+  // Step B: Identify the current slide’s category
+  // We assume each slide has data-ucid, or at least some marker for which category it is.
+  // For simplicity, let's read the category from the .slide-category-right text:
   const currentIndex = useCaseSwiper.activeIndex;
-  const currentSlide = $(useCaseSwiper.slides[currentIndex]);
-  const currentUseCaseId = currentSlide.data("ucid");
+  const $currentSlide = $(useCaseSwiper.slides[currentIndex]);
+  const currentCategory = $currentSlide.find(".slide-category-right").text().trim();
 
-  // 3) Build a fresh array of recommended use cases
-  let newSlidesArr = gatherAllRecommendedUseCases();
-
-  // If categories are selected, filter them
-  if (selectedCategories.size > 0) {
-    newSlidesArr = newSlidesArr.filter(uc =>
-      selectedCategories.has(uc.Category)
-    );
+  // Step C: If the user just toggled the same category that’s currently displayed, DO NOTHING
+  // i.e. “If I’m looking at a Hotel slide and I turned Hotel on/off, don’t rebuild.”
+  if (currentCategory === category) {
+    return; 
   }
 
-  // 4) Check if the old slide is still in newSlidesArr
-  const stillIn = newSlidesArr.some(uc => uc.id === currentUseCaseId);
+  // Step D: If the user DESELECTED a pill (wasActive === true => now off), DO NOTHING
+  // i.e. “Never change the slideshow at all if a pill is being turned off.”
+  if (wasActive) {
+    return;
+  }
 
-  // If it’s missing, forcibly insert it at the front
-  // so the user keeps seeing it until they swipe away
+  // Otherwise, the user SELECTED a pill for a different category than the current slide => re-init
+  // Step E: Build a new array of recommended use cases, forcibly keeping the current slide
+  let newSlidesArr = gatherAllRecommendedUseCases(); 
+  if (selectedCategories.size > 0) {
+    newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
+  }
+
+  // Keep the current slide forcibly if it’s not in newSlidesArr
+  const currentUCId = $currentSlide.data("ucid");
+  const stillIn = newSlidesArr.some(uc => uc.id === currentUCId);
   if (!stillIn) {
-    const oldUC = Object.values(realWorldUseCases).find(
-      x => x.id === currentUseCaseId
-    );
+    const oldUC = Object.values(realWorldUseCases).find(x => x.id === currentUCId);
     if (oldUC) {
       newSlidesArr.unshift(oldUC);
     }
   }
 
-  // 5) Rebuild slides in the DOM
+  // Step F: Rebuild slides
   buildUseCaseSlides(newSlidesArr);
 
-  // 6) Destroy & recreate Swiper
+  // Step G: Destroy & re-init Swiper, ensuring no loop
   useCaseSwiper.destroy(true, true);
-  useCaseSwiper = new Swiper("#useCaseSwiper", {
-    slidesPerView: 1,
-    loop: true,
-    pagination: { el: ".swiper-pagination", clickable: true },
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev"
-    }
-  });
+  useCaseSwiper = null;
 
-  // 7) Find the newly created slide that matches currentUseCaseId
+ useCaseSwiper = new Swiper("#useCaseSwiper", {
+  slidesPerView: 1,
+  loop: false,         // no loop
+  centeredSlides: false,
+  autoHeight: false,
+  // dynamicBullets: false is the default, so just don’t enable it
+  pagination: {
+    el: ".swiper-pagination",
+    clickable: true
+  },
+  navigation: {
+    nextEl: ".swiper-button-next",
+    prevEl: ".swiper-button-prev"
+  }
+});
+
+  // Step H: Jump back to the old slide
+  // find the matching slide for currentUCId
   let matchingIndex = 0;
   $(useCaseSwiper.slides).each(function(idx, slideEl) {
-    if ($(slideEl).data("ucid") === currentUseCaseId) {
+    if ($(slideEl).data("ucid") === currentUCId) {
       matchingIndex = idx;
-      return false; // break out of loop
+      return false; // break
     }
   });
-
-  // 8) Jump to that same slide => no visible change
   useCaseSwiper.slideTo(matchingIndex, 0);
 });
+
 
 
 
