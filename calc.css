@@ -410,6 +410,23 @@ button {
   width: 100%;
   max-width: 250px; /* or your preferred width */
 }
+
+/* The “strip” across the top */
+.stat-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Full width to cover the top edge */
+  width: 100%;
+  height: 6px; /* how thick you want the colored stripe */
+  background-color: #1a2732; /* your dark blue */
+  /* Round the top corners to match the card’s radius */
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  /* Make sure it appears above the card background */
+  z-index: 1;
+}
 .card-label {
   font-size: 0.9rem;
   font-weight: 600;
