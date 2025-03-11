@@ -1273,6 +1273,7 @@ button {
   display: inline-flex;
   /* Switch from column to row */
   flex-direction: row;
+   gap: .5rem;
   align-items: center;
   justify-content: center;
   width: 100px;
