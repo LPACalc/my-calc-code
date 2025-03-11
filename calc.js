@@ -1373,17 +1373,18 @@ $("#hero-get-started-btn").on("click", function() {
     return;
   }
 
-  // Otherwise, data is loaded => proceed to Input
+  // Otherwise, data is loaded => proceed to the Input state
   $("#default-hero").addClass("hidden");
   $("#loading-screen").addClass("hidden");
   $("#input-state").removeClass("hidden");
 
-  // Show left column if wide
+  // If desktop, show the left column
   if (window.innerWidth >= 992) {
     $(".left-column").removeClass("hidden");
     document.querySelector(".left-column").style.display = "flex";
   }
 
+  // Possibly call updateNextCTAVisibility, etc.
   updateNextCTAVisibility();
   updateClearAllVisibility();
 
