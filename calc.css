@@ -744,14 +744,16 @@ button {
   margin-top: 1rem;
 }
 
-/* Use Case Slider */
 .usecase-slider-section {
   position: relative;
-  margin: 0;
+  margin-top: 1rem;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
   overflow: hidden;
+  /* If you want a consistent height to avoid arrow jumps: */
+  min-height: 450px;  /* adjust to your preference */
+  /* Don’t let it auto-resize smaller when a pill is deselected */
+  /* Or you can do height: 450px if you want it fully fixed. */
 }
 .swiper-container {
   position: relative;
@@ -1214,26 +1216,24 @@ button {
   padding: 1rem; /* If you want a bit of outer padding overall */
 }
 
-/* The filter bar itself, removing extra margin to keep it flush with the swiper */
 .usecase-filter-bar {
-  background-color: transparent; /* Already have white in the parent container */
-  padding: 0; /* We'll rely on the parent's padding. 
-                 Or you can do something like padding-bottom: 1rem for spacing. */
+  /* existing styles */
   text-align: center;
+  /* add some vertical spacing around the pill row */
+  padding-bottom: 0; /* or 1rem if you like */
 }
 
-/* Title spacing from the pills */
 .usecase-filter-title {
-  margin-bottom: 1rem; /* This is the vertical gap to the pills */
-  font-size: 1.2rem;
-  font-weight: 600;
+  margin-top: 1rem; /* <-- new line */
+  margin-bottom: 0.5rem; /* optional */
 }
 
-/* Pill row => horizontally spaced pills */
+
 .pill-row {
   display: flex;
   justify-content: center;
   gap: 1rem; 
+  padding: 1.5rem 0; /* <-- new line */
 }
 
 /* Pill base style */
