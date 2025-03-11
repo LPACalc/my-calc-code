@@ -1359,32 +1359,26 @@ $(document).on("click", ".usecase-pill", function() {
 
   
   
-  $("#hero-get-started-btn").on("click", function() {
+$("#hero-get-started-btn").on("click", function() {
   if (isTransitioning) return;
   isTransitioning = true;
-  logSessionEvent("hero_get_started_clicked");
-  userClickedGetStarted = true;
 
-  if (dataLoaded) {
-    // Hide the hero
-    $("#default-hero").addClass("hidden");
-    $("#loading-screen").addClass("hidden");
+  // If still not loaded, show a spinner or do something else:
+  if (!dataLoaded) {
+    // e.g. show spinner
+    $("#loading-screen").removeClass("hidden");
 
-    // Show the input state
-    $("#input-state").removeClass("hidden");
-
-    // Now conditionally show the left column if wide enough
-    if (window.innerWidth >= 992) {
-        $(".left-column").removeClass("hidden");
-  document.querySelector(".left-column").style.display = "flex";
-    }
-
-    updateNextCTAVisibility();
-    updateClearAllVisibility();
+    // Revert isTransitioning if we’re not actually moving states
     isTransitioning = false;
-  } else {
-    // ...
+    return;
   }
+
+  // Otherwise, data is loaded => proceed to Input
+  $("#default-hero").addClass("hidden");
+  $("#loading-screen").addClass("hidden");
+  $("#input-state").removeClass("hidden");
+  ...
+  isTransitioning = false;
 });
 
 
