@@ -1249,24 +1249,91 @@ $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
   const category = $pill.data("category");
 
-  // If pill is active => deactivate it
+  // Toggle logic: add or remove from selectedCategories
   if ($pill.hasClass("active-pill")) {
+    // Currently active => turn it off
     $pill.removeClass("active-pill");
     const blackIcon = $pill.data("iconBlack");
     $pill.find(".pill-icon").attr("src", blackIcon);
     selectedCategories.delete(category);
-
-  // If pill is inactive => activate it
   } else {
+    // Currently inactive => turn it on
     $pill.addClass("active-pill");
     const whiteIcon = $pill.data("iconWhite");
     $pill.find(".pill-icon").attr("src", whiteIcon);
     selectedCategories.add(category);
   }
 
-  // Rebuild the slides 
-  // (If `selectedCategories` is now empty => show *all* recommended use cases)
-  buildFilteredUseCaseSlides([...selectedCategories]);
+  // 1) Identify the current visible slide
+  //    We assume buildUseCaseSlides gave each slide data-ucid
+  const currentIndex = useCaseSwiper.activeIndex; 
+  // Swiper’s realIndex vs activeIndex can differ if you have `loop: true`.
+  // Usually .realIndex is the “true” index, so consider using that instead:
+  const currentSlide = $(useCaseSwiper.slides[currentIndex]);
+  const currentUseCaseId = currentSlide.data("ucid");
+
+  // 2) Build the brand-new filtered array from scratch
+  //    This is your normal logic:
+  //    gatherAllRecommendedUseCases() => recommended for user’s programs
+  let newSlidesArr = gatherAllRecommendedUseCases();
+
+  // If we actually have some categories selected, filter them:
+  if (selectedCategories.size > 0) {
+    newSlidesArr = newSlidesArr.filter(uc =>
+      selectedCategories.has(uc.Category)
+    );
+  }
+
+  // 3) Check if the current slide’s use case still exists in newSlidesArr
+  const stillIn = newSlidesArr.some(uc => uc.id === currentUseCaseId);
+
+  // If the current use-case is *not* in the new filtered array,
+  // we force it in. That way, the user remains on the same slide
+  // until they swipe away from it.
+  if (!stillIn) {
+    // Find the old use case object in your *old* array or realWorldUseCases
+    // For example:
+    const oldUC = Object.values(realWorldUseCases)
+                       .find(x => x.id === currentUseCaseId);
+    if (oldUC) {
+      // Insert that “old” use case at the front of the new array,
+      // so the user sees it as the first slide
+      newSlidesArr.unshift(oldUC);
+    }
+  }
+
+  // 4) Rebuild all slides in the DOM
+  buildUseCaseSlides(newSlidesArr);
+
+  // 5) Destroy & re-init Swiper
+  //    Because you replaced all the slides in buildUseCaseSlides()
+  useCaseSwiper.destroy(true, true);
+  useCaseSwiper = null;
+
+  useCaseSwiper = new Swiper('#useCaseSwiper', {
+    slidesPerView: 1,
+    loop: true,
+    // We'll fix the initialSlide below once it's set up
+    pagination: { el: '.swiper-pagination', clickable: true },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    }
+  });
+
+  // 6) Now find the new slide for currentUseCaseId
+  //    Because we either left it in place or forcibly inserted it
+  let matchingIndex = 0;
+  $(useCaseSwiper.slides).each(function(idx, slideEl) {
+    if ($(slideEl).data("ucid") === currentUseCaseId) {
+      matchingIndex = idx;
+      return false; // break out of .each loop
+    }
+  });
+
+  // 7) Jump the slider to that index
+  //    If loop=true, keep in mind you might want to use .slideToLoop
+  useCaseSwiper.slideTo(matchingIndex, 0);
 });
 
 
