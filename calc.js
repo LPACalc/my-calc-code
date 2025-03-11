@@ -1249,21 +1249,14 @@ $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
   const category = $pill.data("category");
 
-  // CASE A: This pill is already active
+  // If pill is active => deactivate it
   if ($pill.hasClass("active-pill")) {
-    // If it's the ONLY active pill, don't let it unselect
-    // i.e. from 1 → 0
-    if (selectedCategories.size === 1 && selectedCategories.has(category)) {
-      return;  // do nothing
-    }
-
-    // Otherwise, we can safely unselect
     $pill.removeClass("active-pill");
     const blackIcon = $pill.data("iconBlack");
     $pill.find(".pill-icon").attr("src", blackIcon);
     selectedCategories.delete(category);
 
-  // CASE B: This pill is NOT active => activate it
+  // If pill is inactive => activate it
   } else {
     $pill.addClass("active-pill");
     const whiteIcon = $pill.data("iconWhite");
@@ -1271,7 +1264,8 @@ $(document).on("click", ".usecase-pill", function() {
     selectedCategories.add(category);
   }
 
-  // Rebuild the slides with the updated set of categories
+  // Rebuild the slides 
+  // (If `selectedCategories` is now empty => show *all* recommended use cases)
   buildFilteredUseCaseSlides([...selectedCategories]);
 });
 
