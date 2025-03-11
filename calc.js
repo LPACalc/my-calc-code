@@ -217,16 +217,23 @@ async function loadUseCasesIfNeeded() {
  *******************************************************/
 async function initializeApp() {
   console.log("=== initializeApp() ===");
+
   try {
+    // 1) Fetch loyalty programs (the "blocking" data)
     const resp = await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
       10000
     );
+
     if (!resp.ok) {
       throw new Error("Network not OK => " + resp.statusText);
     }
+
+    // Parse JSON
     const programsData = await resp.json();
+
+    // Store them in the global loyaltyPrograms object
     loyaltyPrograms = programsData.reduce((acc, record) => {
       const fields = { ...record.fields };
       if (record.logoAttachmentUrl) {
@@ -236,20 +243,31 @@ async function initializeApp() {
       return acc;
     }, {});
     console.log("loyaltyPrograms =>", loyaltyPrograms);
+
+    // 2) Mark that essential data is loaded so user can proceed
+    dataLoaded = true;
+    console.log("Data fully loaded => dataLoaded = true");
+
+    // Build popular programs UI
+    buildTopProgramsSection();
+
+    // 3) Kick off other tasks in the background:
+    //    IP fetch + approximate location
+    (async () => {
+      await fetchClientIP();
+      await fetchApproxLocationFromIP();
+    })().catch(err => console.error("IP/Location fetch error =>", err));
+
+    // 4) Load real-world use cases in background
+    loadUseCasesIfNeeded().catch(err => {
+      console.error("Error fetching Real-World =>", err);
+    });
+
   } catch (err) {
     console.error("Error fetching Points Calc =>", err);
   }
-
-  // Build popular programs UI
-  buildTopProgramsSection();
-
-  // Mark that essential data is loaded
-  dataLoaded = true;
-  console.log("Data fully loaded => dataLoaded = true");
-
-  // Start loading use cases in the background (not awaited)
-  loadUseCasesIfNeeded();
 }
+
 
 /*******************************************************
  * BUILD POPULAR PROGRAMS
