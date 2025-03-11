@@ -618,8 +618,6 @@ function buildUseCaseSlides(allUseCases) {
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
 
-// Now call buildFilteredUseCaseSlides(category or null)
-buildFilteredUseCaseSlides(currentUseCaseCategory);
 
 /**
  * buildFilteredUseCaseSlides => filters realWorldUseCases by category
@@ -932,13 +930,38 @@ async function buildOutputRows(viewType) {
       </div>
     `;
 
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
+  // If Travel => ensure use cases are loaded, then build slider
+if (viewType === "travel") {
+  await loadUseCasesIfNeeded();  // ensure realWorldUseCases is loaded
+
+  // Gather recommended, affordable use cases
+  const allUseCases = gatherAllRecommendedUseCases();
+
+  // If none found, hide the slider section
+  if (!allUseCases.length) {
+    $(".usecase-slider-section").hide();
+  } else {
+    // Otherwise, show + rebuild the slides
+    $(".usecase-slider-section").show();
+    buildUseCaseSlides(allUseCases);
+
+    // If there's already a swiper, destroy it
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
     }
+    initUseCaseSwiper();
+  }
+  
+} else {
+  // If user switched to "cash," destroy the swiper
+  if (useCaseSwiper) {
+    useCaseSwiper.destroy(true, true);
+    useCaseSwiper = null;
+  }
+  // You can also hide .usecase-slider-section if you like
+  $(".usecase-slider-section").hide();
+}
 
     $("#output-programs-list").append(rowHtml);
   });
