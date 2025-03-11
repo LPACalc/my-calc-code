@@ -1025,8 +1025,9 @@ if (highlightBox && highlightText) {
     const roundedPerc = Math.round(rawPerc);
 
     // Update overlay text
-    highlightText.textContent =
-      `Wow! You have over ${roundedPerc}% more in value than the average user.`;
+   const commaPerc = roundedPerc.toLocaleString(); 
+highlightText.innerHTML =
+  `Wow! You have over <strong>${commaPerc}%</strong> more in value than the average user.`;
 
     // Show the banner
     highlightBox.style.display = "block";
