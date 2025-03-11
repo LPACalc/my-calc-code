@@ -35,6 +35,8 @@ let currentUseCaseCategory = null;
 let chosenPrograms = [];
 let isTransitioning = false;
 let pointsMap = {};
+let selectedCategories = new Set();
+
 
 let dataLoaded = false;
 let userClickedGetStarted = false;
@@ -623,18 +625,29 @@ buildFilteredUseCaseSlides(currentUseCaseCategory);
  * buildFilteredUseCaseSlides => filters realWorldUseCases by category
  * or shows all if category is null, then re-initializes Swiper
  */
-function buildFilteredUseCaseSlides(category) {
+function buildFilteredUseCaseSlides(categories) {
   let allUseCasesArr = Object.values(realWorldUseCases);
 
-  if (category) {
-    // Filter only those with the matching Category
-    allUseCasesArr = allUseCasesArr.filter(uc => uc["Category"] === category);
+  // If at least one category is selected, do union-based filtering
+  if (categories && categories.length > 0) {
+    allUseCasesArr = allUseCasesArr.filter((uc) => {
+      return categories.includes(uc["Category"]);
+    });
   }
 
-  // Render slides
+  // If no matching use cases, hide the slider entirely
+  const $sliderSection = $(".usecase-slider-section");
+  if (allUseCasesArr.length === 0) {
+    $sliderSection.hide();  // or show "No results" message
+    return;
+  } else {
+    $sliderSection.show();
+  }
+
+  // Rebuild slides
   buildUseCaseSlides(allUseCasesArr);
 
-  // Re-init the Swiper
+  // Re-init or destroy the swiper
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
@@ -1080,32 +1093,25 @@ $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
   const category = $pill.data("category");
   
-  // Check if the clicked pill is already active
-  const isAlreadyActive = $pill.hasClass("active-pill");
-  
-  // Remove active state from all pills first
-  $(".usecase-pill").removeClass("active-pill").each(function() {
-    // re-set icons to black
-    const $this = $(this);
-    const blackIcon = $this.data("iconBlack");
-    $this.find(".pill-icon").attr("src", blackIcon);
-  });
-
-  if (isAlreadyActive) {
-    // (1) It was active => user re-click => remove filter
-    currentUseCaseCategory = null;
+  // Toggle the pill’s active state
+  const isActive = $pill.hasClass("active-pill");
+  if (isActive) {
+    // If already active, unselect it
+    $pill.removeClass("active-pill");
+    // Switch icon back to black
+    const blackIcon = $pill.data("iconBlack");
+    $pill.find(".pill-icon").attr("src", blackIcon);
+    selectedCategories.delete(category);
   } else {
-    // (2) Make this pill active
+    // Otherwise, select it
     $pill.addClass("active-pill");
-    currentUseCaseCategory = category;
-
-    // swap icon to white
+    // Switch icon to white
     const whiteIcon = $pill.data("iconWhite");
     $pill.find(".pill-icon").attr("src", whiteIcon);
+    selectedCategories.add(category);
   }
 
-  // 3) Now rebuild your Swiper slides based on the new category
-  buildFilteredUseCaseSlides(currentUseCaseCategory);
+  buildFilteredUseCaseSlides([...selectedCategories]);
 });
 
 
