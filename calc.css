@@ -1271,7 +1271,8 @@ button {
 /* Pill base style */
 .usecase-pill {
   display: inline-flex;
-  flex-direction: column;
+  /* Switch from column to row */
+  flex-direction: row;
   align-items: center;
   justify-content: center;
   width: 100px;
