@@ -875,28 +875,22 @@ function gatherAllRecommendedUseCases() {
 
 
 function hideUnusedPills() {
-  // 1) Gather the recommended, affordable use cases for the user
-  const recommended = gatherAllRecommendedUseCases();
-
-  // 2) Build a Set of categories that actually appear in the recommended data
+  const recommended = gatherAllRecommendedUseCases(); // user’s chosen programs + points
   const validCategories = new Set();
   recommended.forEach((uc) => {
-    if (uc.Category) {
-      validCategories.add(uc.Category);
-    }
+    if (uc.Category) validCategories.add(uc.Category);
   });
 
-  // 3) Loop over each pill; hide if it's not in validCategories
   $(".usecase-pill").each(function() {
     const pillCategory = $(this).data("category");
     if (!validCategories.has(pillCategory)) {
-      // Hide if no recommended use cases for that category
       $(this).hide();
     } else {
       $(this).show();
     }
   });
 }
+
 
 
 /*******************************************************
