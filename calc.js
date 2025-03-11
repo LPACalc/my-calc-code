@@ -1067,6 +1067,26 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   `;
 }
 
+function hideUnusedPills() {
+  // We gather the unique categories in realWorldUseCases
+  const categoriesInUseCases = new Set(
+    Object.values(realWorldUseCases).map(uc => uc["Category"])
+  );
+
+  // For each .usecase-pill in the DOM, see if the category is in categoriesInUseCases
+  $(".usecase-pill").each(function() {
+    const pillCategory = $(this).data("category");
+    if (!categoriesInUseCases.has(pillCategory)) {
+      // Hide if no use cases for that category
+      $(this).hide();
+    }
+  });
+}
+
+// call hideUnusedPills() after realWorldUseCases is loaded
+
+
+
 /*******************************************************
  * SETUP EVENT HANDLERS
  *******************************************************/
