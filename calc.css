@@ -1247,8 +1247,9 @@ button {
 
 .usecase-filter-bar {
   /* existing styles */
+  width: 100%;
+  /* So it occupies the full container horizontally */
   text-align: center;
-  /* add some vertical spacing around the pill row */
   padding-bottom: 0; /* or 1rem if you like */
 }
 
@@ -1263,8 +1264,8 @@ button {
 .pill-row {
   display: flex;
   justify-content: center;
-  gap: .5rem; 
-  padding-top: 1.5rem; 
+  gap: .5rem;
+  padding-top: 1.5rem;
 }
 
 /* Pill base style */
