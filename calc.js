@@ -1306,11 +1306,12 @@ $(document).on("click", ".usecase-pill", function() {
     nextEl: ".swiper-button-next",
     prevEl: ".swiper-button-prev"
   }
-  if ($(window).width() < 992) {
+
+});
+    if ($(window).width() < 992) {
     const chartTop = $(".chart-cards-row").offset().top;
     $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
   }
-});
 
   // Step H: Jump back to the old slide
   // find the matching slide for currentUCId
