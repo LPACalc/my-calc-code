@@ -773,6 +773,7 @@ button {
   position: relative;
   width: 100%;
   overflow: hidden;
+   height:350px;
 }
 .usecase-slide-image {
   width: 100%;
@@ -795,7 +796,7 @@ button {
   width: 24px;
   height: 24px;
   z-index: 10;
-  color: #fff;
+  color: #fff !important;
 }
 .swiper-button-prev {
   left: 8px;
