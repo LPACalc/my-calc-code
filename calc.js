@@ -947,98 +947,116 @@ async function buildOutputRows(viewType) {
 /*******************************************************
  * buildUseCaseAccordionContent
  *******************************************************/
-function buildUseCaseAccordionContent(recordId, userPoints) {
-  const program = loyaltyPrograms[recordId];
-  if (!program) {
-    return `<div style="padding:1rem;">No data found.</div>`;
-  }
-  let matching = Object.values(realWorldUseCases).filter((uc) => {
-    if (!uc.Recommended) return false;
-    if (!uc["Points Required"]) return false;
-    if (!uc["Use Case Title"]) return false;
-    if (!uc["Use Case Body"]) return false;
-    const linked = uc["Program Name"] || [];
-    return linked.includes(recordId) && uc["Points Required"] <= userPoints;
-  });
+async function buildOutputRows(viewType) {
+  // 1) Gather the user’s program data from the calculator
+  const data = gatherProgramData();
+  $("#output-programs-list").empty();
 
-  // Sort by redemption value descending, then slice top 5
-  matching.sort((a, b) => (b["Redemption Value"] || 0) - (a["Redemption Value"] || 0));
-  matching = matching.slice(0, 5);
-  // Then sort by points ascending so the smallest requirement is first
-  matching.sort((a, b) => (a["Points Required"] || 0) - (b["Points Required"] || 0));
+  let scenarioTotal = 0;
+  let totalTravelValue = 0;
+  let totalCashValue = 0;
+  const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
-  if (!matching.length) {
-    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
-  }
+  // 2) For each chosen program, compute travel/cash values and build an output row
+  data.forEach((item) => {
+    const prog = loyaltyPrograms[item.recordId];
+    const logoUrl = prog?.["Brand Logo URL"] || "";
+    const tVal = item.points * (prog?.["Travel Value"] || 0);
+    const cVal = item.points * (prog?.["Cash Value"] || 0);
 
-  let pillsHTML = "";
-  matching.forEach((uc, i) => {
-    const pts = uc["Points Required"] || 0;
-    pillsHTML += `
-      <div 
-        class="mini-pill ${i === 0 ? "active" : ""}"
-        data-usecase-id="${uc.id}"
-        style="
-          display:inline-block;
-          margin-right:8px; 
-          margin-bottom:8px;
-          padding:6px 12px;
-          border-radius:9999px;
-          background-color:${i === 0 ? "#1a2732" : "#f0f0f0"};
-          color:${i === 0 ? "#fff" : "#333"};
-          cursor:pointer;
-        "
-      >
-        ${pts.toLocaleString()}
+    // Accumulate totals
+    totalTravelValue += tVal;
+    totalCashValue += cVal;
+
+    // Decide which value to show for this row
+    const rowVal = (viewType === "travel") ? tVal : cVal;
+    scenarioTotal += rowVal;
+
+    // Format the row value as currency
+    const formattedVal = `$${rowVal.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    // Build the row HTML
+    let rowHtml = `
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="logo" style="width:50px;">
+          <span class="program-name">${item.programName}</span>
+        </div>
+        <div class="output-value">${formattedVal}</div>
       </div>
     `;
+
+    // (Optional) If travel view, include the “accordion” with recommended use cases
+    if (viewType === "travel") {
+      rowHtml += `
+        <div class="usecase-accordion">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+    }
+
+    // Append this row to the output
+    $("#output-programs-list").append(rowHtml);
   });
 
-  const first = matching[0];
-  const imageURL = first["Use Case URL"] || "";
-  const title = first["Use Case Title"] || "Untitled";
-  const body  = first["Use Case Body"]  || "No description";
-
-  return `
-    <div style="display:flex; flex-direction:column; gap:1rem; min-height:200px;">
-      <div class="mini-pill-row">
-        ${pillsHTML}
-      </div>
-      <div style="display:flex; gap:1rem; flex-wrap:nowrap; align-items:flex-start; overflow-x:auto;">
-        <div style="max-width:180px; flex:0 0 auto;">
-          <img src="${imageURL}" alt="Use Case" style="width:100%; border-radius:4px;" />
-        </div>
-        <div style="flex:1 1 auto;">
-          <h4 style="font-size:16px; margin:0 0 0.5rem; color:#1a2732; font-weight:bold;">
-            ${title}
-          </h4>
-          <p style="font-size:14px; line-height:1.4; color:#555; margin:0;">
-            ${body}
-          </p>
-        </div>
-      </div>
+  // 3) Display the total scenario value at the bottom
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+  $("#output-programs-list").append(`
+    <div class="total-value-row" 
+         style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${totalStr}
     </div>
-  `;
-}
+  `);
 
-function hideUnusedPills() {
-  // We gather the unique categories in realWorldUseCases
-  const categoriesInUseCases = new Set(
-    Object.values(realWorldUseCases).map(uc => uc["Category"])
+  // 4) Update the stat cards for Total Points, Travel Value, Cash Value
+  $("#total-points-card .card-value").text(totalPoints.toLocaleString());
+  $("#travel-value-card .card-value").text(
+    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+  );
+  $("#cash-value-card .card-value").text(
+    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // For each .usecase-pill in the DOM, see if the category is in categoriesInUseCases
-  $(".usecase-pill").each(function() {
-    const pillCategory = $(this).data("category");
-    if (!categoriesInUseCases.has(pillCategory)) {
-      // Hide if no use cases for that category
-      $(this).hide();
+  // 5) Render the bar chart and donut chart
+  renderValueComparisonChart(totalTravelValue, totalCashValue);
+  renderPieChartProgramShare(data);
+
+  // 6) If travel, load recommended use cases into the Swiper
+  if (viewType === "travel") {
+    await loadUseCasesIfNeeded(); // ensure realWorldUseCases is loaded
+
+    const allUseCases = gatherAllRecommendedUseCases();
+    if (!allUseCases.length) {
+      // Hide the swiper section if no use cases match
+      $(".usecase-slider-section").hide();
+    } else {
+      // Otherwise, show the swiper and populate slides
+      $(".usecase-slider-section").show();
+      buildUseCaseSlides(allUseCases);
+
+      // If there's already a swiper, destroy it
+      if (useCaseSwiper) {
+        useCaseSwiper.destroy(true, true);
+        useCaseSwiper = null;
+      }
+      initUseCaseSwiper();
     }
-  });
+  } else {
+    // If user switched to "cash," hide/destroy the swiper
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+    $(".usecase-slider-section").hide();
+  }
 }
-
-// call hideUnusedPills() after realWorldUseCases is loaded
-
 
 
 /*******************************************************
