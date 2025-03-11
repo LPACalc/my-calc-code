@@ -1256,14 +1256,15 @@ button {
   margin-top: 1rem; /* or whatever vertical spacing you like */
   font-size: 1.5rem; /* requested size */
   font-weight: 600; /* optional, if you want a bolder look */
+   margin-bottom: 0;
 }
 
 
 .pill-row {
   display: flex;
   justify-content: center;
-  gap: 1rem; 
-  padding: 1.5rem 0; /* <-- new line */
+  gap: .5rem; 
+  padding-top: 1.5rem; 
 }
 
 /* Pill base style */
@@ -1272,9 +1273,8 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 0.25rem;
-  width: 80px;
-  height: 80px;
+  width: 100px;
+padding: 0.5rem 0;
   border-radius: 12px;
   background-color: #f0f0f0;
   color: #333;
@@ -1286,8 +1286,8 @@ button {
 
 
 .usecase-pill img.pill-icon {
-  width: 32px;
-  height: 32px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
 }
 
