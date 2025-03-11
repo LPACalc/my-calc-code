@@ -938,10 +938,7 @@ function initUseCaseSwiper() {
 /*******************************************************
  * buildOutputRows => ensure use cases are loaded if Travel
  *******************************************************/
-// Add "async"
-/*******************************************************
- * buildOutputRows => ensures use cases are loaded if Travel
- *******************************************************/
+
 async function buildOutputRows(viewType) {
   // 1) Gather user’s program data
   const data = gatherProgramData();
@@ -953,7 +950,7 @@ async function buildOutputRows(viewType) {
   let totalCashValue = 0;
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
-  // 3) For each chosen program, compute travel/cash values and build an output row
+  // 3) For each chosen program, compute travel/cash values
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
@@ -962,26 +959,23 @@ async function buildOutputRows(viewType) {
     const travelMultiplier = prog["Travel Value"] || 0;
     const cashMultiplier   = prog["Cash Value"]   || 0;
 
-    // Calculate totals
+    // Totals for the final bar chart
     const tVal = item.points * travelMultiplier;
     const cVal = item.points * cashMultiplier;
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // Decide which value to show
+    // Decide which value to show in the “output row”
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
-    // Format for display
+    // Build an output row
+    const logoUrl = prog["Brand Logo URL"] || "";
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
-    // Program branding
-    const logoUrl = prog["Brand Logo URL"] || "";
-
-    // Build the row
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -992,7 +986,7 @@ async function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If travel => add the recommended use-cases accordion
+    // If travel => add recommended use-cases accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion">
@@ -1001,7 +995,6 @@ async function buildOutputRows(viewType) {
       `;
     }
 
-    // Append row to the output list
     $("#output-programs-list").append(rowHtml);
   });
 
@@ -1018,6 +1011,23 @@ async function buildOutputRows(viewType) {
     </div>
   `);
 
+  // 4A) Update the highlight banner (scenarioTotal vs. $400)
+  const highlightBox = document.getElementById("valueHighlightBox");
+  const highlightText = document.getElementById("highlight-text");
+  if (highlightBox && highlightText) {
+    if (scenarioTotal > 400) {
+      const diff = scenarioTotal - 400;
+      const rawPerc = (diff / 400) * 100;
+      const roundedPerc = Math.round(rawPerc);
+
+      highlightText.textContent =
+        `Wow! You have over ${roundedPerc}% more in value than the average user.`;
+      highlightBox.style.display = "block";
+    } else {
+      highlightBox.style.display = "none";
+    }
+  }
+
   // 5) Update the stat cards
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
   $("#travel-value-card .card-value").text(
@@ -1031,22 +1041,16 @@ async function buildOutputRows(viewType) {
   renderValueComparisonChart(totalTravelValue, totalCashValue);
   renderPieChartProgramShare(data);
 
-  // 7) If Travel => load recommended use cases for the Swiper
+  // 7) If Travel => load recommended use-case slides for the Swiper
   if (viewType === "travel") {
-    // Make sure real-world use cases are loaded
     await loadUseCasesIfNeeded();
 
-    // Show/hide category pills based on new recommended set
     const allUseCases = gatherAllRecommendedUseCases();
-    hideUnusedPills();
-
     if (!allUseCases.length) {
       $(".usecase-slider-section").hide();
     } else {
       $(".usecase-slider-section").show();
       buildUseCaseSlides(allUseCases);
-
-      // Destroy old Swiper if any, then re-init
       if (useCaseSwiper) {
         useCaseSwiper.destroy(true, true);
         useCaseSwiper = null;
@@ -1054,13 +1058,15 @@ async function buildOutputRows(viewType) {
       initUseCaseSwiper();
     }
   } else {
-    // If user switched to "cash", destroy/hide the Swiper
+    // If user switched to "cash," hide/destroy the Swiper
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
     }
     $(".usecase-slider-section").hide();
   }
 }
+
 
 
 
@@ -1220,25 +1226,7 @@ async function buildOutputRows(viewType) {
   }
 }
 
-// Just after scenarioTotal is computed:
-const highlightBox = document.getElementById("valueHighlightBox");
-const highlightText = document.getElementById("highlight-text");
 
-// Compare scenarioTotal to the $400 benchmark:
-if (scenarioTotal > 400) {
-  const diff = scenarioTotal - 400;
-  const rawPerc = (diff / 400) * 100;
-  const roundedPerc = Math.round(rawPerc);
-
-  // Update the overlay text:
-  highlightText.textContent = `Wow! You have over ${roundedPerc}% more in value than the average user.`;
-
-  // Make sure the banner is visible:
-  highlightBox.style.display = "block";
-} else {
-  // If user is below $400, you can hide the banner or adjust copy
-  highlightBox.style.display = "none";
-}
 
 
 
