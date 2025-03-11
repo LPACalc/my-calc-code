@@ -772,7 +772,7 @@ button {
 }
 .slide-image-wrapper {
   position: relative;
-  width: 100%;
+  width: 450px;
   overflow: hidden;
    height:350px;
 }
