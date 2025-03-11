@@ -671,6 +671,7 @@ function buildFilteredUseCaseSlides(categories) {
       prevEl: '.swiper-button-prev'
     }
   });
+   hideUnusedPills();
 }
 
 
@@ -1247,24 +1248,32 @@ $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
   const category = $pill.data("category");
 
-  // Toggle
+  // CASE A: This pill is already active
   if ($pill.hasClass("active-pill")) {
-    // unselect
+    // If it's the ONLY active pill, don't let it unselect
+    // i.e. from 1 → 0
+    if (selectedCategories.size === 1 && selectedCategories.has(category)) {
+      return;  // do nothing
+    }
+
+    // Otherwise, we can safely unselect
     $pill.removeClass("active-pill");
     const blackIcon = $pill.data("iconBlack");
     $pill.find(".pill-icon").attr("src", blackIcon);
     selectedCategories.delete(category);
+
+  // CASE B: This pill is NOT active => activate it
   } else {
-    // select
     $pill.addClass("active-pill");
     const whiteIcon = $pill.data("iconWhite");
     $pill.find(".pill-icon").attr("src", whiteIcon);
     selectedCategories.add(category);
   }
 
-  // Rebuild slides with union of chosen categories
+  // Rebuild the slides with the updated set of categories
   buildFilteredUseCaseSlides([...selectedCategories]);
 });
+
 
 
 
