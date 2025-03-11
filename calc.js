@@ -1012,21 +1012,30 @@ async function buildOutputRows(viewType) {
   `);
 
   // 4A) Update the highlight banner (scenarioTotal vs. $400)
-  const highlightBox = document.getElementById("valueHighlightBox");
-  const highlightText = document.getElementById("highlight-text");
-  if (highlightBox && highlightText) {
-    if (scenarioTotal > 400) {
-      const diff = scenarioTotal - 400;
-      const rawPerc = (diff / 400) * 100;
-      const roundedPerc = Math.round(rawPerc);
+ const highlightBox = document.getElementById("valueHighlightBox");
+const highlightText = document.getElementById("highlight-text");
 
-      highlightText.textContent =
-        `Wow! You have over ${roundedPerc}% more in value than the average user.`;
-      highlightBox.style.display = "block";
-    } else {
-      highlightBox.style.display = "none";
-    }
+// Safety check: make sure these elements exist in the DOM
+if (highlightBox && highlightText) {
+  if (scenarioTotal > 400) {
+    // Calculate how much more than $400
+    const diff = scenarioTotal - 400;
+    // Convert that difference to a percentage of 400
+    const rawPerc = (diff / 400) * 100;
+    // Round it for neat display
+    const roundedPerc = Math.round(rawPerc);
+
+    // Update overlay text
+    highlightText.textContent =
+      `Wow! You have over ${roundedPerc}% more in value than the average user.`;
+
+    // Show the banner
+    highlightBox.style.display = "block";
+  } else {
+    // If scenarioTotal <= 400, hide the banner or adjust your copy
+    highlightBox.style.display = "none";
   }
+}
 
   // 5) Update the stat cards
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
