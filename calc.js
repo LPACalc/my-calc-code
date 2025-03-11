@@ -643,8 +643,7 @@ function buildUseCaseSlides(allUseCases) {
  * buildFilteredUseCaseSlides => filters realWorldUseCases by category
  * or shows all if category is null, then re-initializes Swiper
  */
- * @param {string[]} categories - An array of categories (e.g. ["Hotel", "Flight"]).
- */
+
 function buildFilteredUseCaseSlides(categories) {
   // 1) Gather all recommended, affordable use cases
   let allUseCasesArr = gatherAllRecommendedUseCases();
