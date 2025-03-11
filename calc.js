@@ -895,6 +895,7 @@ function initUseCaseSwiper() {
 /*******************************************************
  * buildOutputRows => ensure use cases are loaded if Travel
  *******************************************************/
+// Add "async"
 async function buildOutputRows(viewType) {
   const data = gatherProgramData();
   $("#output-programs-list").empty();
@@ -904,114 +905,41 @@ async function buildOutputRows(viewType) {
   let totalCashValue = 0;
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
-  data.forEach((item) => {
-    const prog = loyaltyPrograms[item.recordId];
-    const logoUrl = prog?.["Brand Logo URL"] || "";
-    const tVal = item.points * (prog?.["Travel Value"] || 0);
-    const cVal = item.points * (prog?.["Cash Value"] || 0);
-
-    totalTravelValue += tVal;
-    totalCashValue += cVal;
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
-
-    const formattedVal = `$${rowVal.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>
-    `;
-
-  // If Travel => ensure use cases are loaded, then build slider
-if (viewType === "travel") {
-  await loadUseCasesIfNeeded();  // ensure realWorldUseCases is loaded
-
-  // Gather recommended, affordable use cases
-  const allUseCases = gatherAllRecommendedUseCases();
-
-  // If none found, hide the slider section
-  if (!allUseCases.length) {
-    $(".usecase-slider-section").hide();
-  } else {
-    // Otherwise, show + rebuild the slides
-    $(".usecase-slider-section").show();
-    buildUseCaseSlides(allUseCases);
-
-    // If there's already a swiper, destroy it
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    initUseCaseSwiper();
-  }
+  // ... your existing forEach code ...
   
-} else {
-  // If user switched to "cash," destroy the swiper
-  if (useCaseSwiper) {
-    useCaseSwiper.destroy(true, true);
-    useCaseSwiper = null;
-  }
-  // You can also hide .usecase-slider-section if you like
-  $(".usecase-slider-section").hide();
-}
-
-    $("#output-programs-list").append(rowHtml);
+  data.forEach((item) => {
+    // build rowHtml, append it, etc.
+    // (No await calls belong in here unless you specifically want them.)
   });
 
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-  $("#output-programs-list").append(`
-    <div class="total-value-row" 
-         style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>
-  `);
-
-  // Update stat cards
+  // Summaries, chart updates
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
-  $("#travel-value-card .card-value").text(
-    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
-  $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
+  // etc
 
-  // Rebuild the bar chart
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-
-  // Rebuild the donut chart
-  renderPieChartProgramShare(data);
-
-  // If Travel => ensure use cases are loaded, then build slider
+  // Now do the "if travel => loadUseCasesIfNeeded() => buildUseCaseSlides"
   if (viewType === "travel") {
-    await loadUseCasesIfNeeded();  // make sure they're loaded
+    await loadUseCasesIfNeeded();  // now valid because buildOutputRows is async
 
     const allUseCases = gatherAllRecommendedUseCases();
-    buildUseCaseSlides(allUseCases);
+    if (!allUseCases.length) {
+      $(".usecase-slider-section").hide();
+    } else {
+      $(".usecase-slider-section").show();
+      buildUseCaseSlides(allUseCases);
 
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
+      if (useCaseSwiper) {
+        useCaseSwiper.destroy(true, true);
+      }
+      initUseCaseSwiper();
     }
-    initUseCaseSwiper();
   } else {
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
     }
+    $(".usecase-slider-section").hide();
   }
 }
+
 
 /*******************************************************
  * buildUseCaseAccordionContent
