@@ -1220,6 +1220,28 @@ async function buildOutputRows(viewType) {
   }
 }
 
+// Just after scenarioTotal is computed:
+const highlightBox = document.getElementById("valueHighlightBox");
+const highlightText = document.getElementById("highlight-text");
+
+// Compare scenarioTotal to the $400 benchmark:
+if (scenarioTotal > 400) {
+  const diff = scenarioTotal - 400;
+  const rawPerc = (diff / 400) * 100;
+  const roundedPerc = Math.round(rawPerc);
+
+  // Update the overlay text:
+  highlightText.textContent = `Wow! You have over ${roundedPerc}% more in value than the average user.`;
+
+  // Make sure the banner is visible:
+  highlightBox.style.display = "block";
+} else {
+  // If user is below $400, you can hide the banner or adjust copy
+  highlightBox.style.display = "none";
+}
+
+
+
 
 
 /*******************************************************
