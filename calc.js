@@ -947,8 +947,60 @@ async function buildOutputRows(viewType) {
 /*******************************************************
  * buildUseCaseAccordionContent
  *******************************************************/
+d]/*******************************************************
+ * buildUseCaseAccordionContent
+ *******************************************************/
+function buildUseCaseAccordionContent(recordId, userPoints) {
+  // 1) Safety check: if no program data, bail
+  const program = loyaltyPrograms[recordId];
+  if (!program) {
+    return `<div style="padding:1rem;">No data found.</div>`;
+  }
+
+  // 2) Filter realWorldUseCases for recommended, affordable, etc.
+  const matching = Object.values(realWorldUseCases).filter((uc) => {
+    if (!uc.Recommended) return false;
+    if (!uc["Points Required"]) return false;
+    if (!uc["Use Case Title"]) return false;
+    if (!uc["Use Case Body"]) return false;
+
+    // Must link to this recordId
+    const linked = uc["Program Name"] || [];
+    const canAfford = (uc["Points Required"] <= userPoints);
+
+    return linked.includes(recordId) && canAfford;
+  });
+
+  // 3) If none found, return a simple message
+  if (!matching.length) {
+    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
+  }
+
+  // 4) Otherwise, let's just show the first one. 
+  //    Or you can loop them, display pills, etc.
+  const first = matching[0];
+  const imageURL = first["Use Case URL"] || "";
+  const title    = first["Use Case Title"] || "Untitled";
+  const body     = first["Use Case Body"]  || "No description";
+
+  return `
+    <div style="padding:1rem;">
+      <h4>${title}</h4>
+      ${
+        imageURL
+          ? `<img src="${imageURL}" alt="Use Case" style="width:100px; float:left; margin-right:8px;" />`
+          : ""
+      }
+      <p>${body}</p>
+    </div>
+  `;
+}
+
+/*******************************************************
+ * buildOutputRows => ensure use cases are loaded if Travel
+ *******************************************************/
 async function buildOutputRows(viewType) {
-  // 1) Gather the user’s program data from the calculator
+  // 1) Gather user’s program data
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
@@ -957,28 +1009,25 @@ async function buildOutputRows(viewType) {
   let totalCashValue = 0;
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
-  // 2) For each chosen program, compute travel/cash values and build an output row
+  // 2) For each chosen program, compute travel/cash values and build a row
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
     const logoUrl = prog?.["Brand Logo URL"] || "";
     const tVal = item.points * (prog?.["Travel Value"] || 0);
     const cVal = item.points * (prog?.["Cash Value"] || 0);
 
-    // Accumulate totals
     totalTravelValue += tVal;
     totalCashValue += cVal;
 
-    // Decide which value to show for this row
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
-    // Format the row value as currency
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })}`;
 
-    // Build the row HTML
+    // Build the row
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
@@ -989,7 +1038,7 @@ async function buildOutputRows(viewType) {
       </div>
     `;
 
-    // (Optional) If travel view, include the “accordion” with recommended use cases
+    // If travel => add the recommended use-cases accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion">
@@ -998,11 +1047,10 @@ async function buildOutputRows(viewType) {
       `;
     }
 
-    // Append this row to the output
     $("#output-programs-list").append(rowHtml);
   });
 
-  // 3) Display the total scenario value at the bottom
+  // 3) Display the total scenario value at bottom
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -1015,7 +1063,7 @@ async function buildOutputRows(viewType) {
     </div>
   `);
 
-  // 4) Update the stat cards for Total Points, Travel Value, Cash Value
+  // 4) Update stat cards
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
   $("#travel-value-card .card-value").text(
     "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
@@ -1024,24 +1072,20 @@ async function buildOutputRows(viewType) {
     "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // 5) Render the bar chart and donut chart
+  // 5) Render bar + donut charts
   renderValueComparisonChart(totalTravelValue, totalCashValue);
   renderPieChartProgramShare(data);
 
-  // 6) If travel, load recommended use cases into the Swiper
+  // 6) If Travel => load recommended use cases for Swiper
   if (viewType === "travel") {
-    await loadUseCasesIfNeeded(); // ensure realWorldUseCases is loaded
+    await loadUseCasesIfNeeded();
 
     const allUseCases = gatherAllRecommendedUseCases();
     if (!allUseCases.length) {
-      // Hide the swiper section if no use cases match
       $(".usecase-slider-section").hide();
     } else {
-      // Otherwise, show the swiper and populate slides
       $(".usecase-slider-section").show();
       buildUseCaseSlides(allUseCases);
-
-      // If there's already a swiper, destroy it
       if (useCaseSwiper) {
         useCaseSwiper.destroy(true, true);
         useCaseSwiper = null;
@@ -1049,7 +1093,7 @@ async function buildOutputRows(viewType) {
       initUseCaseSwiper();
     }
   } else {
-    // If user switched to "cash," hide/destroy the swiper
+    // If user switched to "cash," hide/destroy the Swiper
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
       useCaseSwiper = null;
@@ -1057,6 +1101,7 @@ async function buildOutputRows(viewType) {
     $(".usecase-slider-section").hide();
   }
 }
+
 
 
 /*******************************************************
