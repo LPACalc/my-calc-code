@@ -628,31 +628,50 @@ buildFilteredUseCaseSlides(currentUseCaseCategory);
 function buildFilteredUseCaseSlides(categories) {
   let allUseCasesArr = Object.values(realWorldUseCases);
 
-  // If at least one category is selected, do union-based filtering
   if (categories && categories.length > 0) {
-    allUseCasesArr = allUseCasesArr.filter((uc) => {
-      return categories.includes(uc["Category"]);
-    });
-  }
+    // Union-based filter if categories are selected
+    allUseCasesArr = allUseCasesArr.filter(uc => categories.includes(uc["Category"]));
+  } 
 
-  // If no matching use cases, hide the slider entirely
   const $sliderSection = $(".usecase-slider-section");
   if (allUseCasesArr.length === 0) {
-    $sliderSection.hide();  // or show "No results" message
+    // If no matching use cases, hide the slider (or show a "No results" message)
+    $sliderSection.hide();
     return;
   } else {
     $sliderSection.show();
   }
 
-  // Rebuild slides
+  // Build slides
   buildUseCaseSlides(allUseCasesArr);
 
-  // Re-init or destroy the swiper
+  // Pick random slide if no categories selected
+  let initialIndex = 0;
+  if (!categories || categories.length === 0) {
+    initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
+  }
+
+  // Re-init the Swiper
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
   }
-  initUseCaseSwiper();
+
+  useCaseSwiper = new Swiper('#useCaseSwiper', {
+    slidesPerView: 1,
+    loop: true,
+    // KEY: Show the random slide if no pills selected
+    initialSlide: initialIndex,
+    pagination: {
+      el: '.swiper-pagination',
+      clickable: true,
+      dynamicBullets: true
+    },
+    navigation: {
+      nextEl: '.swiper-button-next',
+      prevEl: '.swiper-button-prev'
+    }
+  });
 }
 
 
@@ -1092,25 +1111,23 @@ $(document).ready(function() {
 $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
   const category = $pill.data("category");
-  
-  // Toggle the pill’s active state
-  const isActive = $pill.hasClass("active-pill");
-  if (isActive) {
-    // If already active, unselect it
+
+  // Toggle
+  if ($pill.hasClass("active-pill")) {
+    // unselect
     $pill.removeClass("active-pill");
-    // Switch icon back to black
     const blackIcon = $pill.data("iconBlack");
     $pill.find(".pill-icon").attr("src", blackIcon);
     selectedCategories.delete(category);
   } else {
-    // Otherwise, select it
+    // select
     $pill.addClass("active-pill");
-    // Switch icon to white
     const whiteIcon = $pill.data("iconWhite");
     $pill.find(".pill-icon").attr("src", whiteIcon);
     selectedCategories.add(category);
   }
 
+  // Rebuild slides with union of chosen categories
   buildFilteredUseCaseSlides([...selectedCategories]);
 });
 
