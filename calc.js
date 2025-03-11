@@ -627,36 +627,34 @@ function buildUseCaseSlides(allUseCases) {
  * or shows all if category is null, then re-initializes Swiper
  */
 function buildFilteredUseCaseSlides(categories) {
-  // 1) Start from the recommended, affordable use cases
-  let allUseCasesArr = gatherAllRecommendedUseCases(); 
-   // i.e. user can afford, program chosen, recommended = true
+  // 1) Gather all recommended, affordable use cases
+  let allUseCasesArr = gatherAllRecommendedUseCases();
 
-  // 2) If user has selected any category pills, filter further
+  // 2) If the user has selected any category pills, filter them
   if (categories && categories.length > 0) {
     allUseCasesArr = allUseCasesArr.filter(uc =>
       categories.includes(uc["Category"])
     );
   }
 
-  // 3) Show or hide the Swiper
-  const $sliderSection = $(".usecase-slider-section");
+  // 3) If nothing remains, hide the Swiper
   if (!allUseCasesArr.length) {
-    $sliderSection.hide();
+    $(".usecase-slider-section").hide();
     return;
   } else {
-    $sliderSection.show();
+    $(".usecase-slider-section").show();
   }
 
-  // 4) Build slides
+  // 4) Build the slides
   buildUseCaseSlides(allUseCasesArr);
 
-  // 5) Pick random slide if no categories
+  // 5) If no pills are selected, pick a random slide
   let initialIndex = 0;
   if (!categories || !categories.length) {
     initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
   }
 
-  // 6) Destroy old Swiper + init a new one
+  // 6) (Re)Initialize Swiper
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
@@ -671,8 +669,11 @@ function buildFilteredUseCaseSlides(categories) {
       prevEl: '.swiper-button-prev'
     }
   });
-   hideUnusedPills();
+
+  // 7) Hide category pills that produce no recommended use cases
+  hideUnusedPills();
 }
+
 
 
 
@@ -1410,6 +1411,7 @@ $(document).on("click", ".usecase-pill", function() {
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
     isTransitioning = false;
+    buildFilteredUseCaseSlides([...selectedCategories]);
   });
 
   
