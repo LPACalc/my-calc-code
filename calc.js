@@ -627,32 +627,34 @@ function buildUseCaseSlides(allUseCases) {
  * or shows all if category is null, then re-initializes Swiper
  */
 function buildFilteredUseCaseSlides(categories) {
-  let allUseCasesArr = Object.values(realWorldUseCases);
+  // 1) Start with recommended, affordable, chosen program use cases
+  let allUseCasesArr = gatherAllRecommendedUseCases(); 
+    // This returns only the ones the user can afford,
+    // for the user’s chosen programs, that are "Recommended."
 
+  // 2) If the user clicked any pills, filter by Category
   if (categories && categories.length > 0) {
-    // Union-based filter if categories are selected
-    allUseCasesArr = allUseCasesArr.filter(uc => categories.includes(uc["Category"]));
-  } 
+    allUseCasesArr = allUseCasesArr.filter(uc =>
+      categories.includes(uc["Category"])
+    );
+  }
 
+  // 3) Same old logic: if none remain, hide; otherwise build slides
   const $sliderSection = $(".usecase-slider-section");
-  if (allUseCasesArr.length === 0) {
-    // If no matching use cases, hide the slider (or show a "No results" message)
+  if (!allUseCasesArr.length) {
     $sliderSection.hide();
     return;
   } else {
     $sliderSection.show();
   }
 
-  // Build slides
   buildUseCaseSlides(allUseCasesArr);
 
-  // Pick random slide if no categories selected
   let initialIndex = 0;
-  if (!categories || categories.length === 0) {
+  if (!categories || !categories.length) {
     initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
   }
 
-  // Re-init the Swiper
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
@@ -661,7 +663,6 @@ function buildFilteredUseCaseSlides(categories) {
   useCaseSwiper = new Swiper('#useCaseSwiper', {
     slidesPerView: 1,
     loop: true,
-    // KEY: Show the random slide if no pills selected
     initialSlide: initialIndex,
     pagination: {
       el: '.swiper-pagination',
@@ -674,6 +675,7 @@ function buildFilteredUseCaseSlides(categories) {
     }
   });
 }
+
 
 
 /*******************************************************
