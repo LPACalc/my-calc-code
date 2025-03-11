@@ -643,51 +643,62 @@ function buildUseCaseSlides(allUseCases) {
  * buildFilteredUseCaseSlides => filters realWorldUseCases by category
  * or shows all if category is null, then re-initializes Swiper
  */
+ * @param {string[]} categories - An array of categories (e.g. ["Hotel", "Flight"]).
+ */
 function buildFilteredUseCaseSlides(categories) {
   // 1) Gather all recommended, affordable use cases
   let allUseCasesArr = gatherAllRecommendedUseCases();
 
-  // 2) If the user has selected any category pills, filter them
+  // 2) Filter those use cases if categories are selected
   if (categories && categories.length > 0) {
-    allUseCasesArr = allUseCasesArr.filter(uc =>
+    allUseCasesArr = allUseCasesArr.filter((uc) =>
       categories.includes(uc["Category"])
     );
   }
 
-  // 3) If nothing remains, hide the Swiper
+  // 3) If no results remain, hide the Swiper container
   if (!allUseCasesArr.length) {
     $(".usecase-slider-section").hide();
+    // Also hide or reset the pill row if desired
+    hideUnusedPills(); 
     return;
   } else {
     $(".usecase-slider-section").show();
   }
 
-  // 4) Build the slides
+  // 4) Build the slides with the filtered data
   buildUseCaseSlides(allUseCasesArr);
 
-  // 5) If no pills are selected, pick a random slide
+  // 5) Decide what slide to show first. 
+  //    If no categories selected, pick a random index; else start at 0.
   let initialIndex = 0;
   if (!categories || !categories.length) {
     initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
   }
 
-  // 6) (Re)Initialize Swiper
+  // 6) If there was already a Swiper, destroy it before re-initializing
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
   }
-  useCaseSwiper = new Swiper('#useCaseSwiper', {
+
+  // 7) Create a fresh Swiper
+  useCaseSwiper = new Swiper("#useCaseSwiper", {
     slidesPerView: 1,
     loop: true,
     initialSlide: initialIndex,
-    pagination: { el: '.swiper-pagination', clickable: true },
+    pagination: {
+      el: ".swiper-pagination",
+      clickable: true
+    },
     navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev"
     }
   });
 
-  // 7) Hide category pills that produce no recommended use cases
+  // 8) Finally, hide any category pills that aren’t relevant and/or 
+  //    hide the entire pill row if there's only 0 or 1 category left.
   hideUnusedPills();
 }
 
@@ -894,21 +905,62 @@ function gatherAllRecommendedUseCases() {
 
 
 function hideUnusedPills() {
-  const recommended = gatherAllRecommendedUseCases(); // user’s chosen programs + points
+  // All recommended use cases for the user’s chosen programs
+  const recommended = gatherAllRecommendedUseCases(); 
   const validCategories = new Set();
+  
+  // Collect which categories actually appear in recommended use cases
   recommended.forEach((uc) => {
     if (uc.Category) validCategories.add(uc.Category);
   });
 
-  $(".usecase-pill").each(function() {
-    const pillCategory = $(this).data("category");
-    if (!validCategories.has(pillCategory)) {
-      $(this).hide();
+  // If we have 0 or 1 category left, hide the entire pill row
+  const filterBar = document.querySelector(".usecase-filter-bar");
+  if (!filterBar) return;
+
+  if (validCategories.size <= 1) {
+    filterBar.style.display = "none";
+    return;
+  } else {
+    // Show the filter bar
+    filterBar.style.display = "block";
+  }
+
+  // Otherwise, update each pill’s visibility
+  // Hide any pills whose category is not in validCategories
+  const pillEls = document.querySelectorAll(".usecase-pill");
+  pillEls.forEach((pill) => {
+    const pillCat = pill.getAttribute("data-category");
+    // Show if category is in validCategories; otherwise hide
+    if (validCategories.has(pillCat)) {
+      pill.style.display = "inline-flex";
     } else {
-      $(this).show();
+      pill.style.display = "none";
     }
   });
+
+  // After that, figure out how many pills remain visible
+  const visiblePills = [...pillEls].filter(
+    (p) => p.style.display !== "none"
+  );
+
+  // If the user wants the row to always stretch full width,
+  // we can dynamically set each pill’s width if fewer than 4 remain.
+  if (visiblePills.length > 1 && visiblePills.length < 4) {
+    // e.g. 2 or 3 pills => each can share the row
+    // you can adjust the “- 8px” if you want bigger or smaller spacing
+    visiblePills.forEach((p) => {
+      p.style.width = `calc(${100 / visiblePills.length}% - 8px)`;
+      p.style.justifyContent = "center";
+    });
+  } else {
+    // revert to your default width if 4 or more are visible
+    visiblePills.forEach((p) => {
+      p.style.width = "100px";
+    });
+  }
 }
+
 
 
 
