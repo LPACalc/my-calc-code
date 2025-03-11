@@ -627,19 +627,18 @@ function buildUseCaseSlides(allUseCases) {
  * or shows all if category is null, then re-initializes Swiper
  */
 function buildFilteredUseCaseSlides(categories) {
-  // 1) Start with recommended, affordable, chosen program use cases
+  // 1) Start from the recommended, affordable use cases
   let allUseCasesArr = gatherAllRecommendedUseCases(); 
-    // This returns only the ones the user can afford,
-    // for the user’s chosen programs, that are "Recommended."
+   // i.e. user can afford, program chosen, recommended = true
 
-  // 2) If the user clicked any pills, filter by Category
+  // 2) If user has selected any category pills, filter further
   if (categories && categories.length > 0) {
     allUseCasesArr = allUseCasesArr.filter(uc =>
       categories.includes(uc["Category"])
     );
   }
 
-  // 3) Same old logic: if none remain, hide; otherwise build slides
+  // 3) Show or hide the Swiper
   const $sliderSection = $(".usecase-slider-section");
   if (!allUseCasesArr.length) {
     $sliderSection.hide();
@@ -648,27 +647,25 @@ function buildFilteredUseCaseSlides(categories) {
     $sliderSection.show();
   }
 
+  // 4) Build slides
   buildUseCaseSlides(allUseCasesArr);
 
+  // 5) Pick random slide if no categories
   let initialIndex = 0;
   if (!categories || !categories.length) {
     initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
   }
 
+  // 6) Destroy old Swiper + init a new one
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
   }
-
   useCaseSwiper = new Swiper('#useCaseSwiper', {
     slidesPerView: 1,
     loop: true,
     initialSlide: initialIndex,
-    pagination: {
-      el: '.swiper-pagination',
-      clickable: true,
-      dynamicBullets: true
-    },
+    pagination: { el: '.swiper-pagination', clickable: true },
     navigation: {
       nextEl: '.swiper-button-next',
       prevEl: '.swiper-button-prev'
@@ -875,6 +872,33 @@ function gatherAllRecommendedUseCases() {
   return results;
 }
 
+
+
+function hideUnusedPills() {
+  // 1) Gather the recommended, affordable use cases for the user
+  const recommended = gatherAllRecommendedUseCases();
+
+  // 2) Build a Set of categories that actually appear in the recommended data
+  const validCategories = new Set();
+  recommended.forEach((uc) => {
+    if (uc.Category) {
+      validCategories.add(uc.Category);
+    }
+  });
+
+  // 3) Loop over each pill; hide if it's not in validCategories
+  $(".usecase-pill").each(function() {
+    const pillCategory = $(this).data("category");
+    if (!validCategories.has(pillCategory)) {
+      // Hide if no recommended use cases for that category
+      $(this).hide();
+    } else {
+      $(this).show();
+    }
+  });
+}
+
+
 /*******************************************************
  * initUseCaseSwiper
  *******************************************************/
@@ -901,49 +925,129 @@ function initUseCaseSwiper() {
  * buildOutputRows => ensure use cases are loaded if Travel
  *******************************************************/
 // Add "async"
+/*******************************************************
+ * buildOutputRows => ensures use cases are loaded if Travel
+ *******************************************************/
 async function buildOutputRows(viewType) {
+  // 1) Gather user’s program data
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
+  // 2) Initialize totals
   let scenarioTotal = 0;
   let totalTravelValue = 0;
   let totalCashValue = 0;
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
-  // ... your existing forEach code ...
-  
+  // 3) For each chosen program, compute travel/cash values and build an output row
   data.forEach((item) => {
-    // build rowHtml, append it, etc.
-    // (No await calls belong in here unless you specifically want them.)
+    const prog = loyaltyPrograms[item.recordId];
+    if (!prog) return;
+
+    // Multipliers from your data
+    const travelMultiplier = prog["Travel Value"] || 0;
+    const cashMultiplier   = prog["Cash Value"]   || 0;
+
+    // Calculate totals
+    const tVal = item.points * travelMultiplier;
+    const cVal = item.points * cashMultiplier;
+    totalTravelValue += tVal;
+    totalCashValue   += cVal;
+
+    // Decide which value to show
+    const rowVal = (viewType === "travel") ? tVal : cVal;
+    scenarioTotal += rowVal;
+
+    // Format for display
+    const formattedVal = `$${rowVal.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })}`;
+
+    // Program branding
+    const logoUrl = prog["Brand Logo URL"] || "";
+
+    // Build the row
+    let rowHtml = `
+      <div class="output-row" data-record-id="${item.recordId}">
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <img src="${logoUrl}" alt="logo" style="width:50px;">
+          <span class="program-name">${item.programName}</span>
+        </div>
+        <div class="output-value">${formattedVal}</div>
+      </div>
+    `;
+
+    // If travel => add the recommended use-cases accordion
+    if (viewType === "travel") {
+      rowHtml += `
+        <div class="usecase-accordion">
+          ${buildUseCaseAccordionContent(item.recordId, item.points)}
+        </div>
+      `;
+    }
+
+    // Append row to the output list
+    $("#output-programs-list").append(rowHtml);
   });
 
-  // Summaries, chart updates
+  // 4) Display the total scenario value at the bottom
+  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  })}`;
+  $("#output-programs-list").append(`
+    <div class="total-value-row" 
+         style="text-align:center; margin-top:1rem; font-weight:600;">
+      ${label}: ${totalStr}
+    </div>
+  `);
+
+  // 5) Update the stat cards
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
-  // etc
+  $("#travel-value-card .card-value").text(
+    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+  );
+  $("#cash-value-card .card-value").text(
+    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
+  );
 
-  // Now do the "if travel => loadUseCasesIfNeeded() => buildUseCaseSlides"
+  // 6) Render bar + donut charts
+  renderValueComparisonChart(totalTravelValue, totalCashValue);
+  renderPieChartProgramShare(data);
+
+  // 7) If Travel => load recommended use cases for the Swiper
   if (viewType === "travel") {
-    await loadUseCasesIfNeeded();  // now valid because buildOutputRows is async
+    // Make sure real-world use cases are loaded
+    await loadUseCasesIfNeeded();
 
+    // Show/hide category pills based on new recommended set
     const allUseCases = gatherAllRecommendedUseCases();
+    hideUnusedPills();
+
     if (!allUseCases.length) {
       $(".usecase-slider-section").hide();
     } else {
       $(".usecase-slider-section").show();
       buildUseCaseSlides(allUseCases);
 
+      // Destroy old Swiper if any, then re-init
       if (useCaseSwiper) {
         useCaseSwiper.destroy(true, true);
+        useCaseSwiper = null;
       }
       initUseCaseSwiper();
     }
   } else {
+    // If user switched to "cash", destroy/hide the Swiper
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
     }
     $(".usecase-slider-section").hide();
   }
 }
+
 
 
 /*******************************************************
