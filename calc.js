@@ -1377,9 +1377,19 @@ $("#hero-get-started-btn").on("click", function() {
   $("#default-hero").addClass("hidden");
   $("#loading-screen").addClass("hidden");
   $("#input-state").removeClass("hidden");
-  ...
+
+  // Show left column if wide
+  if (window.innerWidth >= 992) {
+    $(".left-column").removeClass("hidden");
+    document.querySelector(".left-column").style.display = "flex";
+  }
+
+  updateNextCTAVisibility();
+  updateClearAllVisibility();
+
   isTransitioning = false;
 });
+
 
 
   // =============== HERO => HOW IT WORKS =================
