@@ -441,6 +441,7 @@ function toggleSearchItemSelection(itemEl) {
  *******************************************************/
 function toggleProgramSelection(boxEl) {
   const rid = boxEl.data("record-id");
+    console.log("toggleProgramSelection => Attempting to add record ID:", rid);
   const idx = chosenPrograms.indexOf(rid);
   if (idx === -1) {
     chosenPrograms.push(rid);
@@ -454,6 +455,8 @@ function toggleProgramSelection(boxEl) {
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
+    console.log("chosenPrograms =>", chosenPrograms);
+
 }
 
 /*******************************************************
