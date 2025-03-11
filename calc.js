@@ -947,9 +947,7 @@ async function buildOutputRows(viewType) {
 /*******************************************************
  * buildUseCaseAccordionContent
  *******************************************************/
-d]/*******************************************************
- * buildUseCaseAccordionContent
- *******************************************************/
+
 function buildUseCaseAccordionContent(recordId, userPoints) {
   // 1) Safety check: if no program data, bail
   const program = loyaltyPrograms[recordId];
