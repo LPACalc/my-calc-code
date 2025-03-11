@@ -262,7 +262,6 @@ async function initializeApp() {
     loadUseCasesIfNeeded().catch(err => {
       console.error("Error fetching Real-World =>", err);
     });
-
   } catch (err) {
     console.error("Error fetching Points Calc =>", err);
   }
@@ -1129,111 +1128,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   `;
 }
 
-/*******************************************************
- * buildOutputRows => ensure use cases are loaded if Travel
- *******************************************************/
-async function buildOutputRows(viewType) {
-  // 1) Gather user’s program data
-  const data = gatherProgramData();
-  $("#output-programs-list").empty();
 
-  let scenarioTotal = 0;
-  let totalTravelValue = 0;
-  let totalCashValue = 0;
-  const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
-
-  // 2) For each chosen program, compute travel/cash values and build a row
-  data.forEach((item) => {
-    const prog = loyaltyPrograms[item.recordId];
-    const logoUrl = prog?.["Brand Logo URL"] || "";
-    const tVal = item.points * (prog?.["Travel Value"] || 0);
-    const cVal = item.points * (prog?.["Cash Value"] || 0);
-
-    totalTravelValue += tVal;
-    totalCashValue += cVal;
-
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
-
-    const formattedVal = `$${rowVal.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    // Build the row
-    let rowHtml = `
-      <div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>
-    `;
-
-    // If travel => add the recommended use-cases accordion
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
-    $("#output-programs-list").append(rowHtml);
-  });
-
-  // 3) Display the total scenario value at bottom
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-  $("#output-programs-list").append(`
-    <div class="total-value-row" 
-         style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>
-  `);
-
-  // 4) Update stat cards
-  $("#total-points-card .card-value").text(totalPoints.toLocaleString());
-  $("#travel-value-card .card-value").text(
-    "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
-  $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
-
-  // 5) Render bar + donut charts
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
-
-  // 6) If Travel => load recommended use cases for Swiper
-  if (viewType === "travel") {
-    await loadUseCasesIfNeeded();
-
-    const allUseCases = gatherAllRecommendedUseCases();
-    if (!allUseCases.length) {
-      $(".usecase-slider-section").hide();
-    } else {
-      $(".usecase-slider-section").show();
-      buildUseCaseSlides(allUseCases);
-      if (useCaseSwiper) {
-        useCaseSwiper.destroy(true, true);
-        useCaseSwiper = null;
-      }
-      initUseCaseSwiper();
-    }
-  } else {
-    // If user switched to "cash," hide/destroy the Swiper
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    $(".usecase-slider-section").hide();
-  }
-}
 
 
 
