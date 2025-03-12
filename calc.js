@@ -740,7 +740,9 @@ function renderValueComparisonChart(travelValue, cashValue) {
           barPercentage: 0.8,
           ticks: {
             font: { size: 14, weight: '600' }
-          }
+          },
+          maxTicksLimit: 4,
+            font: { size: 14, weight: '600' }
         }
       },
       plugins: {
