@@ -1371,8 +1371,9 @@ $(document).ready(function() {
   }
 
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
-  $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
- hiw-final-start-btn").on("click", function() {
+$("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
+
+$("#hiw-final-start-btn").on("click", function() {
   if (isTransitioning) return;
   isTransitioning = true;
   logSessionEvent("hiw_final_get_started");
@@ -1388,26 +1389,26 @@ $(document).ready(function() {
     $("#default-hero").addClass("hidden");
     $("#loading-screen").addClass("hidden");
 
-    // Show the next state (e.g. input or whichever is next)
+    // Show the next state (input or whichever is next)
     $("#input-state").removeClass("hidden");
-    
-    // *** KEY PART ***: if it's desktop, show the left column
+
+    // If it’s desktop, show the left column
     if ($(window).width() >= 992) {
       $(".left-column").removeClass("hidden");
       document.querySelector(".left-column").style.display = "flex";
     }
 
-    // Any additional housekeeping
     updateNextCTAVisibility();
     updateClearAllVisibility();
     isTransitioning = false;
 
   } else {
-    // If data isn’t loaded, show the loading screen, etc.
+    // If data isn’t loaded, show a loading screen
     $("#loading-screen").removeClass("hidden");
     isTransitioning = false;
   }
 });
+
 
   // Input => BACK => hero
   $("#input-back-btn").on("click", function() {
