@@ -37,13 +37,15 @@ let isTransitioning = false;
 let pointsMap = {};
 let selectedCategories = new Set();
 
-
 let dataLoaded = false;
 let userClickedGetStarted = false;
 
 /** For the bar & donut charts: */
 let barChartInstance = null;
 let pieChartInstance = null;
+
+/** NEW: for the per-program bar chart (under highlight box) */
+let programsBarChart = null;
 
 /** For the use case slider: */
 let useCaseSwiper = null;
@@ -252,7 +254,6 @@ async function initializeApp() {
     buildTopProgramsSection();
 
     // 3) Kick off other tasks in the background:
-    //    IP fetch + approximate location
     (async () => {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
@@ -458,7 +459,7 @@ function toggleSearchItemSelection(itemEl) {
  *******************************************************/
 function toggleProgramSelection(boxEl) {
   const rid = boxEl.data("record-id");
-    console.log("toggleProgramSelection => Attempting to add record ID:", rid);
+  console.log("toggleProgramSelection => Attempting to add record ID:", rid);
   const idx = chosenPrograms.indexOf(rid);
   if (idx === -1) {
     chosenPrograms.push(rid);
@@ -472,8 +473,7 @@ function toggleProgramSelection(boxEl) {
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
-    console.log("chosenPrograms =>", chosenPrograms);
-
+  console.log("chosenPrograms =>", chosenPrograms);
 }
 
 /*******************************************************
@@ -604,7 +604,7 @@ function buildUseCaseSlides(allUseCases) {
     }
 
     slideHTML += `
-      <div class="swiper-slide">
+      <div class="swiper-slide" data-ucid="${uc.id}">
         <div class="slide-image-wrapper">
           <img
             src="${imageURL}"
@@ -634,54 +634,42 @@ function buildUseCaseSlides(allUseCases) {
     `;
   });
 
-  // Insert all slides into the DOM.
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
-
 
 /**
  * buildFilteredUseCaseSlides => filters realWorldUseCases by category
  * or shows all if category is null, then re-initializes Swiper
  */
-
 function buildFilteredUseCaseSlides(categories) {
-  // 1) Gather all recommended, affordable use cases
   let allUseCasesArr = gatherAllRecommendedUseCases();
 
-  // 2) Filter those use cases if categories are selected
   if (categories && categories.length > 0) {
     allUseCasesArr = allUseCasesArr.filter((uc) =>
       categories.includes(uc["Category"])
     );
   }
 
-  // 3) If no results remain, hide the Swiper container
   if (!allUseCasesArr.length) {
     $(".usecase-slider-section").hide();
-    // Also hide or reset the pill row if desired
     hideUnusedPills(); 
     return;
   } else {
     $(".usecase-slider-section").show();
   }
 
-  // 4) Build the slides with the filtered data
   buildUseCaseSlides(allUseCasesArr);
 
-  // 5) Decide what slide to show first. 
-  //    If no categories selected, pick a random index; else start at 0.
   let initialIndex = 0;
   if (!categories || !categories.length) {
     initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
   }
 
-  // 6) If there was already a Swiper, destroy it before re-initializing
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
     useCaseSwiper = null;
   }
 
-  // 7) Create a fresh Swiper
   useCaseSwiper = new Swiper("#useCaseSwiper", {
     slidesPerView: 1,
     loop: true,
@@ -696,13 +684,8 @@ function buildFilteredUseCaseSlides(categories) {
     }
   });
 
-  // 8) Finally, hide any category pills that aren’t relevant and/or 
-  //    hide the entire pill row if there's only 0 or 1 category left.
   hideUnusedPills();
 }
-
-
-
 
 /*******************************************************
  * BAR CHART => Travel vs Cash
@@ -901,19 +884,14 @@ function gatherAllRecommendedUseCases() {
   return results;
 }
 
-
-
 function hideUnusedPills() {
-  // All recommended use cases for the user’s chosen programs
   const recommended = gatherAllRecommendedUseCases(); 
   const validCategories = new Set();
   
-  // Collect which categories actually appear in recommended use cases
   recommended.forEach((uc) => {
     if (uc.Category) validCategories.add(uc.Category);
   });
 
-  // If we have 0 or 1 category left, hide the entire pill row
   const filterBar = document.querySelector(".usecase-filter-bar");
   if (!filterBar) return;
 
@@ -921,16 +899,12 @@ function hideUnusedPills() {
     filterBar.style.display = "none";
     return;
   } else {
-    // Show the filter bar
     filterBar.style.display = "block";
   }
 
-  // Otherwise, update each pill’s visibility
-  // Hide any pills whose category is not in validCategories
   const pillEls = document.querySelectorAll(".usecase-pill");
   pillEls.forEach((pill) => {
     const pillCat = pill.getAttribute("data-category");
-    // Show if category is in validCategories; otherwise hide
     if (validCategories.has(pillCat)) {
       pill.style.display = "inline-flex";
     } else {
@@ -938,30 +912,21 @@ function hideUnusedPills() {
     }
   });
 
-  // After that, figure out how many pills remain visible
   const visiblePills = [...pillEls].filter(
     (p) => p.style.display !== "none"
   );
 
-  // If the user wants the row to always stretch full width,
-  // we can dynamically set each pill’s width if fewer than 4 remain.
   if (visiblePills.length > 1 && visiblePills.length < 4) {
-    // e.g. 2 or 3 pills => each can share the row
-    // you can adjust the “- 8px” if you want bigger or smaller spacing
     visiblePills.forEach((p) => {
       p.style.width = `calc(${100 / visiblePills.length}% - 8px)`;
       p.style.justifyContent = "center";
     });
   } else {
-    // revert to your default width if 4 or more are visible
     visiblePills.forEach((p) => {
       p.style.width = "100px";
     });
   }
 }
-
-
-
 
 /*******************************************************
  * initUseCaseSwiper
@@ -988,38 +953,29 @@ function initUseCaseSwiper() {
 /*******************************************************
  * buildOutputRows => ensure use cases are loaded if Travel
  *******************************************************/
-
 async function buildOutputRows(viewType) {
-  // 1) Gather user’s program data
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
-  // 2) Initialize totals
   let scenarioTotal = 0;
   let totalTravelValue = 0;
   let totalCashValue = 0;
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
-  // 3) For each chosen program, compute travel/cash values
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
-
-    // Multipliers from your data
     const travelMultiplier = prog["Travel Value"] || 0;
     const cashMultiplier   = prog["Cash Value"]   || 0;
 
-    // Totals for the final bar chart
     const tVal = item.points * travelMultiplier;
     const cVal = item.points * cashMultiplier;
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    // Decide which value to show in the “output row”
     const rowVal = (viewType === "travel") ? tVal : cVal;
     scenarioTotal += rowVal;
 
-    // Build an output row
     const logoUrl = prog["Brand Logo URL"] || "";
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
@@ -1036,7 +992,6 @@ async function buildOutputRows(viewType) {
       </div>
     `;
 
-    // If travel => add recommended use-cases accordion
     if (viewType === "travel") {
       rowHtml += `
         <div class="usecase-accordion">
@@ -1048,7 +1003,6 @@ async function buildOutputRows(viewType) {
     $("#output-programs-list").append(rowHtml);
   });
 
-  // 4) Display the total scenario value at the bottom
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
@@ -1061,32 +1015,22 @@ async function buildOutputRows(viewType) {
     </div>
   `);
 
-  // 4A) Update the highlight banner (scenarioTotal vs. $400)
- const highlightBox = document.getElementById("valueHighlightBox");
-const highlightText = document.getElementById("highlight-text");
-
-// Safety check: make sure these elements exist in the DOM
-if (highlightBox && highlightText) {
-  if (scenarioTotal > 400) {
-    // Calculate how much more than $400
-    const diff = scenarioTotal - 400;
-    // Convert that difference to a percentage of 400
-    const rawPerc = (diff / 400) * 100;
-    // Round it for neat display
-    const roundedPerc = Math.round(rawPerc);
-
-    // Update overlay text
-   const commaPerc = roundedPerc.toLocaleString(); 
-highlightText.innerHTML =
-  `Wow! You have over <strong>${commaPerc}%</strong> more in value than the average member.`;
-
-    // Show the banner
-    highlightBox.style.display = "block";
-  } else {
-    // If scenarioTotal <= 400, hide the banner or adjust your copy
-    highlightBox.style.display = "none";
+  // 4A) Update highlight box
+  const highlightBox = document.getElementById("valueHighlightBox");
+  const highlightText = document.getElementById("highlight-text");
+  if (highlightBox && highlightText) {
+    if (scenarioTotal > 400) {
+      const diff = scenarioTotal - 400;
+      const rawPerc = (diff / 400) * 100;
+      const roundedPerc = Math.round(rawPerc);
+      const commaPerc = roundedPerc.toLocaleString();
+      highlightText.innerHTML =
+        `Wow! You have over <strong>${commaPerc}%</strong> more in value than the average member.`;
+      highlightBox.style.display = "block";
+    } else {
+      highlightBox.style.display = "none";
+    }
   }
-}
 
   // 5) Update the stat cards
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
@@ -1097,14 +1041,13 @@ highlightText.innerHTML =
     "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // 6) Render bar + donut charts
+  // 6) Render bar + donut
   renderValueComparisonChart(totalTravelValue, totalCashValue);
   renderPieChartProgramShare(data);
 
-  // 7) If Travel => load recommended use-case slides for the Swiper
+  // 7) If Travel => load recommended use-case slides
   if (viewType === "travel") {
     await loadUseCasesIfNeeded();
-
     const allUseCases = gatherAllRecommendedUseCases();
     if (!allUseCases.length) {
       $(".usecase-slider-section").hide();
@@ -1118,7 +1061,6 @@ highlightText.innerHTML =
       initUseCaseSwiper();
     }
   } else {
-    // If user switched to "cash," hide/destroy the Swiper
     if (useCaseSwiper) {
       useCaseSwiper.destroy(true, true);
       useCaseSwiper = null;
@@ -1127,41 +1069,29 @@ highlightText.innerHTML =
   }
 }
 
-
-
-
 /*******************************************************
  * buildUseCaseAccordionContent
  *******************************************************/
-
 function buildUseCaseAccordionContent(recordId, userPoints) {
-  // 1) Safety check: if no program data, bail
   const program = loyaltyPrograms[recordId];
   if (!program) {
     return `<div style="padding:1rem;">No data found.</div>`;
   }
-
-  // 2) Filter realWorldUseCases for recommended, affordable, etc.
   const matching = Object.values(realWorldUseCases).filter((uc) => {
     if (!uc.Recommended) return false;
     if (!uc["Points Required"]) return false;
     if (!uc["Use Case Title"]) return false;
     if (!uc["Use Case Body"]) return false;
 
-    // Must link to this recordId
     const linked = uc["Program Name"] || [];
     const canAfford = (uc["Points Required"] <= userPoints);
-
     return linked.includes(recordId) && canAfford;
   });
 
-  // 3) If none found, return a simple message
   if (!matching.length) {
     return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
-  // 4) Otherwise, let's just show the first one. 
-  //    Or you can loop them, display pills, etc.
   const first = matching[0];
   const imageURL = first["Use Case URL"] || "";
   const title    = first["Use Case Title"] || "Untitled";
@@ -1180,19 +1110,159 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   `;
 }
 
+/*******************************************************
+ * NEW PLUGIN => Draw program logos on x-axis
+ *******************************************************/
+const logoAxisPlugin = {
+  id: 'logoAxisPlugin',
+  afterDraw(chart, args, options) {
+    const { ctx, chartArea, scales } = chart;
+    const { bottom } = chartArea;
+    const xAxis = scales.x;
 
+    const logoImages = options.images || [];
+    if (!xAxis || xAxis.ticks.length === 0) return;
+    if (xAxis.ticks.length !== logoImages.length) {
+      // Mismatch in tick count vs. images array length => do nothing
+      return;
+    }
 
+    // compute bar width for spacing
+    if (xAxis.ticks.length > 1) {
+      var barWidth = xAxis.getPixelForTick(1) - xAxis.getPixelForTick(0);
+    } else {
+      var barWidth = 50;
+    }
 
+    xAxis.ticks.forEach((tick, index) => {
+      if (!logoImages[index]) return;
+      const xPos = xAxis.getPixelForTick(index);
+      const imgSize = Math.min(barWidth * 0.6, 40);
+      const half = imgSize / 2;
+      const yPos = bottom + 5;
 
+      const img = new Image();
+      img.src = logoImages[index];
+      img.onload = function () {
+        ctx.drawImage(img, xPos - half, yPos, imgSize, imgSize);
+      };
+    });
+  }
+};
 
-
-
+// Register plugin once
+Chart.register(logoAxisPlugin);
 
 /*******************************************************
- * SETUP EVENT HANDLERS
+ * RENDER NEW BAR CHART => One bar per selected program
+ *******************************************************/
+function renderProgramsBarChart(metric) {
+  const data = gatherProgramData();
+  const labels = [];
+  const values = [];
+  const colors = [];
+  const logos = [];
+
+  data.forEach(item => {
+    const recordId = item.recordId;
+    const prog = loyaltyPrograms[recordId];
+    if (!prog) return;
+
+    labels.push(prog["Program Name"] || "Program");
+    logos.push(prog["Brand Logo URL"] || "");
+
+    let val = 0;
+    if (metric === "points") {
+      val = item.points;
+    } else if (metric === "travel") {
+      const tv = prog["Travel Value"] || 0;
+      val = item.points * tv;
+    } else if (metric === "cash") {
+      const cv = prog["Cash Value"] || 0;
+      val = item.points * cv;
+    }
+    values.push(val);
+
+    const c = prog["Color"] || "#999999";
+    colors.push(c);
+  });
+
+  if (programsBarChart) {
+    programsBarChart.destroy();
+    programsBarChart = null;
+  }
+
+  const ctx = document.getElementById("programsBarChart")?.getContext("2d");
+  if (!ctx) return;
+
+  programsBarChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "",
+          data: values,
+          backgroundColor: colors,
+          borderRadius: 4,
+          borderWidth: 0
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: "#eee" },
+          ticks: {
+            callback: function(value) {
+              if (metric === "points") {
+                return value.toLocaleString();
+              } else {
+                return "$" + value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+              }
+            }
+          }
+        }
+      },
+      layout: {
+        padding: {
+          bottom: 50
+        }
+      },
+      plugins: {
+        legend: { display: false },
+        logoAxisPlugin: {
+          images: logos
+        },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              const val = ctx.parsed.y || 0;
+              if (metric === "points") {
+                return val.toLocaleString() + " points";
+              } else {
+                return "$" + val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+              }
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+/*******************************************************
+ * DOCUMENT READY => EVENT HANDLERS
  *******************************************************/
 $(document).ready(function() {
-  // 1) Immediately fetch IP, location, and main loyalty programs
+  // Immediately fetch IP, location, and main loyalty programs
   (async () => {
     try {
       await fetchClientIP();
@@ -1200,7 +1270,6 @@ $(document).ready(function() {
       await initializeApp();
       dataLoaded = true;
 
-      // If the user clicked "Get Started" before data was loaded, reveal input now
       if (userClickedGetStarted) {
         $("#default-hero").addClass("hidden");
         $("#loading-screen").addClass("hidden");
@@ -1214,154 +1283,41 @@ $(document).ready(function() {
     }
   })();
 
-  // 2) Log the session load
   logSessionEvent("session_load");
 
-  // 3) Hide all states except hero at first
   $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").addClass("hidden");
   $("#default-hero").removeClass("hidden");
   $("#program-preview").addClass("hidden").empty();
   $(".left-column").addClass("hidden");
 
-  // 4) Apply lazy loading to all images except those in #default-hero or #input-state
-  //    This helps avoid downloading images for deeper states until needed
   $("#default-hero img, #input-state img").attr("loading", "eager");
   $("img").not("#default-hero img, #input-state img").attr("loading", "lazy");
 
+
   // =============== HERO => GET STARTED =================
-$(document).on("click", ".usecase-pill", function() {
-  const $pill = $(this);
-  const category = $pill.data("category");
-  const wasActive = $pill.hasClass("active-pill");
+  $("#hero-get-started-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
 
-  // Step A: Toggle the pill in selectedCategories
-  if (wasActive) {
-    // Deselect
-    $pill.removeClass("active-pill");
-    const blackIcon = $pill.data("iconBlack");
-    $pill.find(".pill-icon").attr("src", blackIcon);
-    selectedCategories.delete(category);
-  } else {
-    // Select
-    $pill.addClass("active-pill");
-    const whiteIcon = $pill.data("iconWhite");
-    $pill.find(".pill-icon").attr("src", whiteIcon);
-    selectedCategories.add(category);
-  }
-
-  // Step B: Identify the current slide’s category
-  // We assume each slide has data-ucid, or at least some marker for which category it is.
-  // For simplicity, let's read the category from the .slide-category-right text:
-  const currentIndex = useCaseSwiper.activeIndex;
-  const $currentSlide = $(useCaseSwiper.slides[currentIndex]);
-  const currentCategory = $currentSlide.find(".slide-category-right").text().trim();
-
-  // Step C: If the user just toggled the same category that’s currently displayed, DO NOTHING
-  // i.e. “If I’m looking at a Hotel slide and I turned Hotel on/off, don’t rebuild.”
-  if (currentCategory === category) {
-    return; 
-  }
-
-  // Step D: If the user DESELECTED a pill (wasActive === true => now off), DO NOTHING
-  // i.e. “Never change the slideshow at all if a pill is being turned off.”
-  if (wasActive) {
-    return;
-  }
-
-  // Otherwise, the user SELECTED a pill for a different category than the current slide => re-init
-  // Step E: Build a new array of recommended use cases, forcibly keeping the current slide
-  let newSlidesArr = gatherAllRecommendedUseCases(); 
-  if (selectedCategories.size > 0) {
-    newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
-  }
-
-  // Keep the current slide forcibly if it’s not in newSlidesArr
-  const currentUCId = $currentSlide.data("ucid");
-  const stillIn = newSlidesArr.some(uc => uc.id === currentUCId);
-  if (!stillIn) {
-    const oldUC = Object.values(realWorldUseCases).find(x => x.id === currentUCId);
-    if (oldUC) {
-      newSlidesArr.unshift(oldUC);
+    if (!dataLoaded) {
+      alert("Data is still loading—please wait a moment!");
+      isTransitioning = false;
+      return;
     }
-  }
 
-  // Step F: Rebuild slides
-  buildUseCaseSlides(newSlidesArr);
+    $("#default-hero").addClass("hidden");
+    $("#input-state").removeClass("hidden");
 
-  // Step G: Destroy & re-init Swiper, ensuring no loop
-  useCaseSwiper.destroy(true, true);
-  useCaseSwiper = null;
-
- useCaseSwiper = new Swiper("#useCaseSwiper", {
-  slidesPerView: 1,
-  loop: false,         // no loop
-  centeredSlides: false,
-  autoHeight: false,
-  // dynamicBullets: false is the default, so just don’t enable it
-  pagination: {
-    el: ".swiper-pagination",
-    clickable: true
-  },
-  navigation: {
-    nextEl: ".swiper-button-next",
-    prevEl: ".swiper-button-prev"
-  }
-
-});
-    if ($(window).width() < 992) {
-    const chartTop = $(".chart-cards-row").offset().top;
-    $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
-  }
-
-  // Step H: Jump back to the old slide
-  // find the matching slide for currentUCId
-  let matchingIndex = 0;
-  $(useCaseSwiper.slides).each(function(idx, slideEl) {
-    if ($(slideEl).data("ucid") === currentUCId) {
-      matchingIndex = idx;
-      return false; // break
+    if (window.innerWidth >= 992) {
+      $(".left-column").removeClass("hidden");
+      document.querySelector(".left-column").style.display = "flex";
     }
-  });
-  useCaseSwiper.slideTo(matchingIndex, 0);
-});
 
+    updateNextCTAVisibility();
+    updateClearAllVisibility();
 
-
-
-
-
-  
-  
-$("#hero-get-started-btn").on("click", function() {
-  if (isTransitioning) return;
-  isTransitioning = true;
-
-  // If the required data isn't ready, you can either do nothing,
-  // show an alert, or just remove these checks altogether:
-  if (!dataLoaded) {
-    alert("Data is still loading—please wait a moment!");
     isTransitioning = false;
-    return;
-  }
-
-  // Otherwise, data has loaded => move on to the Input state
-  $("#default-hero").addClass("hidden");
-  $("#input-state").removeClass("hidden");
-
-  // If we're on a wide screen, show the left column
-  if (window.innerWidth >= 992) {
-    $(".left-column").removeClass("hidden");
-    document.querySelector(".left-column").style.display = "flex";
-  }
-
-  updateNextCTAVisibility();
-  updateClearAllVisibility();
-
-  isTransitioning = false;
-});
-
-
-
+  });
 
   // =============== HERO => HOW IT WORKS =================
   $("#hero-how-it-works-btn").on("click", function() {
@@ -1369,11 +1325,9 @@ $("#hero-get-started-btn").on("click", function() {
     isTransitioning = true;
     logSessionEvent("hero_how_it_works_clicked");
   
-    // Now conditionally show the left column if wide enough
     if (window.innerWidth >= 992) {
-        $(".left-column").removeClass("hidden");
-  document.querySelector(".left-column").style.display = "flex !important";
-    
+      $(".left-column").removeClass("hidden");
+      document.querySelector(".left-column").style.display = "flex !important";
     }
     $("#default-hero").addClass("hidden");
     $("#how-it-works-state").removeClass("hidden");
@@ -1417,25 +1371,18 @@ $("#hero-get-started-btn").on("click", function() {
   });
 
   // Input => BACK => hero
- $("#input-back-btn").on("click", function() {
-  if (isTransitioning) return;
-  isTransitioning = true;
+  $("#input-back-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
 
-  // Hide input
-  $("#input-state").addClass("hidden");
+    $("#input-state").addClass("hidden");
+    $(".left-column").addClass("hidden");
+    $("#default-hero").removeClass("hidden");
+    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container")
+      .removeClass("hidden");
 
-  // Hide left column again
-  $(".left-column").addClass("hidden");
-  // OR document.querySelector(".left-column").style.display = "none";
-
-  // Show hero
-  $("#default-hero").removeClass("hidden");
-  $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container")
-    .removeClass("hidden");
-
-  isTransitioning = false;
-});
-
+    isTransitioning = false;
+  });
 
   // Input => NEXT => Calc
   $("#input-next-btn").on("click", function() {
@@ -1474,10 +1421,14 @@ $("#hero-get-started-btn").on("click", function() {
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
     isTransitioning = false;
+
+    // Build new bar chart of selected programs
+    renderProgramsBarChart("points"); // or default to "points"
+    // Optionally set an active pill if you have them in the HTML
+    $(".bar-chart-pill").removeClass("active-bar-pill");
+    $(".bar-chart-pill[data-metric='points']").addClass("active-bar-pill");
     buildFilteredUseCaseSlides([...selectedCategories]);
   });
-
-  
 
   // Output => BACK => Calc
   $("#output-back-btn").on("click", function() {
@@ -1644,7 +1595,6 @@ $("#hero-get-started-btn").on("click", function() {
       setTimeout(() => {
         $("#report-modal").addClass("hidden");
         sentMsgEl.addClass("hidden");
-        // Switch button styling after user has unlocked
         $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
         $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
       }, 700);
@@ -1688,6 +1638,14 @@ $("#hero-get-started-btn").on("click", function() {
     logSessionEvent("clear_all_clicked");
     clearAllPrograms();
   });
+
+  // NEW => bar chart pill toggles
+  $(document).on("click", ".bar-chart-pill", function () {
+    $(".bar-chart-pill").removeClass("active-bar-pill");
+    $(this).addClass("active-bar-pill");
+    const newMetric = $(this).data("metric");
+    renderProgramsBarChart(newMetric);
+  });
 });
 
 /*******************************************************
@@ -1716,3 +1674,4 @@ async function sendReport(email) {
   }
   return true;
 }
+
