@@ -1389,7 +1389,7 @@ padding: 0.3rem 0;
 .bar-chart-pills-row {
   display: flex;
   justify-content: center;
-  gap: 1rem;
+  gap: .5rem;
   margin-bottom: 1rem;
 }
 
@@ -1424,8 +1424,7 @@ padding: 0.3rem 0;
   gap: 0.5rem;
   align-items: center;
   justify-content: center;
-  width: 100px;
-  padding: 0.5rem 0;
+  padding: 0.5rem .75rem;
   border-radius: 12px;
   background-color: #f0f0f0;
   color: #333;
