@@ -1581,10 +1581,10 @@ $(document).on("click", ".usecase-pill", function() {
     }
   }
 
-  // 4) Rebuild the slides
+  // Step F: Rebuild slides
   buildUseCaseSlides(newSlidesArr);
 
-  // 5) Destroy & re-init Swiper (no loop)
+  // Step G: Destroy & re-init Swiper, ensuring no loop
   useCaseSwiper.destroy(true, true);
   useCaseSwiper = new Swiper("#useCaseSwiper", {
     slidesPerView: 1,
@@ -1607,7 +1607,7 @@ $(document).on("click", ".usecase-pill", function() {
     $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
   }
 
-  // 6) Jump back to the old slide if it still exists
+  // Step H: Jump back to the old slide if it still exists
   let matchingIndex = 0;
   $(useCaseSwiper.slides).each(function(idx, slideEl) {
     if ($(slideEl).data("ucid") === currentUCId) {
@@ -1618,46 +1618,6 @@ $(document).on("click", ".usecase-pill", function() {
   useCaseSwiper.slideTo(matchingIndex, 0);
 });
 
-
-  // Step F: Rebuild slides
-  buildUseCaseSlides(newSlidesArr);
-
-  // Step G: Destroy & re-init Swiper, ensuring no loop
-  useCaseSwiper.destroy(true, true);
-  useCaseSwiper = null;
-
- useCaseSwiper = new Swiper("#useCaseSwiper", {
-  slidesPerView: 1,
-  loop: false,         // no loop
-  centeredSlides: false,
-  autoHeight: false,
-  // dynamicBullets: false is the default, so just don’t enable it
-  pagination: {
-    el: ".swiper-pagination",
-    clickable: true
-  },
-  navigation: {
-    nextEl: ".swiper-button-next",
-    prevEl: ".swiper-button-prev"
-  }
-
-});
-    if ($(window).width() < 992) {
-    const chartTop = $(".chart-cards-row").offset().top;
-    $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
-  }
-
-  // Step H: Jump back to the old slide
-  // find the matching slide for currentUCId
-  let matchingIndex = 0;
-  $(useCaseSwiper.slides).each(function(idx, slideEl) {
-    if ($(slideEl).data("ucid") === currentUCId) {
-      matchingIndex = idx;
-      return false; // break
-    }
-  });
-  useCaseSwiper.slideTo(matchingIndex, 0);
-});
 
 
   // Unlock => show email modal
