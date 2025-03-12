@@ -1800,4 +1800,4 @@ async function sendReport(email) {
   }
   return true;
 }
-
+});  
