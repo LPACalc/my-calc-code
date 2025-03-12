@@ -1372,27 +1372,42 @@ $(document).ready(function() {
 
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
   $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
-  $("#hiw-final-start-btn").on("click", function() {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("hiw_final_get_started");
-    $("#how-it-works-state").addClass("hidden");
-    userClickedGetStarted = true;
-    if (dataLoaded) {
-      $("#default-hero").addClass("hidden");
-      $("#loading-screen").addClass("hidden");
-      $("#input-state").removeClass("hidden");
-      if ($(window).width() >= 992) {
-        $(".left-column").removeClass("hidden");
-      }
-      updateNextCTAVisibility();
-      updateClearAllVisibility();
-      isTransitioning = false;
-    } else {
-      $("#loading-screen").removeClass("hidden");
-      isTransitioning = false;
+ hiw-final-start-btn").on("click", function() {
+  if (isTransitioning) return;
+  isTransitioning = true;
+  logSessionEvent("hiw_final_get_started");
+  
+  // Hide the HIW state
+  $("#how-it-works-state").addClass("hidden");
+
+  // Mark that user clicked “Get Started” from HIW
+  userClickedGetStarted = true;
+
+  if (dataLoaded) {
+    // Hide hero, loading, etc.
+    $("#default-hero").addClass("hidden");
+    $("#loading-screen").addClass("hidden");
+
+    // Show the next state (e.g. input or whichever is next)
+    $("#input-state").removeClass("hidden");
+    
+    // *** KEY PART ***: if it's desktop, show the left column
+    if ($(window).width() >= 992) {
+      $(".left-column").removeClass("hidden");
+      document.querySelector(".left-column").style.display = "flex";
     }
-  });
+
+    // Any additional housekeeping
+    updateNextCTAVisibility();
+    updateClearAllVisibility();
+    isTransitioning = false;
+
+  } else {
+    // If data isn’t loaded, show the loading screen, etc.
+    $("#loading-screen").removeClass("hidden");
+    isTransitioning = false;
+  }
+});
 
   // Input => BACK => hero
   $("#input-back-btn").on("click", function() {
