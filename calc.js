@@ -1115,40 +1115,50 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
  *******************************************************/
 const logoAxisPlugin = {
   id: 'logoAxisPlugin',
-  afterDraw(chart, args, options) {
+
+  // 1. Preload images (store them as an array of Image objects in the plugin)
+  beforeInit(chart, _args, options) {
+    const logoURLs = options.images || [];
+    // We'll store the loaded Image objects in options._imagesCache
+    options._imagesCache = logoURLs.map((url) => {
+      const img = new Image();
+      img.src = url; // start loading
+      return img;
+    });
+  },
+
+  // 2. Draw the images after the chart has drawn all elements
+  afterDraw(chart, _args, options) {
     const { ctx, chartArea, scales } = chart;
-    const { bottom } = chartArea;
     const xAxis = scales.x;
+    if (!xAxis) return;
 
-    const logoImages = options.images || [];
-    if (!xAxis || xAxis.ticks.length === 0) return;
-    if (xAxis.ticks.length !== logoImages.length) {
-      // Mismatch in tick count vs. images array length => do nothing
-      return;
-    }
+    const logoImages = options._imagesCache || [];  // the preloaded images
+    if (xAxis.ticks.length !== logoImages.length) return;
 
-    // compute bar width for spacing
+    const { bottom } = chartArea;
+
+    let barWidth = 50; // fallback
     if (xAxis.ticks.length > 1) {
-      var barWidth = xAxis.getPixelForTick(1) - xAxis.getPixelForTick(0);
-    } else {
-      var barWidth = 50;
+      barWidth = xAxis.getPixelForTick(1) - xAxis.getPixelForTick(0);
     }
 
     xAxis.ticks.forEach((tick, index) => {
-      if (!logoImages[index]) return;
       const xPos = xAxis.getPixelForTick(index);
+      const img = logoImages[index];
+      if (!img) return;
+
+      // Choose a desired size for the logos
       const imgSize = Math.min(barWidth * 0.6, 40);
       const half = imgSize / 2;
-      const yPos = bottom + 5;
 
-      const img = new Image();
-      img.src = logoImages[index];
-      img.onload = function () {
-        ctx.drawImage(img, xPos - half, yPos, imgSize, imgSize);
-      };
+      // Draw them 5px below the chart’s bottom
+      const yPos = bottom + 5;
+      ctx.drawImage(img, xPos - half, yPos, imgSize, imgSize);
     });
   }
 };
+
 
 // Register plugin once
 Chart.register(logoAxisPlugin);
