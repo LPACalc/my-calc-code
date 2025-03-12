@@ -1543,21 +1543,98 @@ $(document).ready(function() {
 // This REPLACES your current mini-pill click logic
 $(document).on("click", ".usecase-pill", function() {
   const $pill = $(this);
-  const cat = $pill.data("category");
+  const category = $pill.data("category");
+  const wasActive = $pill.hasClass("active-pill");
 
-  // Toggle .active class
-  if ($pill.hasClass("active-pill")) {
-    // remove
-    $pill.removeClass("active-pill").css({ backgroundColor: "", color: "" });
-    selectedCategories.delete(cat);
+  // Step A: Toggle the pill in selectedCategories
+  if (wasActive) {
+    // Deselect
+    $pill.removeClass("active-pill");
+    const blackIcon = $pill.data("iconBlack");
+    $pill.find(".pill-icon").attr("src", blackIcon);
+    selectedCategories.delete(category);
   } else {
-    // add
-    $pill.addClass("active-pill").css({ backgroundColor: "#1a2732", color: "#fff" });
-    selectedCategories.add(cat);
+    // Select
+    $pill.addClass("active-pill");
+    const whiteIcon = $pill.data("iconWhite");
+    $pill.find(".pill-icon").attr("src", whiteIcon);
+    selectedCategories.add(category);
   }
 
-  // Re-run the filter with the updated categories
-  buildFilteredUseCaseSlides([...selectedCategories]);
+  // Step B: Identify the current slide’s category
+  // We assume each slide has data-ucid, or at least some marker for which category it is.
+  // For simplicity, let's read the category from the .slide-category-right text:
+  const currentIndex = useCaseSwiper.activeIndex;
+  const $currentSlide = $(useCaseSwiper.slides[currentIndex]);
+  const currentCategory = $currentSlide.find(".slide-category-right").text().trim();
+
+  // Step C: If the user just toggled the same category that’s currently displayed, DO NOTHING
+  // i.e. “If I’m looking at a Hotel slide and I turned Hotel on/off, don’t rebuild.”
+  if (currentCategory === category) {
+    return; 
+  }
+
+  // Step D: If the user DESELECTED a pill (wasActive === true => now off), DO NOTHING
+  // i.e. “Never change the slideshow at all if a pill is being turned off.”
+  if (wasActive) {
+    return;
+  }
+
+  // Otherwise, the user SELECTED a pill for a different category than the current slide => re-init
+  // Step E: Build a new array of recommended use cases, forcibly keeping the current slide
+  let newSlidesArr = gatherAllRecommendedUseCases(); 
+  if (selectedCategories.size > 0) {
+    newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
+  }
+
+  // Keep the current slide forcibly if it’s not in newSlidesArr
+  const currentUCId = $currentSlide.data("ucid");
+  const stillIn = newSlidesArr.some(uc => uc.id === currentUCId);
+  if (!stillIn) {
+    const oldUC = Object.values(realWorldUseCases).find(x => x.id === currentUCId);
+    if (oldUC) {
+      newSlidesArr.unshift(oldUC);
+    }
+  }
+
+  // Step F: Rebuild slides
+  buildUseCaseSlides(newSlidesArr);
+
+  // Step G: Destroy & re-init Swiper, ensuring no loop
+  useCaseSwiper.destroy(true, true);
+  useCaseSwiper = null;
+
+ useCaseSwiper = new Swiper("#useCaseSwiper", {
+  slidesPerView: 1,
+  loop: false,         // no loop
+  centeredSlides: false,
+  autoHeight: false,
+  // dynamicBullets: false is the default, so just don’t enable it
+  pagination: {
+    el: ".swiper-pagination",
+    clickable: true
+  },
+  navigation: {
+    nextEl: ".swiper-button-next",
+    prevEl: ".swiper-button-prev"
+  }
+
+});
+    if ($(window).width() < 992) {
+    const chartTop = $(".chart-cards-row").offset().top;
+    $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
+  }
+
+  // Step H: Jump back to the old slide
+  // find the matching slide for currentUCId
+  let matchingIndex = 0;
+  $(useCaseSwiper.slides).each(function(idx, slideEl) {
+    if ($(slideEl).data("ucid") === currentUCId) {
+      matchingIndex = idx;
+      return false; // break
+    }
+  });
+  useCaseSwiper.slideTo(matchingIndex, 0);
 });
 
 
