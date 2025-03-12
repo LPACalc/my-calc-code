@@ -1378,3 +1378,45 @@ padding: 0.3rem 0;
     font-weight: 350;
 }
 
+.programs-bar-chart-section {
+  background-color: #fff;
+  margin: 1rem 0;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.bar-chart-pills-row {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.bar-chart-pill {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  transition: background-color 0.2s;
+}
+
+.bar-chart-pill:hover {
+  background-color: #ddd;
+}
+
+.bar-chart-pill.active-bar-pill {
+  background-color: #1a2732;
+  color: #fff;
+}
+
+.bar-chart-wrapper {
+  position: relative;
+  height: 300px;
+}
+
+
+
