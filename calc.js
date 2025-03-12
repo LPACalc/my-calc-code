@@ -1149,7 +1149,7 @@ const logoAxisPlugin = {
       if (!img) return;
 
       // Choose a desired size for the logos
-      const imgSize = Math.min(barWidth * 0.6, 40);
+      const imgSize = Math.min(barWidth * 0.6, 50);
       const half = imgSize / 2;
 
       // Draw them 5px below the chart’s bottom
@@ -1255,10 +1255,8 @@ function renderProgramsBarChart(metric) {
       },
       plugins: {
         title: {
-          display: true,
-          text: "Loyalty Program Snapshot",
-          font: { size: 20, weight: "bold" },
-          padding: { bottom: 16 }
+          display: false,
+      
         },
         legend: { display: false },
         logoAxisPlugin: {
@@ -1718,13 +1716,29 @@ $(document).on("click", ".usecase-pill", function() {
     clearAllPrograms();
   });
 
-  // NEW => bar chart pill toggles
-  $(document).on("click", ".bar-chart-pill", function () {
-    $(".bar-chart-pill").removeClass("active-bar-pill");
-    $(this).addClass("active-bar-pill");
-    const newMetric = $(this).data("metric");
-    renderProgramsBarChart(newMetric);
+ $(document).on("click", ".bar-chart-pill", function() {
+  // 1) Reset all bar-chart pills to dark icon and remove "active" class
+  $(".bar-chart-pill").each(function() {
+    const $p = $(this);
+    const darkIcon = $p.data("iconDark");
+    $p.removeClass("active-bar-pill");
+    $p.find(".pill-icon").attr("src", darkIcon);
   });
+
+  // 2) Mark THIS pill as active, swap to white icon
+  $(this).addClass("active-bar-pill");
+  const whiteIcon = $(this).data("iconWhite");
+  $(this).find(".pill-icon").attr("src", whiteIcon);
+
+  // 3) Now update the bar chart with the selected metric
+  const newMetric = $(this).data("metric");
+  renderProgramsBarChart(newMetric);
+});
+
+
+// 2) Set active on this clicked one
+$(this).addClass("active-bar-pill");
+$(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
 });
 
 /*******************************************************
