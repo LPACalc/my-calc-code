@@ -1391,6 +1391,7 @@ padding: 0.3rem 0;
   justify-content: center;
   gap: .5rem;
   margin-bottom: 1rem;
+   padding-top: 1.5rem;
 }
 
 .bar-chart-pill {
@@ -1446,6 +1447,9 @@ padding: 0.3rem 0;
 .bar-chart-pill.active-bar-pill {
   background-color: #1a2732;
   color: #fff;
+}
+#programsBarChartSection h2.usecase-filter-title {
+  text-align: center;
 }
 
 
