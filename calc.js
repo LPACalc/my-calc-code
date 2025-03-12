@@ -1169,6 +1169,7 @@ Chart.register(logoAxisPlugin);
  * RENDER NEW BAR CHART => One bar per selected program
  *******************************************************/
 function renderProgramsBarChart(metric) {
+  // 1) Gather the user's currently selected programs + points
   const data = gatherProgramData();
   const labels = [];
   const values = [];
@@ -1180,9 +1181,11 @@ function renderProgramsBarChart(metric) {
     const prog = loyaltyPrograms[recordId];
     if (!prog) return;
 
+    // Collect label & logo for each bar
     labels.push(prog["Program Name"] || "Program");
     logos.push(prog["Brand Logo URL"] || "");
 
+    // Decide which metric to use (points, travel, or cash)
     let val = 0;
     if (metric === "points") {
       val = item.points;
@@ -1195,18 +1198,29 @@ function renderProgramsBarChart(metric) {
     }
     values.push(val);
 
+    // Pick a color from the program record (or default)
     const c = prog["Color"] || "#999999";
     colors.push(c);
   });
 
+  // 2) Clean up any old chart instance
   if (programsBarChart) {
     programsBarChart.destroy();
     programsBarChart = null;
   }
 
+  // 3) Get chart context
   const ctx = document.getElementById("programsBarChart")?.getContext("2d");
   if (!ctx) return;
 
+  // 4) Dynamically compute a “nice” stepSize to keep ~4 ticks
+  const maxVal = Math.max(...values, 0); // fallback to 0 if empty
+  // We'll aim for 3 steps from 0 -> maxVal, which gives about 4 labeled ticks total
+  const rawStep = maxVal / 3;
+  // Round up to a neat multiple (change 100 to 50, 500, etc. to suit your data)
+  const stepSize = Math.ceil(rawStep / 100) * 100 || 100;
+
+  // 5) Build the chart
   programsBarChart = new Chart(ctx, {
     type: "bar",
     data: {
@@ -1216,54 +1230,61 @@ function renderProgramsBarChart(metric) {
           label: "",
           data: values,
           backgroundColor: colors,
-          borderRadius: 8, // rounded corners
+          borderRadius: 8, // nice rounded corners
           borderWidth: 0
         }
       ]
     },
     options: {
-      indexAxis: 'x', // vertical bars (this is actually the default)
+      indexAxis: 'x', // vertical bars
       responsive: true,
       maintainAspectRatio: false,
       scales: {
         y: {
           beginAtZero: true,
-          maxTicksLimit: 4,           // Only show 4 labels on the axis
-          grid: { color: "#eee" },
+          // For ~4 ticks:
+          maxTicksLimit: 4,
+          // Force increments of stepSize
           ticks: {
+            stepSize,
             callback: function(value) {
-              // Format with commas (and possibly a $ if metric is cash or travel)
+              // Points vs. currency
               if (metric === "points") {
                 return value.toLocaleString();
               } else {
-                return "$" + value.toLocaleString(undefined, { maximumFractionDigits: 2 });
+                return "$" + value.toLocaleString(undefined, {
+                  maximumFractionDigits: 2
+                });
               }
             },
             font: {
               size: 14,
               weight: 600
             }
-          }
+          },
+          grid: { color: "#eee" }
         },
         x: {
           grid: { display: false },
           ticks: {
-            display: false // we’re drawing logos, so no text ticks
+            // We draw logos with the plugin, so no text needed
+            display: false
           }
         }
       },
       layout: {
+        // Extra bottom padding so the plugin-drawn logos fit
         padding: { bottom: 50 }
       },
       plugins: {
-        title: {
-          display: false,
-      
-        },
+        // No default title
+        title: { display: false },
         legend: { display: false },
+        // Our custom logo plugin
         logoAxisPlugin: {
           images: logos
         },
+        // Tooltip => points or currency
         tooltip: {
           callbacks: {
             label: function(ctx) {
@@ -1271,7 +1292,9 @@ function renderProgramsBarChart(metric) {
               if (metric === "points") {
                 return val.toLocaleString() + " points";
               } else {
-                return "$" + val.toLocaleString(undefined, { maximumFractionDigits: 2 });
+                return "$" + val.toLocaleString(undefined, {
+                  maximumFractionDigits: 2
+                });
               }
             }
           }
@@ -1280,6 +1303,7 @@ function renderProgramsBarChart(metric) {
     }
   });
 }
+
 
 
 /*******************************************************
@@ -1735,28 +1759,19 @@ $(document).on("click", ".usecase-pill", function() {
   });
 
  $(document).on("click", ".bar-chart-pill", function() {
-  // 1) Reset all bar-chart pills to dark icon and remove "active" class
+  // reset all
   $(".bar-chart-pill").each(function() {
-    const $p = $(this);
-    const darkIcon = $p.data("iconDark");
-    $p.removeClass("active-bar-pill");
-    $p.find(".pill-icon").attr("src", darkIcon);
+    const darkIcon = $(this).data("iconDark");
+    $(this).removeClass("active-bar-pill");
+    $(this).find(".pill-icon").attr("src", darkIcon);
   });
-
-  // 2) Mark THIS pill as active, swap to white icon
+  // activate the clicked pill
   $(this).addClass("active-bar-pill");
-  const whiteIcon = $(this).data("iconWhite");
-  $(this).find(".pill-icon").attr("src", whiteIcon);
+  $(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
 
-  // 3) Now update the bar chart with the selected metric
+  // update chart
   const newMetric = $(this).data("metric");
   renderProgramsBarChart(newMetric);
-});
-
-
-// 2) Set active on this clicked one
-$(this).addClass("active-bar-pill");
-$(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
 });
 
 /*******************************************************
