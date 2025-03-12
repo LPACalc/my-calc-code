@@ -1368,6 +1368,26 @@ padding: 0.3rem 0;
       
    }
 
+   .bar-chart-pill-desc {
+font-size: .75rem;
+   }
+
+.bar-chart-pill img.pill-icon {
+width: 18px;
+    height: 18px;
+    object-fit: contain;
+}
+
+
+   .bar-chart-pill img.pill-icon{
+padding: 0.5rem 0.25rem;
+   }
+
+   .bar-chart-pill.active-bar-pill{
+padding: 0.5rem 0.25rem;
+   }
+
+   
    
 }
 
