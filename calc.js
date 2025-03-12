@@ -1465,8 +1465,8 @@ $("#hiw-final-start-btn").on("click", function() {
     // Build new bar chart of selected programs
     renderProgramsBarChart("travel"); // or default to "points"
     // Optionally set an active pill if you have them in the HTML
-    $(".bar-chart-pill").removeClass("active-bar-pill");
-    $(".bar-chart-pill[data-metric='points']").addClass("active-bar-pill");
+   $(".bar-chart-pill").removeClass("active-bar-pill");
+   $(".bar-chart-pill[data-metric='travel']").addClass("active-bar-pill");
     buildFilteredUseCaseSlides([...selectedCategories]);
   });
 
