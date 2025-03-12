@@ -1572,14 +1572,7 @@ $(document).on("click", ".usecase-pill", function() {
     newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
   }
 
-  // 3) If our current slide is no longer in the new array, forcibly keep it at the front
-  const stillIn = newSlidesArr.some(uc => uc.id === currentUCId);
-  if (!stillIn) {
-    const oldUC = Object.values(realWorldUseCases).find(x => x.id === currentUCId);
-    if (oldUC) {
-      newSlidesArr.unshift(oldUC);
-    }
-  }
+
 
   // Step F: Rebuild slides
   buildUseCaseSlides(newSlidesArr);
