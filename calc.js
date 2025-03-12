@@ -1540,23 +1540,26 @@ $(document).ready(function() {
   });
 
   // mini-pills => switch use case content
-  $(document).on("click", ".mini-pill", function() {
-    const useCaseId = $(this).data("usecaseId");
-    logSessionEvent("mini_pill_clicked", { useCaseId });
-    const container = $(this).closest("div[style*='flex-direction:column']");
-    $(this).siblings(".mini-pill").css({ backgroundColor: "#f0f0f0", color: "#333" }).removeClass("active");
-    $(this).css({ backgroundColor: "#1a2732", color: "#fff" }).addClass("active");
+// This REPLACES your current mini-pill click logic
+$(document).on("click", ".usecase-pill", function() {
+  const $pill = $(this);
+  const cat = $pill.data("category");
 
-    const uc = Object.values(realWorldUseCases).find(x => x.id === useCaseId);
-    if (!uc) return;
-    const newImg = uc["Use Case URL"] || "";
-    const newTitle = uc["Use Case Title"] || "Untitled";
-    const newBody  = uc["Use Case Body"]  || "";
+  // Toggle .active class
+  if ($pill.hasClass("active-pill")) {
+    // remove
+    $pill.removeClass("active-pill").css({ backgroundColor: "", color: "" });
+    selectedCategories.delete(cat);
+  } else {
+    // add
+    $pill.addClass("active-pill").css({ backgroundColor: "#1a2732", color: "#fff" });
+    selectedCategories.add(cat);
+  }
 
-    container.find("img").attr("src", newImg);
-    container.find("h4").text(newTitle);
-    container.find("p").text(newBody);
-  });
+  // Re-run the filter with the updated categories
+  buildFilteredUseCaseSlides([...selectedCategories]);
+});
+
 
   // Unlock => show email modal
   $("#unlock-report-btn").on("click", function() {
