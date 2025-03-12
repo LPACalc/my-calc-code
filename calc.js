@@ -1214,39 +1214,52 @@ function renderProgramsBarChart(metric) {
           label: "",
           data: values,
           backgroundColor: colors,
-          borderRadius: 4,
+          borderRadius: 8, // rounded corners
           borderWidth: 0
         }
       ]
     },
     options: {
+      indexAxis: 'x', // vertical bars (this is actually the default)
       responsive: true,
       maintainAspectRatio: false,
       scales: {
-        x: {
-          grid: { display: false },
-          ticks: { display: false }
-        },
         y: {
           beginAtZero: true,
+          maxTicksLimit: 4,           // Only show 4 labels on the axis
           grid: { color: "#eee" },
           ticks: {
             callback: function(value) {
+              // Format with commas (and possibly a $ if metric is cash or travel)
               if (metric === "points") {
                 return value.toLocaleString();
               } else {
                 return "$" + value.toLocaleString(undefined, { maximumFractionDigits: 2 });
               }
+            },
+            font: {
+              size: 14,
+              weight: 600
             }
+          }
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            display: false // we’re drawing logos, so no text ticks
           }
         }
       },
       layout: {
-        padding: {
-          bottom: 50
-        }
+        padding: { bottom: 50 }
       },
       plugins: {
+        title: {
+          display: true,
+          text: "Loyalty Program Snapshot",
+          font: { size: 20, weight: "bold" },
+          padding: { bottom: 16 }
+        },
         legend: { display: false },
         logoAxisPlugin: {
           images: logos
@@ -1267,6 +1280,7 @@ function renderProgramsBarChart(metric) {
     }
   });
 }
+
 
 /*******************************************************
  * DOCUMENT READY => EVENT HANDLERS
@@ -1433,7 +1447,7 @@ $(document).ready(function() {
     isTransitioning = false;
 
     // Build new bar chart of selected programs
-    renderProgramsBarChart("points"); // or default to "points"
+    renderProgramsBarChart("travel"); // or default to "points"
     // Optionally set an active pill if you have them in the HTML
     $(".bar-chart-pill").removeClass("active-bar-pill");
     $(".bar-chart-pill[data-metric='points']").addClass("active-bar-pill");
