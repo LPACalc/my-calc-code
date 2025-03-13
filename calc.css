@@ -1469,12 +1469,12 @@ width: 18px;
 
    .bar-chart-pill.active-bar-pill{
 width:100px;
-      padding: 0.5rem 0.5rem;
+      padding: 0.5rem 0.25rem;
    display: inline-flex;     }
 
    .bar-chart-pill{
 width:100px;
-      padding: 0.5rem 0.5rem;
+      padding: 0.5rem 0.25rem;
    display: inline-flex;   
    }
    
