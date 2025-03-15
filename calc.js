@@ -194,6 +194,25 @@ async function fetchAirtableTable(tableName) {
   }
   return await resp.json();
 }
+// Example definition:
+async function loadTransferTableIfNeeded() {
+  if (transferPartners.length > 0) return; // already loaded
+  try {
+    const data = await fetchAirtableTable("Transfer Table");
+    // Suppose each record has fields like: { "From Program": [array], "Partner Name": "X", "Partner Logo": [ { url: "..." } ] }
+    transferPartners = data.map((r) => {
+      return {
+        id: r.id,
+        fromProgramId: r.fields["From Program"]?.[0],
+        partnerName: r.fields["Partner Name"] || "",
+        partnerLogo: r.fields["Partner Logo"]?.[0]?.url || ""
+      };
+    });
+    console.log("Loaded Transfer Partners =>", transferPartners);
+  } catch (err) {
+    console.error("Error loading Transfer Table =>", err);
+  }
+}
 
 /*******************************************************
  * loadUseCasesIfNeeded => BACKGROUND LOAD
