@@ -195,33 +195,43 @@ async function fetchAirtableTable(tableName) {
  *******************************************************/
 async function loadTransferTableIfNeeded() {
   if (transferPartners.length > 0) return; // already loaded
+
   try {
     const data = await fetchAirtableTable("Transfer Table");
     console.log("Raw transfer table =>", data);
 
-    // Suppose each record looks like: 
-    // fields["Transfer From Partner"] = "Marriott" 
-    // or maybe an array [ 'recXYZ' ] if it's a link
+    // *** UPDATED: parse each record's linked field into .fromProgramIds (array of IDs) ***
     transferPartners = data.map(r => {
-      // see exactly how your data is shaped:
       const f = r.fields;
+
+      // If “Transfer From Partner” is a linked record, it’s an array like ["recJ3yBrv5FctQRQw"]
+      const fromProgramIds = Array.isArray(f["Transfer From Partner"])
+        ? f["Transfer From Partner"]
+        : [];
+
+      // If “Transfer To Partner” is also a linked record, same pattern:
+      const toProgramIds = Array.isArray(f["Transfer To Partner"])
+        ? f["Transfer To Partner"]
+        : [];
 
       return {
         id: r.id,
-        fromProgram: f["Transfer From Partner"] || "",
-        toProgram: f["Transfer To Partner"] || "",
+        fromProgramIds,  // array of record IDs
+        toProgramIds,
         ratio: f["Transfer Ratio"] || "",
         logoFrom: f["Logo From Partner"]?.[0]?.url || "",
         logoTo: f["Logo To Partner"]?.[0]?.url || "",
-        typeFrom: f["Type (from Linked)"] || "" // if you want that
+        typeFrom: f["Type (from Linked)"] || ""
       };
     });
 
     console.log("Loaded Transfer Partners =>", transferPartners);
+
   } catch (err) {
     console.error("Error loading Transfer Table =>", err);
   }
 }
+
 
 
 /*******************************************************
@@ -248,57 +258,45 @@ async function loadUseCasesIfNeeded() {
 /*******************************************************
  * INIT APP => fetch loyalty programs, background load data
  *******************************************************/
-async function initializeApp() {
-  console.log("=== initializeApp() ===");
+async function loadTransferTableIfNeeded() {
+  if (transferPartners.length > 0) return; // already loaded
 
   try {
-    // 1) Fetch loyalty programs
-    const resp = await fetchWithTimeout(
-      "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
-      {},
-      10000
-    );
-    if (!resp.ok) {
-      throw new Error("Network not OK => " + resp.statusText);
-    }
+    const data = await fetchAirtableTable("Transfer Table");
+    console.log("Raw transfer table =>", data);
 
-    // 2) Parse & store
-    const programsData = await resp.json();
-    loyaltyPrograms = programsData.reduce((acc, record) => {
-      const fields = { ...record.fields };
-      if (record.logoAttachmentUrl) {
-        fields["Brand Logo URL"] = record.logoAttachmentUrl;
-      }
-      acc[record.id] = fields;
-      return acc;
-    }, {});
-    console.log("loyaltyPrograms =>", loyaltyPrograms);
+    // *** UPDATED: parse each record's linked field into .fromProgramIds (array of IDs) ***
+    transferPartners = data.map(r => {
+      const f = r.fields;
 
-    // 3) Mark data loaded
-    dataLoaded = true;
-    console.log("Data fully loaded => dataLoaded = true");
+      // If “Transfer From Partner” is a linked record, it’s an array like ["recJ3yBrv5FctQRQw"]
+      const fromProgramIds = Array.isArray(f["Transfer From Partner"])
+        ? f["Transfer From Partner"]
+        : [];
 
-    // 4) Build popular programs
-    buildTopProgramsSection();
+      // If “Transfer To Partner” is also a linked record, same pattern:
+      const toProgramIds = Array.isArray(f["Transfer To Partner"])
+        ? f["Transfer To Partner"]
+        : [];
 
-    // 5) Fetch IP/location in background
-    (async () => {
-      await fetchClientIP();
-      await fetchApproxLocationFromIP();
-    })().catch(err => console.error("IP/Location fetch error =>", err));
-
-    // 6) Load real-world use cases in background
-    loadUseCasesIfNeeded().catch(err => {
-      console.error("Error fetching Real-World =>", err);
+      return {
+        id: r.id,
+        fromProgramIds,  // array of record IDs
+        toProgramIds,
+        ratio: f["Transfer Ratio"] || "",
+        logoFrom: f["Logo From Partner"]?.[0]?.url || "",
+        logoTo: f["Logo To Partner"]?.[0]?.url || "",
+        typeFrom: f["Type (from Linked)"] || ""
+      };
     });
 
-    // 7) Also load Transfer Table in background
-    loadTransferTableIfNeeded().catch(err => console.error(err));
+    console.log("Loaded Transfer Partners =>", transferPartners);
 
   } catch (err) {
-    console.error("Error fetching Points Calc =>", err);
+    console.error("Error loading Transfer Table =>", err);
   }
 }
+
 
 /*******************************************************
  * BUILD POPULAR PROGRAMS
@@ -725,18 +723,18 @@ function parseTransferRatio(ratioStr) {
   return leftNum; 
 }
 
-async function buildTransferModule() {
+function buildTransferModule() {
   // 1) Gather user’s selected programs + points
   const userData = gatherProgramData(); 
   // userData => [ { recordId, programName, points }, ... ]
 
-  // 2) Filter only those that have “Transferable” = true in loyaltyPrograms
+  // 2) Filter out only those with Transferable = true in loyaltyPrograms
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
     return rec && rec["Transferable"] === true;
   });
 
-  // If no transferables, hide the module entirely
+  // If no programs are transferable, hide the section
   if (!transferablePrograms.length) {
     $("#transfer-module").addClass("hidden");
     return;
@@ -744,12 +742,20 @@ async function buildTransferModule() {
     $("#transfer-module").removeClass("hidden");
   }
 
-  // 3) Clear out any old content
+  // 3) Clear out existing HTML
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
-  // 4) Build a circular logo “chip” for each transferable program
+  // Helper to parse ratio strings (e.g. "3:1")
+  function parseTransferRatio(ratioStr) {
+    if (!ratioStr || !ratioStr.includes(":")) return 1;
+    const [lhs] = ratioStr.split(":");
+    return parseFloat(lhs.trim()) || 1;
+  }
+
+  // 4) Build a row of clickable logos + hidden tables
   transferablePrograms.forEach(item => {
+    // item.recordId is the Airtable record ID, e.g. "recJ3yBrv5FctQRQw"
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
 
@@ -757,7 +763,7 @@ async function buildTransferModule() {
     const programName = prog["Program Name"] || "Unnamed";
     const userPoints = item.points || 0;
 
-    // This outer div = clickable “chip”
+    // LOGO “CHIP”:
     const chipHTML = `
       <div 
         class="transferable-program-chip" 
@@ -772,51 +778,52 @@ async function buildTransferModule() {
     `;
     $("#transferable-programs-row").append(chipHTML);
 
-    // 5) Build the hidden table of partner rows
-    //    Filter the global `transferPartners` array to find all where fromProgram == item.recordId
+    // 5) Find matching partners => *** includes(item.recordId) ***
     const matchedPartners = transferPartners.filter(tp => {
-      // Adjust below if your fields differ
-      return tp.fromProgram === prog["Program Name"];
+      return tp.fromProgramIds.includes(item.recordId);
     });
 
-    // Build rows
+    // Build table rows
     let tableRowsHTML = "";
     matchedPartners.forEach(mp => {
-      const partnerName = mp.toProgram || "Partner N/A";
-      const partnerLogo = mp.logoTo   || "";
-      const ratioStr    = mp.ratio    || "1:1";
-      const ratioFactor = parseTransferRatio(ratioStr);
+      const ratioStr = mp.ratio || "1:1";
+      const ratioVal = parseTransferRatio(ratioStr); 
+      const partnerPoints = Math.floor(userPoints * ratioVal);
 
-      // Multiply userPoints by ratioFactor
-      const transferredPoints = Math.floor(userPoints * ratioFactor);
+      // If “toProgramIds” is also an array, you might or might not display the partner’s name.
+      // If you have a single “toProgram” name or logo, just do something like:
+      const partnerLogo = mp.logoTo || "";
+      // If you store an actual partner name in mp.toProgramIds, you'd do another lookup
+      // or if you store a text field "toProgramName", you can use that:
+      // For example:
+      const partnerName = mp.toProgramName || "Unnamed Partner";
 
       tableRowsHTML += `
         <tr>
           <td>
             <img 
               src="${partnerLogo}" 
-              alt="${partnerName} logo"
+              alt="Partner Logo"
               class="transfer-partner-logo"
             />
             <span class="transfer-partner-name">${partnerName}</span>
           </td>
           <td>${ratioStr}</td>
-          <td>${transferredPoints.toLocaleString()}</td>
+          <td>${partnerPoints.toLocaleString()}</td>
         </tr>
       `;
     });
 
-    // If no partners found:
+    // If no partners matched:
     if (!matchedPartners.length) {
       tableRowsHTML = `
         <tr>
-          <td colspan="3">
-            No transfer partners found for ${programName}.
-          </td>
+          <td colspan="3">No transfer partners found for ${programName}.</td>
         </tr>
       `;
     }
 
+    // 6) Hidden table
     const tableHTML = `
       <div 
         class="transfer-accordion" 
@@ -839,17 +846,18 @@ async function buildTransferModule() {
     $("#transfer-accordion-container").append(tableHTML);
   });
 
-  // 6) Attach click handlers:
-  //    If user clicks the program chip, we slideToggle the matching table
+  // 7) Attach click handler to each chip => slideToggle the matching table
   $(".transferable-program-chip").off("click").on("click", function() {
     const recordId = $(this).data("record-id");
-    // Hide any other open table if you want one at a time:
+
+    // Optionally hide all others first (for an accordion style):
     $(".transfer-accordion").not(`[data-record-id='${recordId}']`).slideUp();
-    
-    const $target = $(`.transfer-accordion[data-record-id='${recordId}']`);
-    $target.slideToggle();
+
+    // Then toggle the matching one
+    $(`.transfer-accordion[data-record-id='${recordId}']`).slideToggle();
   });
 }
+
 
 
 
