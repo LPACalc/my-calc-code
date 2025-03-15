@@ -772,7 +772,7 @@ function buildTransferModule() {
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
-  // Helper to parse ratio strings (e.g. "3:1")
+  // Helper function to parse ratio strings (e.g. "3:1" => 3)
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
     const [lhs] = ratioStr.split(":");
@@ -789,7 +789,7 @@ function buildTransferModule() {
     const programName = prog["Program Name"] || "Unnamed";
     const userPoints = item.points || 0;
 
-    // LOGO “CHIP”:
+    // --- LOGO “CHIP” ---
     const chipHTML = `
       <div 
         class="transferable-program-chip" 
@@ -811,18 +811,24 @@ function buildTransferModule() {
 
     // Build table rows
     let tableRowsHTML = "";
+
     matchedPartners.forEach(mp => {
       const ratioStr = mp.ratio || "1:1";
       const ratioVal = parseTransferRatio(ratioStr); 
       const partnerPoints = Math.floor(userPoints * ratioVal);
 
-      // If “toProgramIds” is also an array, you might or might not display the partner’s name.
-      // If you have a single “toProgram” name or logo, just do something like:
+      // If “toProgramIds” is also an array, do a dictionary lookup to get the partner name
+      let partnerName = "Unnamed Partner";
+      const toIds = mp.toProgramIds || [];
+      if (toIds.length > 0) {
+        const firstToId = toIds[0]; // e.g. "recAbc123"
+        if (loyaltyPrograms[firstToId] && loyaltyPrograms[firstToId]["Program Name"]) {
+          partnerName = loyaltyPrograms[firstToId]["Program Name"];
+        }
+      }
+
+      // If you store a separate “logoTo,” we can show that:
       const partnerLogo = mp.logoTo || "";
-      // If you store an actual partner name in mp.toProgramIds, you'd do another lookup
-      // or if you store a text field "toProgramName", you can use that:
-      // For example:
-      const partnerName = mp.toProgramName || "Unnamed Partner";
 
       tableRowsHTML += `
         <tr>
@@ -840,7 +846,7 @@ function buildTransferModule() {
       `;
     });
 
-    // If no partners matched:
+    // If no partners matched
     if (!matchedPartners.length) {
       tableRowsHTML = `
         <tr>
@@ -849,7 +855,7 @@ function buildTransferModule() {
       `;
     }
 
-    // 6) Hidden table
+    // 6) Hidden table (accordion)
     const tableHTML = `
       <div 
         class="transfer-accordion" 
@@ -883,6 +889,7 @@ function buildTransferModule() {
     $(`.transfer-accordion[data-record-id='${recordId}']`).slideToggle();
   });
 }
+
 
 
 
