@@ -1479,4 +1479,82 @@ width:100px;
    }
    
 }
+.transfer-module-section {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+
+.transfer-module-section .module-heading {
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.transfer-program-row {
+  border: 1px solid #dce3eb;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.transfer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  cursor: pointer;
+  background-color: #f8fafd;
+}
+.transfer-header:hover {
+  background-color: #eef2f7;
+}
+.transfer-prog-logo {
+  width: 36px;
+  height: auto;
+  margin-right: 0.5rem;
+}
+.transfer-prog-name {
+  font-weight: 600;
+}
+
+.accordion-toggle-arrow {
+  font-size: 1.1rem;
+  color: #777;
+}
+
+.transfer-content {
+  padding: 0.75rem;
+  display: none; /* hidden by default */
+}
+.user-points-row {
+  margin-bottom: 0.5rem;
+}
+.transfer-partners-subheader {
+  font-weight: 600;
+  margin: 0.5rem 0;
+}
+.transfer-partners-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.transfer-partner-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid #dfdfdf;
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+.transfer-partner-logo img {
+  width: 24px;
+  height: auto;
+}
+.no-partners-msg {
+  font-size: 0.85rem;
+  color: #888;
+}
 
