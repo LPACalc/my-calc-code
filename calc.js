@@ -704,39 +704,6 @@ function buildFilteredUseCaseSlides(categories) {
   hideUnusedPills();
 }
 
-/*******************************************************
- * gatherAllRecommendedUseCases
- *******************************************************/
-function gatherAllRecommendedUseCases() {
-  const userProgramPoints = {};
-  const data = gatherProgramData();
-  data.forEach((item) => {
-    userProgramPoints[item.recordId] = item.points;
-  });
-
-  const results = [];
-  const usedIds = new Set();
-
-  chosenPrograms.forEach((programId) => {
-    const userPoints = userProgramPoints[programId] || 0;
-    Object.values(realWorldUseCases).forEach((uc) => {
-      if (!uc.Recommended) return;
-      if (!uc["Points Required"]) return;
-      if (!uc["Program Name"]?.includes(programId)) return;
-      if (uc["Points Required"] > userPoints) return;
-
-      if (!usedIds.has(uc.id)) {
-        usedIds.add(uc.id);
-        results.push(uc);
-      }
-    });
-  });
-
-  // Shuffle them randomly
-  results.sort(() => Math.random() - 0.5);
-  return results;
-}
-
 function hideUnusedPills() {
   const recommended = gatherAllRecommendedUseCases();
   const validCategories = new Set();
@@ -779,8 +746,38 @@ function hideUnusedPills() {
 }
 
 /*******************************************************
- * initUseCaseSwiper
+ * gatherAllRecommendedUseCases
  *******************************************************/
+function gatherAllRecommendedUseCases() {
+  const userProgramPoints = {};
+  const data = gatherProgramData();
+  data.forEach((item) => {
+    userProgramPoints[item.recordId] = item.points;
+  });
+
+  const results = [];
+  const usedIds = new Set();
+
+  chosenPrograms.forEach((programId) => {
+    const userPoints = userProgramPoints[programId] || 0;
+    Object.values(realWorldUseCases).forEach((uc) => {
+      if (!uc.Recommended) return;
+      if (!uc["Points Required"]) return;
+      if (!uc["Program Name"]?.includes(programId)) return;
+      if (uc["Points Required"] > userPoints) return;
+
+      if (!usedIds.has(uc.id)) {
+        usedIds.add(uc.id);
+        results.push(uc);
+      }
+    });
+  });
+
+  // Shuffle them randomly
+  results.sort(() => Math.random() - 0.5);
+  return results;
+}
+
 function initUseCaseSwiper() {
   useCaseSwiper = new Swiper("#useCaseSwiper", {
     slidesPerView: 1,
@@ -914,7 +911,7 @@ const logoAxisPlugin = {
 Chart.register(logoAxisPlugin);
 
 /*******************************************************
- * RENDER BAR CHART => One bar per selected program
+ * RENDER BAR CHART => Points / Cash / Travel
  *******************************************************/
 function renderProgramsBarChart(metric) {
   const data = gatherProgramData();
@@ -934,8 +931,12 @@ function renderProgramsBarChart(metric) {
     let val = 0;
     if (metric === "points") {
       val = item.points;
+    } else if (metric === "cash") {
+      // Compare user points * program's cash redemption value
+      const cv = prog["Cash Value"] || 0;
+      val = item.points * cv;
     } else {
-      // default: "travel"
+      // default => "travel"
       const tv = prog["Travel Value"] || 0;
       val = item.points * tv;
     }
@@ -1033,7 +1034,7 @@ function renderProgramsBarChart(metric) {
 }
 
 /*******************************************************
- * buildOutputRows => shows only "travel" scenario
+ * buildOutputRows => shows travel scenario by default
  *******************************************************/
 async function buildOutputRows() {
   const data = gatherProgramData();
@@ -1106,7 +1107,7 @@ async function buildOutputRows() {
     "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // Build the per-program bar chart (travel)
+  // Build the per-program bar chart (default to "travel" for initial load)
   renderProgramsBarChart("travel");
 }
 
@@ -1311,27 +1312,27 @@ $(document).ready(function () {
     isTransitioning = false;
   });
 
-$("#to-output-btn").on("click", async function () {
-  if (isTransitioning) return;
-  isTransitioning = true;
-  logSessionEvent("calc_next_clicked");
+  // Calc => NEXT => Output
+  // NOTE: Marking async so "await buildOutputRows()" won’t throw SyntaxError
+  $("#to-output-btn").on("click", async function () {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("calc_next_clicked");
 
-  $("#calculator-state").addClass("hidden");
-  $("#output-state").removeClass("hidden");
-  $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
+    $("#calculator-state").addClass("hidden");
+    $("#output-state").removeClass("hidden");
+    $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
 
-  // Build the output
-  await buildOutputRows();
+    // Build the output
+    await buildOutputRows();
+    // Build the transfer module
+    buildTransferModule();
 
-  // Build the transfer module
-  buildTransferModule();
+    // Also build the recommended use-case slides (by selected categories)
+    buildFilteredUseCaseSlides([...selectedCategories]);
 
-  // Build recommended use-case slides
-  buildFilteredUseCaseSlides([...selectedCategories]);
-
-  isTransitioning = false;
-});
-
+    isTransitioning = false;
+  });
 
   // Output => BACK => Calc
   $("#output-back-btn").on("click", function () {
@@ -1541,16 +1542,19 @@ $("#to-output-btn").on("click", async function () {
     clearAllPrograms();
   });
 
-  // Bar chart metric pills
+  // === BAR CHART PILL CLICK => toggle "points", "cash", "travel" ===
   $(document).on("click", ".bar-chart-pill", function () {
+    // Deselect all pills first
     $(".bar-chart-pill").each(function () {
       const darkIcon = $(this).data("iconDark");
       $(this).removeClass("active-bar-pill");
       $(this).find(".pill-icon").attr("src", darkIcon);
     });
+    // Activate this pill
     $(this).addClass("active-bar-pill");
     $(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
 
+    // Render the bar chart in the selected metric
     const newMetric = $(this).data("metric");
     renderProgramsBarChart(newMetric);
   });
@@ -1621,4 +1625,35 @@ async function sendReport(email) {
     throw new Error(result.error || `HTTP ${response.status}`);
   }
   return true;
+}
+
+/*******************************************************
+ * “Explore All” => Build the full list in a modal
+ *******************************************************/
+function buildAllProgramsList() {
+  const container = $("#all-programs-list");
+  container.empty();
+
+  const sortedKeys = Object.keys(loyaltyPrograms).sort((a, b) => {
+    const nameA = loyaltyPrograms[a]["Program Name"]?.toLowerCase() || "";
+    const nameB = loyaltyPrograms[b]["Program Name"]?.toLowerCase() || "";
+    return nameA.localeCompare(nameB);
+  });
+
+  sortedKeys.forEach((rid) => {
+    const prog = loyaltyPrograms[rid];
+    const logoUrl = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unnamed Program";
+    const isSelected = chosenPrograms.includes(rid);
+
+    container.append(`
+      <div class="all-program-row ${isSelected ? "selected-state" : ""}" data-record-id="${rid}">
+        <div class="row-left">
+          ${logoUrl ? `<img src="${logoUrl}" alt="${programName}">` : ""}
+          <span>${programName}</span>
+        </div>
+        <button class="circle-btn">${isSelected ? "✓" : "+"}</button>
+      </div>
+    `);
+  });
 }
