@@ -714,74 +714,143 @@ function buildFilteredUseCaseSlides(categories) {
 }
 
 
-function buildTransferModule() {
+/**
+ * Helper: parse ratio strings like "3:1" or "1.25:1" -> numeric factor
+ * If ratio is "3:1", returns 3.  If "1.25:1", returns 1.25.
+ */
+function parseTransferRatio(ratioStr) {
+  if (!ratioStr || !ratioStr.includes(":")) return 1; 
+  const [lhs, rhs] = ratioStr.split(":");
+  const leftNum = parseFloat(lhs.trim()) || 1;
+  return leftNum; 
+}
+
+async function buildTransferModule() {
   // 1) Gather user’s selected programs + points
-  const userData = gatherProgramData(); // your existing function => [{recordId, programName, points}, ...]
-  if (!userData || !userData.length) return;
+  const userData = gatherProgramData(); 
+  // userData => [ { recordId, programName, points }, ... ]
 
   // 2) Filter only those that have “Transferable” = true in loyaltyPrograms
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
-    return rec && rec["Transferable"] === true; 
+    return rec && rec["Transferable"] === true;
   });
 
-  // If no transferables, hide the module or show a message
+  // If no transferables, hide the module entirely
   if (!transferablePrograms.length) {
     $("#transfer-module").addClass("hidden");
     return;
+  } else {
+    $("#transfer-module").removeClass("hidden");
   }
 
-  // 3) Build HTML for each
-  let html = "";
+  // 3) Clear out any old content
+  $("#transferable-programs-row").empty();
+  $("#transfer-accordion-container").empty();
+
+  // 4) Build a circular logo “chip” for each transferable program
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
+    if (!prog) return;
+
     const logo = prog["Brand Logo URL"] || "";
     const programName = prog["Program Name"] || "Unnamed";
     const userPoints = item.points || 0;
 
-    // Find all matching “From Program” in transferPartners
-    const matchedPartners = transferPartners.filter(tp => tp.fromProgramId === item.recordId);
+    // This outer div = clickable “chip”
+    const chipHTML = `
+      <div 
+        class="transferable-program-chip" 
+        data-record-id="${item.recordId}"
+      >
+        <img 
+          src="${logo}" 
+          alt="${programName} logo"
+          style="width: 70%; height: auto;"
+        />
+      </div>
+    `;
+    $("#transferable-programs-row").append(chipHTML);
 
-    // Build a small block of partner logos
-    let partnersHTML = "";
+    // 5) Build the hidden table of partner rows
+    //    Filter the global `transferPartners` array to find all where fromProgram == item.recordId
+    const matchedPartners = transferPartners.filter(tp => {
+      // Adjust below if your fields differ
+      return tp.fromProgram === prog["Program Name"];
+    });
+
+    // Build rows
+    let tableRowsHTML = "";
+    matchedPartners.forEach(mp => {
+      const partnerName = mp.toProgram || "Partner N/A";
+      const partnerLogo = mp.logoTo   || "";
+      const ratioStr    = mp.ratio    || "1:1";
+      const ratioFactor = parseTransferRatio(ratioStr);
+
+      // Multiply userPoints by ratioFactor
+      const transferredPoints = Math.floor(userPoints * ratioFactor);
+
+      tableRowsHTML += `
+        <tr>
+          <td>
+            <img 
+              src="${partnerLogo}" 
+              alt="${partnerName} logo"
+              class="transfer-partner-logo"
+            />
+            <span class="transfer-partner-name">${partnerName}</span>
+          </td>
+          <td>${ratioStr}</td>
+          <td>${transferredPoints.toLocaleString()}</td>
+        </tr>
+      `;
+    });
+
+    // If no partners found:
     if (!matchedPartners.length) {
-      partnersHTML = `<div class="no-partners-msg">No partners found.</div>`;
-    } else {
-      matchedPartners.forEach(p => {
-        partnersHTML += 
-          `<div class="transfer-partner-logo">
-            <img src="${p.partnerLogo}" alt="${p.partnerName} Logo" />
-            <span>${p.partnerName}</span>
-          </div>`;
-      });
+      tableRowsHTML = `
+        <tr>
+          <td colspan="3">
+            No transfer partners found for ${programName}.
+          </td>
+        </tr>
+      `;
     }
 
-    // Each program row => an accordion “header” + “content” 
-    html += 
-      `<div class="transfer-program-row">
-        <div class="transfer-header" data-record-id="${item.recordId}">
-          <div class="prog-info">
-            <img src="${logo}" alt="${programName} Logo" class="transfer-prog-logo" />
-            <span class="transfer-prog-name">${programName}</span>
-          </div>
-          <!-- Maybe an icon or down-arrow to indicate it’s clickable -->
-          <div class="accordion-toggle-arrow">▼</div>
-        </div>
-        <div class="transfer-content hidden">
-          <div class="user-points-row">
-            <strong>Total Points:</strong> ${userPoints.toLocaleString()}
-          </div>
-          <div class="transfer-partners-subheader">Transfer Partners</div>
-          <div class="transfer-partners-row">
-            ${partnersHTML}
-          </div>
-        </div>
-      </div>`;
+    const tableHTML = `
+      <div 
+        class="transfer-accordion" 
+        data-record-id="${item.recordId}"
+      >
+        <table class="transfer-partner-table">
+          <thead>
+            <tr>
+              <th>Program</th>
+              <th>Transfer Ratio</th>
+              <th>Points Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHTML}
+          </tbody>
+        </table>
+      </div>
+    `;
+    $("#transfer-accordion-container").append(tableHTML);
   });
 
-  $("#transferable-programs-accordion").html(html);
-  $("#transfer-module").removeClass("hidden");
+  // 6) Attach click handlers:
+  //    If user clicks the program chip, we slideToggle the matching table
+  $(".transferable-program-chip").off("click").on("click", function() {
+    const recordId = $(this).data("record-id");
+    // Hide any other open table if you want one at a time:
+    $(".transfer-accordion").not(`[data-record-id='${recordId}']`).slideUp();
+    
+    const $target = $(`.transfer-accordion[data-record-id='${recordId}']`);
+    $target.slideToggle();
+  });
 }
+
 
 
 /*******************************************************
