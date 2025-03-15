@@ -1557,3 +1557,86 @@ width:100px;
   font-size: 0.85rem;
   color: #888;
 }
+
+.transfer-subheader {
+  font-size: 0.95rem;
+  color: #555;
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+/* Row of circular logos */
+.transferable-programs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+.transferable-program-chip {
+  width: 60px;
+  height: 60px;
+  border: 2px solid #dce3eb;
+  border-radius: 50%;
+  background-color: #fff;
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+.transferable-program-chip:hover {
+  border-color: #1a2732;
+}
+
+.transfer-accordion-container {
+  /* We’ll place each program’s partner table inside. */
+}
+
+.transfer-accordion {
+  display: none; /* hidden by default */
+  margin-bottom: 2rem;
+  /* You can fade it in or slide it in with jQuery, etc. */
+}
+
+/* Table styling for the partner list */
+.transfer-partner-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0 auto;
+  max-width: 600px;
+  background-color: #fff;
+  border: 1px solid #dce3eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.transfer-partner-table th,
+.transfer-partner-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #dce3eb;
+  font-size: 0.9rem;
+  text-align: left;
+}
+.transfer-partner-table thead {
+  background-color: #f8fafd;
+}
+.transfer-partner-table th {
+  font-weight: 600;
+  color: #1a2732;
+}
+.transfer-partner-table td:last-child {
+  text-align: right; /* Right-align the points total */
+}
+.transfer-partner-logo {
+  width: 28px;
+  height: 28px;
+  margin-right: 0.5rem;
+  vertical-align: middle;
+  object-fit: contain;
+}
+.transfer-partner-name {
+  vertical-align: middle;
+}
+
