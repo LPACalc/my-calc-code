@@ -197,20 +197,32 @@ async function loadTransferTableIfNeeded() {
   if (transferPartners.length > 0) return; // already loaded
   try {
     const data = await fetchAirtableTable("Transfer Table");
-    // Suppose each record has fields like { "From Program": [ ... ], "Partner Name": "...", "Partner Logo": [ { url: "..." } ] }
-    transferPartners = data.map((r) => {
+    console.log("Raw transfer table =>", data);
+
+    // Suppose each record looks like: 
+    // fields["Transfer From Partner"] = "Marriott" 
+    // or maybe an array [ 'recXYZ' ] if it's a link
+    transferPartners = data.map(r => {
+      // see exactly how your data is shaped:
+      const f = r.fields;
+
       return {
         id: r.id,
-        fromProgramId: r.fields["From Program"]?.[0],
-        partnerName: r.fields["Partner Name"] || "",
-        partnerLogo: r.fields["Partner Logo"]?.[0]?.url || ""
+        fromProgram: f["Transfer From Partner"] || "",
+        toProgram: f["Transfer To Partner"] || "",
+        ratio: f["Transfer Ratio"] || "",
+        logoFrom: f["Logo From Partner"]?.[0]?.url || "",
+        logoTo: f["Logo To Partner"]?.[0]?.url || "",
+        typeFrom: f["Type (from Linked)"] || "", // if you want that
       };
     });
+
     console.log("Loaded Transfer Partners =>", transferPartners);
   } catch (err) {
     console.error("Error loading Transfer Table =>", err);
   }
 }
+
 
 /*******************************************************
  * loadUseCasesIfNeeded => BACKGROUND LOAD
