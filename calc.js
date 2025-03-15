@@ -913,40 +913,41 @@ async function buildTransferModule() {
       </div>
     `;
 
-    const tableHTML = `
-      <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
-        ${titleHTML}
-        <table class="transfer-partner-table" style="width:100%;">
-          <thead>
-            <tr>
-              <th colspan="3" style="padding:6px 12px;">
-                <div style="display:flex; align-items:center; justify-content:space-between;">
-                  <span>0</span>
-                  <input 
-                    type="range"
-                    class="transfer-program-slider"
-                    min="0"
-                    max="${userPoints}"
-                    value="${userPoints}"
-                    style="flex:1; margin:0 8px;"
-                  />
-                  <span>${userPoints.toLocaleString()}</span>
-                </div>
-              </th>
-            </tr>
-            <tr>
-              <th style="white-space:nowrap;">Transfer To</th>
-              <th>Ratio</th>
-              <th style="white-space:nowrap; text-align:right;">Points Received</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${tableRowsHTML}
-          </tbody>
-        </table>
-        ${filterPillsHTML}
-      </div>
-    `;
+   const tableHTML = `
+  <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
+    ${titleHTML}
+    ${filterPillsHTML}
+    <table class="transfer-partner-table" style="width:100%;">
+      <thead>
+        <tr>
+          <th colspan="3" style="padding:6px 12px;">
+            <div style="display:flex; align-items:center; justify-content:space-between;">
+              <span>0</span>
+              <input 
+                type="range"
+                class="transfer-program-slider"
+                min="0"
+                max="${userPoints}"
+                value="${userPoints}"
+                style="flex:1; margin:0 8px;"
+              />
+              <span>${userPoints.toLocaleString()}</span>
+            </div>
+          </th>
+        </tr>
+        <tr>
+          <th style="white-space:nowrap;">Transfer To</th>
+          <th>Ratio</th>
+          <th style="white-space:nowrap; text-align:right;">Points Received</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${tableRowsHTML}
+      </tbody>
+    </table>
+  </div>
+`;
+
     $("#transfer-accordion-container").append(tableHTML);
     $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
     $accordion.slideDown();
