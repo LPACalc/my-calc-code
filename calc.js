@@ -193,7 +193,7 @@ async function fetchAirtableTable(tableName) {
 /*******************************************************
  * loadTransferTableIfNeeded => Make sure it's above initializeApp()
  *******************************************************/
-loadTransferTableIfNeeded() {
+async function loadTransferTableIfNeeded() {
   if (transferPartners.length > 0) return; // already loaded
 
   try {
