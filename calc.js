@@ -56,8 +56,8 @@ async function fetchClientIP() {
   try {
     const resp = await fetch("https://young-cute-neptune.glitch.me/getClientIP");
     if (!resp.ok) {
-  throw new Error(`Failed to fetch IP. status: ${resp.status}`);
-}
+      throw new Error(`Failed to fetch IP. status: ${resp.status}`);
+    }
     const data = await resp.json();
     clientIP = data.ip;
     console.log("Client IP =>", clientIP);
@@ -74,10 +74,10 @@ async function fetchApproxLocationFromIP() {
       approximateLocation = null;
       return;
     }
-    const url = https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query;
+    const url = `https://ip-api.com/json/${clientIP}?fields=status,country,regionName,city,lat,lon,query`;
     const resp = await fetch(url);
     if (!resp.ok) {
-      throw new Error(Location fetch error: ${resp.status});
+      throw new Error(`Location fetch error: ${resp.status}`);
     }
     const data = await resp.json();
     if (data.status === "success") {
@@ -152,7 +152,7 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
         return response;
       }
       if (attempt > maxRetries) {
-        throw new Error(HTTP status: ${response.status});
+        throw new Error(`HTTP status: ${response.status}`);
       }
       // Retry if not OK
       await new Promise((r) => setTimeout(r, 500));
@@ -179,13 +179,13 @@ async function fetchWithTimeout(url, options = {}, timeout = 10000, maxRetries =
  *******************************************************/
 async function fetchAirtableTable(tableName) {
   const resp = await fetchWithTimeout(
-    https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName},
+    `https://young-cute-neptune.glitch.me/fetchAirtableData?table=${tableName}`,
     {},
     10000,
     2
   );
   if (!resp.ok) {
-    throw new Error(Non-OK status: ${resp.status});
+    throw new Error(`Non-OK status: ${resp.status}`);
   }
   return await resp.json();
 }
@@ -213,7 +213,7 @@ async function loadTransferTableIfNeeded() {
         ratio: f["Transfer Ratio"] || "",
         logoFrom: f["Logo From Partner"]?.[0]?.url || "",
         logoTo: f["Logo To Partner"]?.[0]?.url || "",
-        typeFrom: f["Type (from Linked)"] || "", // if you want that
+        typeFrom: f["Type (from Linked)"] || "" // if you want that
       };
     });
 
@@ -315,7 +315,7 @@ function buildTopProgramsSection() {
     const name = prog["Program Name"] || "Unnamed Program";
     const logo = prog["Brand Logo URL"] || "";
     html += 
-      <div class="top-program-box" data-record-id="${rid}">
+      `<div class="top-program-box" data-record-id="${rid}">
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <img 
             src="${logo}" 
@@ -324,8 +324,7 @@ function buildTopProgramsSection() {
           <span class="top-program-label">${name}</span>
         </div>
         <button class="add-btn">+</button>
-      </div>
-    ;
+      </div>`;
   });
   container.innerHTML = html;
 }
@@ -333,7 +332,7 @@ function buildTopProgramsSection() {
  * updateTopProgramSelection
  *******************************************************/
 function updateTopProgramSelection(rid, isSelected) {
-  const $box = $(.top-program-box[data-record-id='${rid}']);
+  const $box = $(`.top-program-box[data-record-id='${rid}']`);
   if ($box.length) {
     if (isSelected) {
       $box.addClass("selected-state");
@@ -370,7 +369,7 @@ function filterPrograms() {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
     if (chosenPrograms.includes(id)) return false;
-    const inCalc = $(#program-container .program-row[data-record-id='${id}']).length > 0;
+    const inCalc = $(`#program-container .program-row[data-record-id='${id}']`).length > 0;
     if (inCalc) return false;
     return prog["Program Name"].toLowerCase().includes(val);
   });
@@ -407,22 +406,21 @@ function filterPrograms() {
     }
 
     previewHTML += 
-      <div class="preview-item" data-record-id="${rid}">
+      `<div class="preview-item" data-record-id="${rid}">
         <div style="display:flex; align-items:center; gap:0.5rem;">
           <span class="program-name">${name}</span>
           ${
             typeIconUrl
-              ? <img src="${typeIconUrl}" alt="${prog.Type}" class="program-type-icon" />
-              : <span class="unknown-type">${prog.Type || "Unknown"}</span>
+              ? `<img src="${typeIconUrl}" alt="${prog.Type}" class="program-type-icon" />`
+              : `<span class="unknown-type">${prog.Type || "Unknown"}</span>`
           }
         </div>
         ${
           logo
-            ? <img src="${logo}" alt="logo" style="height:35px;">
+            ? `<img src="${logo}" alt="logo" style="height:35px;">`
             : ""
         }
-      </div>
-    ;
+      </div>`;
   });
 
   $("#program-preview").html(previewHTML).removeClass("hidden");
@@ -441,11 +439,11 @@ function addProgramRow(recordId) {
   const programName = prog["Program Name"] || "Unnamed Program";
 
   const rowHTML = 
-    <div class="program-row" data-record-id="${recordId}">
+    `<div class="program-row" data-record-id="${recordId}">
       <div style="display:flex; align-items:center; gap:0.75rem;">
         ${
           logoUrl
-            ? <img src="${logoUrl}" alt="${programName} logo" style="width:50px; height:auto;">
+            ? `<img src="${logoUrl}" alt="${programName} logo" style="width:50px; height:auto;">`
             : ""
         }
         <span class="program-name">${programName}</span>
@@ -462,8 +460,7 @@ function addProgramRow(recordId) {
         </div>
         <button class="remove-btn">×</button>
       </div>
-    </div>
-  ;
+    </div>`;
   $("#program-container").append(rowHTML);
   calculateTotal(); // optional real-time sum
 }
@@ -523,13 +520,13 @@ function updateChosenProgramsDisplay() {
     if (!prog) return;
     const logoUrl = prog["Brand Logo URL"] || "";
     container.append(
-      <div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
+      `<div style="width:48px; height:48px; display:flex; align-items:center; justify-content:center;">
         <img 
           src="${logoUrl}" 
           alt="${prog["Program Name"] || "N/A"}" 
           style="width:100%; height:auto;"
         />
-      </div>
+      </div>`
     );
   });
 }
@@ -634,7 +631,7 @@ function buildUseCaseSlides(allUseCases) {
     }
 
     slideHTML += 
-      <div class="swiper-slide" data-ucid="${uc.id}">
+      `<div class="swiper-slide" data-ucid="${uc.id}">
         <div class="slide-image-wrapper">
           <img
             src="${imageURL}"
@@ -647,7 +644,7 @@ function buildUseCaseSlides(allUseCases) {
             <h3 class="slide-title">${title}</h3>
             ${
               programLogo
-                ? <img src="${programLogo}" alt="program logo" class="slide-program-logo" />
+                ? `<img src="${programLogo}" alt="program logo" class="slide-program-logo" />`
                 : ""
             }
           </div>
@@ -660,8 +657,7 @@ function buildUseCaseSlides(allUseCases) {
             <p>${body}</p>
           </div>
         </div>
-      </div>
-    ;
+      </div>`;
   });
 
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
@@ -727,7 +723,6 @@ function buildTransferModule() {
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
     return rec && rec["Transferable"] === true; 
-    // or if Airtable sets a checkbox as "1" or "checked", adapt accordingly
   });
 
   // If no transferables, hide the module or show a message
@@ -750,21 +745,20 @@ function buildTransferModule() {
     // Build a small block of partner logos
     let partnersHTML = "";
     if (!matchedPartners.length) {
-      partnersHTML = <div class="no-partners-msg">No partners found.</div>;
+      partnersHTML = `<div class="no-partners-msg">No partners found.</div>`;
     } else {
       matchedPartners.forEach(p => {
         partnersHTML += 
-          <div class="transfer-partner-logo">
+          `<div class="transfer-partner-logo">
             <img src="${p.partnerLogo}" alt="${p.partnerName} Logo" />
             <span>${p.partnerName}</span>
-          </div>
-        ;
+          </div>`;
       });
     }
 
     // Each program row => an accordion “header” + “content” 
     html += 
-      <div class="transfer-program-row">
+      `<div class="transfer-program-row">
         <div class="transfer-header" data-record-id="${item.recordId}">
           <div class="prog-info">
             <img src="${logo}" alt="${programName} Logo" class="transfer-prog-logo" />
@@ -782,8 +776,7 @@ function buildTransferModule() {
             ${partnersHTML}
           </div>
         </div>
-      </div>
-    ;
+      </div>`;
   });
 
   $("#transferable-programs-accordion").html(html);
@@ -945,14 +938,13 @@ function buildAllProgramsList() {
     const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
 
     const rowHtml = 
-      <div class="${rowClass}" data-record-id="${rid}">
+      `<div class="${rowClass}" data-record-id="${rid}">
         <div class="row-left">
           <img src="${logo}" alt="${name} logo" />
           <span class="program-name">${name}</span>
         </div>
         <button class="circle-btn">${circleIcon}</button>
-      </div>
-    ;
+      </div>`;
     container.append(rowHtml);
   });
 }
@@ -1024,7 +1016,7 @@ function hideUnusedPills() {
 
   if (visiblePills.length > 1 && visiblePills.length < 4) {
     visiblePills.forEach((p) => {
-      p.style.width = calc(${100 / visiblePills.length}% - 8px);
+      p.style.width = `calc(${100 / visiblePills.length}% - 8px)`;
       p.style.justifyContent = "center";
     });
   } else {
@@ -1083,42 +1075,40 @@ async function buildOutputRows(viewType) {
     scenarioTotal += rowVal;
 
     const logoUrl = prog["Brand Logo URL"] || "";
-    const formattedVal = $${rowVal.toLocaleString(undefined, {
+    const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    })};
+    })}`;
 
     let rowHtml = 
-      <div class="output-row" data-record-id="${item.recordId}">
+      `<div class="output-row" data-record-id="${item.recordId}">
         <div style="display:flex; align-items:center; gap:0.75rem;">
           <img src="${logoUrl}" alt="logo" style="width:50px;">
           <span class="program-name">${item.programName}</span>
         </div>
         <div class="output-value">${formattedVal}</div>
-      </div>
-    ;
+      </div>`;
 
     if (viewType === "travel") {
       rowHtml += 
-        <div class="usecase-accordion">
+        `<div class="usecase-accordion">
           ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      ;
+        </div>`;
     }
 
     $("#output-programs-list").append(rowHtml);
   });
 
   const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = $${scenarioTotal.toLocaleString(undefined, {
+  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
-  })};
+  })}`;
   $("#output-programs-list").append(
-    <div class="total-value-row" 
+    `<div class="total-value-row" 
          style="text-align:center; margin-top:1rem; font-weight:600;">
       ${label}: ${totalStr}
-    </div>
+    </div>`
   );
 
   // 4A) Update highlight box
@@ -1131,7 +1121,7 @@ async function buildOutputRows(viewType) {
       const roundedPerc = Math.round(rawPerc);
       const commaPerc = roundedPerc.toLocaleString();
       highlightText.innerHTML =
-        Wow! You have over <strong>${commaPerc}%</strong> more in value than the average member.;
+        `Wow! You have over <strong>${commaPerc}%</strong> more in value than the average member.`;
       highlightBox.style.display = "block";
     } else {
       highlightBox.style.display = "none";
@@ -1181,7 +1171,7 @@ async function buildOutputRows(viewType) {
 function buildUseCaseAccordionContent(recordId, userPoints) {
   const program = loyaltyPrograms[recordId];
   if (!program) {
-    return <div style="padding:1rem;">No data found.</div>;
+    return `<div style="padding:1rem;">No data found.</div>`;
   }
   const matching = Object.values(realWorldUseCases).filter((uc) => {
     if (!uc.Recommended) return false;
@@ -1195,7 +1185,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   });
 
   if (!matching.length) {
-    return <div style="padding:1rem;">No recommended use cases found for your points.</div>;
+    return `<div style="padding:1rem;">No recommended use cases found for your points.</div>`;
   }
 
   const first = matching[0];
@@ -1203,17 +1193,17 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
   const title    = first["Use Case Title"] || "Untitled";
   const body     = first["Use Case Body"]  || "No description";
 
-  return 
+  return `
     <div style="padding:1rem;">
       <h4>${title}</h4>
       ${
         imageURL
-          ? <img src="${imageURL}" alt="Use Case" style="width:100px; float:left; margin-right:8px;" />
+          ? `<img src="${imageURL}" alt="Use Case" style="width:100px; float:left; margin-right:8px;" />`
           : ""
       }
       <p>${body}</p>
     </div>
-  ;
+  `;
 }
 
 /*******************************************************
@@ -1489,7 +1479,7 @@ $(document).ready(function() {
 
   function showHowItWorksStep(stepNum) {
     $(".hiw-step").hide().removeClass("hiw-step-first");
-    $(.hiw-step[data-step='${stepNum}']).show();
+    $(`.hiw-step[data-step='${stepNum}']`).show();
     $(".hiw-line").removeClass("active-line");
     $(".hiw-line").each(function(idx) {
       if (idx < stepNum) {
@@ -1499,43 +1489,43 @@ $(document).ready(function() {
   }
 
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
-$("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
+  $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
 
-$("#hiw-final-start-btn").on("click", function() {
-  if (isTransitioning) return;
-  isTransitioning = true;
-  logSessionEvent("hiw_final_get_started");
-  
-  // Hide the HIW state
-  $("#how-it-works-state").addClass("hidden");
+  $("#hiw-final-start-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("hiw_final_get_started");
+    
+    // Hide the HIW state
+    $("#how-it-works-state").addClass("hidden");
 
-  // Mark that user clicked “Get Started” from HIW
-  userClickedGetStarted = true;
+    // Mark that user clicked “Get Started” from HIW
+    userClickedGetStarted = true;
 
-  if (dataLoaded) {
-    // Hide hero, loading, etc.
-    $("#default-hero").addClass("hidden");
-    $("#loading-screen").addClass("hidden");
+    if (dataLoaded) {
+      // Hide hero, loading, etc.
+      $("#default-hero").addClass("hidden");
+      $("#loading-screen").addClass("hidden");
 
-    // Show the next state (input or whichever is next)
-    $("#input-state").removeClass("hidden");
+      // Show the next state (input or whichever is next)
+      $("#input-state").removeClass("hidden");
 
-    // If it’s desktop, show the left column
-    if ($(window).width() >= 992) {
-      $(".left-column").removeClass("hidden");
-      document.querySelector(".left-column").style.display = "flex";
+      // If it’s desktop, show the left column
+      if ($(window).width() >= 992) {
+        $(".left-column").removeClass("hidden");
+        document.querySelector(".left-column").style.display = "flex";
+      }
+
+      updateNextCTAVisibility();
+      updateClearAllVisibility();
+      isTransitioning = false;
+
+    } else {
+      // If data isn’t loaded, show a loading screen
+      $("#loading-screen").removeClass("hidden");
+      isTransitioning = false;
     }
-
-    updateNextCTAVisibility();
-    updateClearAllVisibility();
-    isTransitioning = false;
-
-  } else {
-    // If data isn’t loaded, show a loading screen
-    $("#loading-screen").removeClass("hidden");
-    isTransitioning = false;
-  }
-});
+  });
 
 
   // Input => BACK => hero
@@ -1577,35 +1567,34 @@ $("#hiw-final-start-btn").on("click", function() {
     isTransitioning = false;
   });
 
- $("#to-output-btn").on("click", function() {
-  if (isTransitioning) return;
-  isTransitioning = true;
-  logSessionEvent("calc_next_clicked");
-  $("#calculator-state").addClass("hidden");
-  $("#output-state").removeClass("hidden");
-  $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
+  $("#to-output-btn").on("click", function() {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("calc_next_clicked");
+    $("#calculator-state").addClass("hidden");
+    $("#output-state").removeClass("hidden");
+    $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
 
-  // 1) Build the main rows
-  buildOutputRows("travel");
+    // 1) Build the main rows
+    buildOutputRows("travel");
 
-  // 2) Build the Transfer Module
-  buildTransferModule();
+    // 2) Build the Transfer Module
+    buildTransferModule();
 
-  // 3) Possibly your bar chart logic
-  renderProgramsBarChart("travel"); 
-  // ...
-  buildFilteredUseCaseSlides([...selectedCategories]);
-  isTransitioning = false;
-});
+    // 3) Possibly your bar chart logic
+    renderProgramsBarChart("travel"); 
+    buildFilteredUseCaseSlides([...selectedCategories]);
+    isTransitioning = false;
+  });
 
 
     // Build new bar chart of selected programs
     renderProgramsBarChart("travel"); // or default to "points"
     // Optionally set an active pill if you have them in the HTML
-   $(".bar-chart-pill").removeClass("active-bar-pill");
-   $(".bar-chart-pill[data-metric='travel']").addClass("active-bar-pill");
+    $(".bar-chart-pill").removeClass("active-bar-pill");
+    $(".bar-chart-pill[data-metric='travel']").addClass("active-bar-pill");
     buildFilteredUseCaseSlides([...selectedCategories]);
-  });
+  // ------------------------------------------------
 
   // Output => BACK => Calc
   $("#output-back-btn").on("click", function() {
@@ -1707,87 +1696,85 @@ $("#hiw-final-start-btn").on("click", function() {
   });
 
   // mini-pills => switch use case content
-// Always re-filter on toggle (select or deselect).
-$(document).on("click", ".usecase-pill", function() {
-  const $pill = $(this);
-  const category = $pill.data("category");
-  const wasActive = $pill.hasClass("active-pill");
+  // Always re-filter on toggle (select or deselect).
+  $(document).on("click", ".usecase-pill", function() {
+    const $pill = $(this);
+    const category = $pill.data("category");
+    const wasActive = $pill.hasClass("active-pill");
 
-  // Toggle pill styling & icon
-  if (wasActive) {
-    // Pill was active => turn it off
-    $pill.removeClass("active-pill");
-    const blackIcon = $pill.data("iconBlack");
-    $pill.find(".pill-icon").attr("src", blackIcon);
-    selectedCategories.delete(category);
-  } else {
-    // Pill was inactive => turn it on
-    $pill.addClass("active-pill");
-    const whiteIcon = $pill.data("iconWhite");
-    $pill.find(".pill-icon").attr("src", whiteIcon);
-    selectedCategories.add(category);
-  }
-
-  // 1) Grab the current slide ID
-  const currentIndex = useCaseSwiper.activeIndex;
-  const $currentSlide = $(useCaseSwiper.slides[currentIndex]);
-  const currentUCId = $currentSlide.data("ucid");
-
-  // 2) Gather all recommended, then filter by selected categories
-  let newSlidesArr = gatherAllRecommendedUseCases();
-  if (selectedCategories.size > 0) {
-    newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
-  }
-
-
-
-  // Step F: Rebuild slides
-  buildUseCaseSlides(newSlidesArr);
-
-  // Step G: Destroy & re-init Swiper, ensuring no loop
-  useCaseSwiper.destroy(true, true);
-  useCaseSwiper = new Swiper("#useCaseSwiper", {
-    slidesPerView: 1,
-    loop: false,
-    centeredSlides: false,
-    autoHeight: false,
-    pagination: {
-      el: ".swiper-pagination",
-      clickable: true
-    },
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev"
+    // Toggle pill styling & icon
+    if (wasActive) {
+      // Pill was active => turn it off
+      $pill.removeClass("active-pill");
+      const blackIcon = $pill.data("iconBlack");
+      $pill.find(".pill-icon").attr("src", blackIcon);
+      selectedCategories.delete(category);
+    } else {
+      // Pill was inactive => turn it on
+      $pill.addClass("active-pill");
+      const whiteIcon = $pill.data("iconWhite");
+      $pill.find(".pill-icon").attr("src", whiteIcon);
+      selectedCategories.add(category);
     }
+
+    // 1) Grab the current slide ID
+    const currentIndex = useCaseSwiper.activeIndex;
+    const $currentSlide = $(useCaseSwiper.slides[currentIndex]);
+    const currentUCId = $currentSlide.data("ucid");
+
+    // 2) Gather all recommended, then filter by selected categories
+    let newSlidesArr = gatherAllRecommendedUseCases();
+    if (selectedCategories.size > 0) {
+      newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
+    }
+
+    // Step F: Rebuild slides
+    buildUseCaseSlides(newSlidesArr);
+
+    // Step G: Destroy & re-init Swiper, ensuring no loop
+    useCaseSwiper.destroy(true, true);
+    useCaseSwiper = new Swiper("#useCaseSwiper", {
+      slidesPerView: 1,
+      loop: false,
+      centeredSlides: false,
+      autoHeight: false,
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true
+      },
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev"
+      }
+    });
+
+    // If on mobile, scroll up so the user sees the chart & new slides
+    if ($(window).width() < 992) {
+      const chartTop = $(".chart-cards-row").offset().top;
+      $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
+    }
+
+    // Step H: Jump back to the old slide if it still exists
+    let matchingIndex = 0;
+    $(useCaseSwiper.slides).each(function(idx, slideEl) {
+      if ($(slideEl).data("ucid") === currentUCId) {
+        matchingIndex = idx;
+        return false; // break loop
+      }
+    });
+    useCaseSwiper.slideTo(matchingIndex, 0);
   });
 
-  // If on mobile, scroll up so the user sees the chart & new slides
-  if ($(window).width() < 992) {
-    const chartTop = $(".chart-cards-row").offset().top;
-    $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
-  }
-
-  // Step H: Jump back to the old slide if it still exists
-  let matchingIndex = 0;
-  $(useCaseSwiper.slides).each(function(idx, slideEl) {
-    if ($(slideEl).data("ucid") === currentUCId) {
-      matchingIndex = idx;
-      return false; // break loop
+  $(document).on("click", ".transfer-header", function() {
+    const contentEl = $(this).next(".transfer-content");
+    // Hide any other open content if you want a single-open accordion:
+    $(".transfer-content").not(contentEl).slideUp();
+    if (contentEl.is(":visible")) {
+      contentEl.slideUp();
+    } else {
+      contentEl.slideDown();
     }
   });
-  useCaseSwiper.slideTo(matchingIndex, 0);
-});
-
-$(document).on("click", ".transfer-header", function() {
-  const contentEl = $(this).next(".transfer-content");
-  // Hide any other open content if you want a single-open accordion:
-  $(".transfer-content").not(contentEl).slideUp();
-  if (contentEl.is(":visible")) {
-    contentEl.slideUp();
-  } else {
-    contentEl.slideDown();
-  }
-});
 
 
   // Unlock => show email modal
@@ -1881,20 +1868,21 @@ $(document).on("click", ".transfer-header", function() {
     clearAllPrograms();
   });
 
- $(document).on("click", ".bar-chart-pill", function() {
-  // reset all
-  $(".bar-chart-pill").each(function() {
-    const darkIcon = $(this).data("iconDark");
-    $(this).removeClass("active-bar-pill");
-    $(this).find(".pill-icon").attr("src", darkIcon);
-  });
-  // activate the clicked pill
-  $(this).addClass("active-bar-pill");
-  $(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
+  $(document).on("click", ".bar-chart-pill", function() {
+    // reset all
+    $(".bar-chart-pill").each(function() {
+      const darkIcon = $(this).data("iconDark");
+      $(this).removeClass("active-bar-pill");
+      $(this).find(".pill-icon").attr("src", darkIcon);
+    });
+    // activate the clicked pill
+    $(this).addClass("active-bar-pill");
+    $(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
 
-  // update chart
-  const newMetric = $(this).data("metric");
-  renderProgramsBarChart(newMetric);
+    // update chart
+    const newMetric = $(this).data("metric");
+    renderProgramsBarChart(newMetric);
+  });
 });
 
 /*******************************************************
@@ -1919,13 +1907,7 @@ async function sendReport(email) {
   });
   if (!response.ok) {
     const result = await response.json();
-    throw new Error(result.error || HTTP ${response.status});
+    throw new Error(result.error || `HTTP ${response.status}`);
   }
   return true;
 }
-});  
-
-but the section is still not showing
-
-<!DOCTYPE html>
-<html lang="en">
