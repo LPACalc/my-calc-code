@@ -743,17 +743,17 @@ function buildFilteredUseCaseSlides(categories) {
  * If ratio is "3:1", returns 3.  If "1.25:1", returns 1.25.
  */
 function buildTransferModule() {
-  // 1) Gather user’s selected programs + points from the calculator state
+  // 1) Gather the user’s selected programs + points
   const userData = gatherProgramData(); 
-  // userData => [ { recordId, programName, points }, ... ]
+  // userData => [{ recordId, programName, points }, ...]
 
-  // 2) Filter only programs that have “Transferable” = true
+  // 2) Filter only those that have Transferable = true
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
     return rec && rec["Transferable"] === true;
   });
 
-  // If none are transferable, hide the section
+  // If no transferable programs, hide this module entirely
   if (!transferablePrograms.length) {
     $("#transfer-module").addClass("hidden");
     return;
@@ -761,29 +761,34 @@ function buildTransferModule() {
     $("#transfer-module").removeClass("hidden");
   }
 
-  // 3) Clear existing HTML in the module
+  // 3) Clear out any existing content
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
-  // Helper: parse a ratio string like "3:1" => numeric factor 3
+  /**
+   * Helper to parse a ratio string like "3:1" => numeric factor 3
+   */
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
     const [lhs] = ratioStr.split(":");
     return parseFloat(lhs.trim()) || 1;
   }
 
-  // 4) Build a row of “chips” for each transferable program
+  // 4) Build just the row of clickable “chips” for each Transferable program
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
 
-    const logo        = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"]   || "Unnamed";
+    const logo = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unnamed";
+    const userPoints = item.points || 0;
 
+    // Store recordId and userPoints in data attributes so we can build the table on click
     const chipHTML = `
       <div 
         class="transferable-program-chip" 
         data-record-id="${item.recordId}"
+        data-user-points="${userPoints}"
       >
         <img 
           src="${logo}" 
@@ -804,26 +809,39 @@ function buildTransferModule() {
   `;
   $("#transferable-programs-row").after(transferInfoHTML);
 
-  // 5) Build an accordion table for each program (hidden by default)
-  transferablePrograms.forEach(item => {
-    const prog = loyaltyPrograms[item.recordId];
-    if (!prog) return;
+  // 5) When the user clicks a chip => remove the text, and LAZY‑BUILD that program’s table
+  $(".transferable-program-chip").off("click").on("click", function() {
+    // Remove the two info paragraphs (if they're still present)
+    $(".transfer-info-text").remove();
 
-    const userPoints  = item.points || 0; // total points user has in this “From” program
-    const programName = prog["Program Name"] || "Unnamed";
+    // Hide any other open tables (accordion effect)
+    $(".transfer-accordion").slideUp();
 
-    // Gather all partners for this “From Program”
+    // Check if we've already built the table for this program
+    const recordId = $(this).data("record-id");
+    let $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
+    if ($accordion.length) {
+      // Already built => just slide toggle
+      $accordion.slideToggle();
+      return;
+    }
+
+    // If not built yet, create it now
+    const userPoints = parseInt($(this).data("user-points"), 10) || 0;
+    const fromProg = loyaltyPrograms[recordId] || {};
+    const fromName = fromProg["Program Name"] || "Unnamed";
+
+    // Gather the matching partners
     const matchedPartners = transferPartners.filter(tp => {
-      return tp.fromProgramIds.includes(item.recordId);
+      return tp.fromProgramIds.includes(recordId);
     });
 
-    // Build each partner row => columns: [ Program(logo+name), Ratio, Points ]
+    // Build each partner row => columns: [ Program, Ratio, Points(0..sliderVal * ratio) ]
     let tableRowsHTML = "";
     matchedPartners.forEach(mp => {
       const ratioStr = mp.ratio || "1:1";
       const ratioVal = parseTransferRatio(ratioStr);
 
-      // Look up the “To Program” name from mp.toProgramIds
       let partnerName = "Unnamed Partner";
       const toIds = mp.toProgramIds || [];
       if (toIds.length > 0) {
@@ -833,15 +851,12 @@ function buildTransferModule() {
         }
       }
 
-      // We'll store ratioVal in a data attribute on <tr> so we can recalc when slider changes
-      // Also note we put an empty <td> with class="pointsValueCell" for the dynamic Points
       tableRowsHTML += `
         <tr data-ratio="${ratioVal}">
           <td style="white-space: nowrap;">
             <img 
               src="${mp.logoTo || ""}" 
               alt="Partner Logo"
-              class="transfer-partner-logo"
               style="vertical-align: middle; width:24px; height:auto; margin-right:6px;"
             />
             <span>${partnerName}</span>
@@ -852,26 +867,20 @@ function buildTransferModule() {
       `;
     });
 
-    // If no partners found, show a single row
     if (!matchedPartners.length) {
       tableRowsHTML = `
         <tr>
-          <td colspan="3">No transfer partners found for ${programName}.</td>
+          <td colspan="3">No transfer partners found for ${fromName}.</td>
         </tr>
       `;
     }
 
-    // Build the HTML for this table
-    // We do a <caption> to mention “Transferring from {programName}”
-    // Then in the <thead> we have a single row w/ a slider that spans all 3 columns
-    // 0 on the left, userPoints on the right
-    // Then the second row is the normal col headings
-    const tableId = `transfer-table-${item.recordId}`;
-    const tableHTML = `
-      <div class="transfer-accordion" data-record-id="${item.recordId}">
-        <table id="${tableId}" class="transfer-partner-table" style="width:100%;">
+    // Build the table (accordion) HTML
+    const newAccordionHtml = `
+      <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
+        <table class="transfer-partner-table" style="width:100%;">
           <caption style="font-weight:600; text-align:left; padding:4px;">
-            Transferring from: ${programName} (You have ${userPoints.toLocaleString()} points)
+            Transferring from: ${fromName} (You have ${userPoints.toLocaleString()} points)
           </caption>
           <thead>
             <tr>
@@ -879,9 +888,9 @@ function buildTransferModule() {
                 <div style="display:flex; align-items:center; justify-content:space-between;">
                   <span>0</span>
                   <input 
-                    type="range" 
+                    type="range"
                     class="transfer-program-slider"
-                    min="0" 
+                    min="0"
                     max="${userPoints}"
                     value="0"
                     style="flex:1; margin:0 8px;"
@@ -903,35 +912,24 @@ function buildTransferModule() {
       </div>
     `;
 
-    $("#transfer-accordion-container").append(tableHTML);
-  });
+    // Append to #transfer-accordion-container
+    $("#transfer-accordion-container").append(newAccordionHtml);
+    $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
+    $accordion.slideDown(); // show it
 
-  // 6) Click handler => remove info text, show the table
-  $(".transferable-program-chip").off("click").on("click", function() {
-    $(".transfer-info-text").remove(); // remove the two-sentence info
-    const recordId = $(this).data("record-id");
-    // For an accordion effect, hide all others first
-    $(".transfer-accordion").not(`[data-record-id='${recordId}']`).slideUp();
-    // Then toggle just the clicked one
-    $(`.transfer-accordion[data-record-id='${recordId}']`).slideToggle();
-  });
-
-  // 7) When the user drags the single slider for that table, recalc each partner row
-  $(document).off("input", ".transfer-program-slider");
-  $(document).on("input", ".transfer-program-slider", function() {
-    // 7a) find the slider's table
-    const $table = $(this).closest("table");
-    // get current slider value
-    const sliderVal = parseInt($(this).val(), 10) || 0;
-
-    // 7b) for each row in the tbody => ratioVal * sliderVal => show in .pointsValueCell
-    $table.find("tbody tr").each(function() {
-      const ratioVal = parseFloat($(this).data("ratio")) || 1;
-      const totalTransferred = Math.floor(sliderVal * ratioVal);
-      $(this).find(".pointsValueCell").text(totalTransferred.toLocaleString());
+    // 6) Attach a local slider event for this new table (rather than a global .on() for all sliders)
+    const $slider = $accordion.find(".transfer-program-slider");
+    $slider.on("input", function() {
+      const val = parseInt($(this).val(), 10) || 0;
+      $accordion.find("tbody tr").each(function() {
+        const ratioVal = parseFloat($(this).data("ratio")) || 1;
+        const totalTransferred = Math.floor(val * ratioVal);
+        $(this).find(".pointsValueCell").text(totalTransferred.toLocaleString());
+      });
     });
   });
 }
+
 
 
 
