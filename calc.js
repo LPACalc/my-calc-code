@@ -38,17 +38,14 @@ let pointsMap = {};
 let selectedCategories = new Set();
 let transferPartners = []; // or a dictionary
 
-
 let dataLoaded = false;
 let userClickedGetStarted = false;
 
 /** For the bar & donut charts: */
 let barChartInstance = null;
 let pieChartInstance = null;
-
-/** NEW: for the per-program bar chart (under highlight box) */
+/** For the per-program bar chart (under highlight box) */
 let programsBarChart = null;
-
 /** For the use case slider: */
 let useCaseSwiper = null;
 
@@ -115,9 +112,7 @@ function logSessionEvent(eventName, payload = {}) {
   }
   fetch("https://young-cute-neptune.glitch.me/proxyLogEvent", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(eventData),
     keepalive: true
   });
@@ -194,12 +189,15 @@ async function fetchAirtableTable(tableName) {
   }
   return await resp.json();
 }
-// Example definition:
+
+/*******************************************************
+ * loadTransferTableIfNeeded => Make sure it's above initializeApp()
+ *******************************************************/
 async function loadTransferTableIfNeeded() {
   if (transferPartners.length > 0) return; // already loaded
   try {
     const data = await fetchAirtableTable("Transfer Table");
-    // Suppose each record has fields like: { "From Program": [array], "Partner Name": "X", "Partner Logo": [ { url: "..." } ] }
+    // Suppose each record has fields like { "From Program": [ ... ], "Partner Name": "...", "Partner Logo": [ { url: "..." } ] }
     transferPartners = data.map((r) => {
       return {
         id: r.id,
@@ -236,13 +234,13 @@ async function loadUseCasesIfNeeded() {
 }
 
 /*******************************************************
- * INIT APP => fetch loyalty programs, background load use cases
+ * INIT APP => fetch loyalty programs, background load data
  *******************************************************/
 async function initializeApp() {
   console.log("=== initializeApp() ===");
 
   try {
-    // 1) Fetch loyalty programs (the “blocking” data)
+    // 1) Fetch loyalty programs
     const resp = await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
@@ -252,7 +250,7 @@ async function initializeApp() {
       throw new Error("Network not OK => " + resp.statusText);
     }
 
-    // 2) Parse & store in global loyaltyPrograms
+    // 2) Parse & store
     const programsData = await resp.json();
     loyaltyPrograms = programsData.reduce((acc, record) => {
       const fields = { ...record.fields };
@@ -268,10 +266,10 @@ async function initializeApp() {
     dataLoaded = true;
     console.log("Data fully loaded => dataLoaded = true");
 
-    // 4) Build popular programs UI
+    // 4) Build popular programs
     buildTopProgramsSection();
 
-    // 5) Kick off IP & location fetch in the background
+    // 5) Fetch IP/location in background
     (async () => {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
@@ -282,15 +280,13 @@ async function initializeApp() {
       console.error("Error fetching Real-World =>", err);
     });
 
-    // 7) ALSO load transfer table in the background
+    // 7) Also load Transfer Table in background
     loadTransferTableIfNeeded().catch(err => console.error(err));
 
   } catch (err) {
     console.error("Error fetching Points Calc =>", err);
   }
 }
-
-
 
 /*******************************************************
  * BUILD POPULAR PROGRAMS
@@ -321,7 +317,6 @@ function buildTopProgramsSection() {
   });
   container.innerHTML = html;
 }
-
 /*******************************************************
  * updateTopProgramSelection
  *******************************************************/
