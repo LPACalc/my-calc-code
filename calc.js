@@ -200,9 +200,10 @@ async function loadTransferTableIfNeeded() {
     const data = await fetchAirtableTable("Transfer Table");
     console.log("Raw transfer table =>", data);
 
-    transferPartners = data.map(r => {
-      const f = r.fields;
+    transferPartners = data.map(record => {
+      const f = record.fields;
 
+      // "Transfer From Partner" and "Transfer To Partner" might be arrays of IDs
       const fromProgramIds = Array.isArray(f["Transfer From Partner"])
         ? f["Transfer From Partner"]
         : [];
@@ -210,20 +211,29 @@ async function loadTransferTableIfNeeded() {
         ? f["Transfer To Partner"]
         : [];
 
-      // UPDATED: Capture the "Transfer Type" (or whatever your field is named)
-      // e.g. if the Airtable field is "Transfer Type" we store it in .transferType
-      const transferType = f["Transfer Type"] || "";
+      // If “Transfer Type” is a lookup or rollup, it might come back as an array
+      // Even if there's just one item, handle it as an array so we can unify our approach
+      let transferTypes = f["Transfer Type"] || [];
+      if (!Array.isArray(transferTypes)) {
+        transferTypes = [transferTypes]; 
+        // This ensures it’s always an array, even if Airtable gave us a single string
+      }
+
+      // Debug: log it so you can see exactly what's in there
+      console.log(`Record ${record.id} => transferTypes:`, transferTypes);
 
       return {
-        id: r.id,
+        id: record.id,
         fromProgramIds,
         toProgramIds,
         ratio: f["Transfer Ratio"] || "",
         logoFrom: f["Logo From Partner"]?.[0]?.url || "",
         logoTo: f["Logo To Partner"]?.[0]?.url || "",
         typeFrom: f["Type (from Linked)"] || "",
-        // Store the "to" side's category
-        transferType // e.g. "Hotel", "Intl. Airline", or "Domestic Airline"
+
+        // We'll store the array of categories in “transferTypes”
+        // e.g. ["Hotel"] or ["Hotel","Domestic Airline"] etc.
+        transferTypes
       };
     });
 
@@ -233,6 +243,7 @@ async function loadTransferTableIfNeeded() {
     console.error("Error loading Transfer Table =>", err);
   }
 }
+
 
 
 
