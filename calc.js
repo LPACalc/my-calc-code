@@ -206,10 +206,13 @@ async function loadTransferTableIfNeeded() {
       const fromProgramIds = Array.isArray(f["Transfer From Partner"])
         ? f["Transfer From Partner"]
         : [];
-
       const toProgramIds = Array.isArray(f["Transfer To Partner"])
         ? f["Transfer To Partner"]
         : [];
+
+      // UPDATED: Capture the "Transfer Type" (or whatever your field is named)
+      // e.g. if the Airtable field is "Transfer Type" we store it in .transferType
+      const transferType = f["Transfer Type"] || "";
 
       return {
         id: r.id,
@@ -218,7 +221,9 @@ async function loadTransferTableIfNeeded() {
         ratio: f["Transfer Ratio"] || "",
         logoFrom: f["Logo From Partner"]?.[0]?.url || "",
         logoTo: f["Logo To Partner"]?.[0]?.url || "",
-        typeFrom: f["Type (from Linked)"] || ""
+        typeFrom: f["Type (from Linked)"] || "",
+        // Store the "to" side's category
+        transferType // e.g. "Hotel", "Intl. Airline", or "Domestic Airline"
       };
     });
 
@@ -741,7 +746,7 @@ function buildFilteredUseCaseSlides(categories) {
  * If ratio is "3:1", returns 3.  If "1.25:1", returns 1.25.
  */
 async function buildTransferModule() {
-  // 1) Gather the user’s selected programs + points
+  // 1) Gather user’s selected programs + points
   const userData = gatherProgramData(); 
   // userData => [{ recordId, programName, points }, ...]
 
@@ -765,7 +770,7 @@ async function buildTransferModule() {
 
   /**
    * Convert ratio strings like “2:1” => numeric factor 0.5
-   * So 1,000 points => 500 after transfer
+   * So 1,000 => 500 after transfer
    */
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
@@ -778,7 +783,7 @@ async function buildTransferModule() {
     return 1;
   }
 
-  // 2) Build “chips” row
+  // 2) Build the row of “chips” for the "from" programs
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
@@ -804,7 +809,7 @@ async function buildTransferModule() {
     $("#transferable-programs-row").append(chipHTML);
   });
 
-  // Optional: short info paragraphs
+  // Optional info paragraphs
   const transferInfoHTML = `
     <div class="transfer-info-text" style="margin:1rem 0; font-size:0.9rem; line-height:1.4;">
       <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
@@ -813,13 +818,11 @@ async function buildTransferModule() {
   `;
   $("#transferable-programs-row").after(transferInfoHTML);
 
-
   // 3) Clicking a chip => build or toggle the partner table
   $(".transferable-program-chip").off("click").on("click", function() {
-    $(".transfer-info-text").remove(); // remove the paragraphs once a chip is clicked
+    // Remove the paragraphs once a chip is clicked
+    $(".transfer-info-text").remove();
 
-    // Hide any other open tables if you want single-accordion behavior
-    // Then toggle this one
     const recordId = $(this).data("record-id");
     let $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
 
@@ -829,50 +832,65 @@ async function buildTransferModule() {
       return;
     }
 
-    // Not built yet => create the table
+    // Otherwise, build it
     const userPoints = parseInt($(this).data("user-points"), 10) || 0;
     const fromProg = loyaltyPrograms[recordId] || {};
     const fromName = fromProg["Program Name"] || "Unnamed Program";
 
-    // Make sure to hide any other open tables if you want only one open at a time:
+    // Hide any other open tables if you want single-accordion behavior
     $(".transfer-accordion:visible").slideUp();
-
-    // UPDATED => create a titled “h2” between the row of chips & the slider table
-    // We’ll store it in a variable so it’s easy to insert:
-    const titleHTML = `
-      <div class="selected-program-title" 
-           style="text-align:center; font-size:1.2rem; font-weight:bold; margin:1rem 0;">
-        ${fromName}
-      </div>
-    `;
 
     // Find matching transfer partners
     const matchedPartners = transferPartners.filter(tp =>
       tp.fromProgramIds.includes(recordId)
     );
 
-    // Build rows
-    let tableRowsHTML = "";
-    matchedPartners.forEach(mp => {
+    // Figure out which unique types we have among matchedPartners
+    // e.g. "Hotel", "Intl. Airline", "Domestic Airline"
+    const allPossibleTypes = ["Hotel", "Intl. Airline", "Domestic Airline"];
+    const partnerTypesFound = new Set(
+      matchedPartners.map(mp => mp.transferType).filter(Boolean)
+    );
+    const relevantTypes = allPossibleTypes.filter(t => partnerTypesFound.has(t));
+
+    // We'll build the filter-pill row if we have at least 1 relevant type
+    let filterPillsHTML = "";
+    if (relevantTypes.length > 0) {
+      filterPillsHTML = `
+        <div class="transfer-filter-pills" style="display:flex; gap:10px; justify-content:center; margin:0.5rem 0;">
+          ${relevantTypes.map(t => `
+            <div class="transfer-pill" data-type="${t}" style="
+                 padding:6px 12px; 
+                 border-radius:20px; 
+                 background-color:#f0f0f0; 
+                 color:#333; 
+                 font-weight:600; 
+                 cursor:pointer;">
+              ${t}
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    // Build table rows
+    const rowsHTML = matchedPartners.map(mp => {
       const ratioStr = mp.ratio || "1:1";
       const ratioVal = parseTransferRatio(ratioStr);
-
-      // If “2:1” => ratioVal = 0.5 => userPoints * 0.5 => half
-      const initialPointsReceived = Math.floor(userPoints * ratioVal);
+      const initialPoints = Math.floor(userPoints * ratioVal);
 
       let partnerName = "Unnamed Partner";
       let partnerLogo = "";
-      const toIds = mp.toProgramIds || [];
-      if (toIds.length > 0) {
-        const firstToId = toIds[0];
-        if (loyaltyPrograms[firstToId]) {
-          partnerName = loyaltyPrograms[firstToId]["Program Name"] || partnerName;
-          partnerLogo = loyaltyPrograms[firstToId]["Brand Logo URL"] || "";
+      if ((mp.toProgramIds || []).length) {
+        const toId = mp.toProgramIds[0];
+        if (loyaltyPrograms[toId]) {
+          partnerName = loyaltyPrograms[toId]["Program Name"] || partnerName;
+          partnerLogo = loyaltyPrograms[toId]["Brand Logo URL"] || "";
         }
       }
 
-      tableRowsHTML += `
-        <tr data-ratio="${ratioVal}">
+      return `
+        <tr data-transfer-type="${mp.transferType}" data-ratio="${ratioVal}">
           <td style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
             <img 
               src="${partnerLogo}"
@@ -883,20 +901,25 @@ async function buildTransferModule() {
           </td>
           <td>${ratioStr}</td>
           <td class="pointsValueCell" style="font-weight:600; text-align:right;">
-            ${initialPointsReceived.toLocaleString()}
+            ${initialPoints.toLocaleString()}
           </td>
         </tr>
       `;
-    });
+    }).join("");
 
-    if (!matchedPartners.length) {
-      tableRowsHTML = `
-        <tr><td colspan="3">No transfer partners found for ${fromName}.</td></tr>
-      `;
-    }
+    const tableRowsHTML = rowsHTML || `
+      <tr><td colspan="3">No transfer partners found for ${fromName}.</td></tr>
+    `;
 
-    // UPDATED => column header from “To Program” => “Transfer To”
-    // UPDATED => default slider set to “max” points => value="${userPoints}"
+    // Title above the table
+    const titleHTML = `
+      <div class="selected-program-title" 
+           style="text-align:center; font-size:1.2rem; font-weight:bold; margin:1rem 0;">
+        ${fromName}
+      </div>
+    `;
+
+    // Construct the entire table markup
     const tableHTML = `
       <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
         ${titleHTML} 
@@ -928,18 +951,17 @@ async function buildTransferModule() {
             ${tableRowsHTML}
           </tbody>
         </table>
+        <!-- UPDATED: Filter pills row goes under the slider, above the table's actual content -->
+        ${filterPillsHTML}
       </div>
     `;
 
+    // Inject into DOM
     $("#transfer-accordion-container").append(tableHTML);
     $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
     $accordion.slideDown();
 
-    // Because we set the slider default to userPoints, we also need to
-    // immediately set the “pointsValueCell” text for each row. We did
-    // that via “initialPointsReceived” above, so it’s correct at load.
-
-    // Hook up the slider => recalc on input
+    // 4) Hook up the slider => recalc on input
     const $slider = $accordion.find(".transfer-program-slider");
     $slider.on("input", function() {
       const val = parseInt($(this).val(), 10) || 0;
@@ -949,8 +971,42 @@ async function buildTransferModule() {
         $(this).find(".pointsValueCell").text(totalTransferred.toLocaleString());
       });
     });
+
+    // 5) If we have pill filters => attach an event handler
+    const selectedTypes = new Set(); // track which types are active
+    $accordion.find(".transfer-pill").on("click", function() {
+      const thisType = $(this).data("type");
+      const wasActive = $(this).hasClass("active-transfer-pill");
+      
+      // Toggle the pill’s active class
+      if (wasActive) {
+        $(this).removeClass("active-transfer-pill");
+        selectedTypes.delete(thisType);
+      } else {
+        $(this).addClass("active-transfer-pill");
+        selectedTypes.add(thisType);
+      }
+
+      // Filter rows based on selectedTypes
+      const $rows = $accordion.find("tbody tr");
+      if (selectedTypes.size === 0) {
+        // If no pills are active => show all
+        $rows.show();
+      } else {
+        // Otherwise show only rows where data-transfer-type is in selectedTypes
+        $rows.each(function() {
+          const rowType = $(this).data("transfer-type");
+          if (selectedTypes.has(rowType)) {
+            $(this).show();
+          } else {
+            $(this).hide();
+          }
+        });
+      }
+    });
   });
 }
+
 
 
 
