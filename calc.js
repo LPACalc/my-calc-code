@@ -258,44 +258,70 @@ async function loadUseCasesIfNeeded() {
 /*******************************************************
  * INIT APP => fetch loyalty programs, background load data
  *******************************************************/
-async function loadTransferTableIfNeeded() {
-  if (transferPartners.length > 0) return; // already loaded
+/*******************************************************
+ * initializeApp => fetch loyalty programs, etc.
+ *******************************************************/
+async function initializeApp() {
+  console.log("=== initializeApp() ===");
 
   try {
-    const data = await fetchAirtableTable("Transfer Table");
-    console.log("Raw transfer table =>", data);
+    // 1) Fetch loyalty programs from your endpoint
+    const resp = await fetchWithTimeout(
+      "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
+      {},
+      10000
+    );
+    if (!resp.ok) {
+      throw new Error("Network not OK => " + resp.statusText);
+    }
 
-    // *** UPDATED: parse each record's linked field into .fromProgramIds (array of IDs) ***
-    transferPartners = data.map(r => {
-      const f = r.fields;
+    // 2) Parse & store the result
+    const programsData = await resp.json();
+    loyaltyPrograms = programsData.reduce((acc, record) => {
+      const fields = { ...record.fields };
 
-      // If “Transfer From Partner” is a linked record, it’s an array like ["recJ3yBrv5FctQRQw"]
-      const fromProgramIds = Array.isArray(f["Transfer From Partner"])
-        ? f["Transfer From Partner"]
-        : [];
+      // If you previously stored the image link in record.logoAttachmentUrl:
+      if (record.logoAttachmentUrl) {
+        fields["Brand Logo URL"] = record.logoAttachmentUrl;
+      }
 
-      // If “Transfer To Partner” is also a linked record, same pattern:
-      const toProgramIds = Array.isArray(f["Transfer To Partner"])
-        ? f["Transfer To Partner"]
-        : [];
+      // Also store the Airtable record ID so we can reference it later
+      fields["airtableRecordId"] = record.id;
 
-      return {
-        id: r.id,
-        fromProgramIds,  // array of record IDs
-        toProgramIds,
-        ratio: f["Transfer Ratio"] || "",
-        logoFrom: f["Logo From Partner"]?.[0]?.url || "",
-        logoTo: f["Logo To Partner"]?.[0]?.url || "",
-        typeFrom: f["Type (from Linked)"] || ""
-      };
-    });
+      // Key the entire object by record.id
+      acc[record.id] = fields;
+      return acc;
+    }, {});
+    console.log("loyaltyPrograms =>", loyaltyPrograms);
 
-    console.log("Loaded Transfer Partners =>", transferPartners);
+    // 3) We have the loyaltyPrograms loaded
+    dataLoaded = true;
+    console.log("Data fully loaded => dataLoaded = true");
+
+    // 4) Build “Popular Programs” section in your UI
+    buildTopProgramsSection();
+
+    // 5) Kick off background calls for IP, location
+    (async () => {
+      await fetchClientIP();
+      await fetchApproxLocationFromIP();
+    })().catch(err => console.error("IP/Location fetch error =>", err));
+
+    // 6) Kick off background load of Real-World Use Cases
+    loadUseCasesIfNeeded().catch(err =>
+      console.error("Error fetching Real-World =>", err)
+    );
+
+    // 7) Also load the Transfer Table in the background
+    loadTransferTableIfNeeded().catch(err =>
+      console.error("Error loading Transfer Table =>", err)
+    );
 
   } catch (err) {
-    console.error("Error loading Transfer Table =>", err);
+    console.error("Error fetching Points Calc =>", err);
   }
 }
+
 
 
 /*******************************************************
