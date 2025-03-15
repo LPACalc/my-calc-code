@@ -760,7 +760,7 @@ function buildTransferModule() {
     return rec && rec["Transferable"] === true;
   });
 
-  // If no programs are transferable, hide the section
+  // If no programs are transferable, hide the entire section
   if (!transferablePrograms.length) {
     $("#transfer-module").addClass("hidden");
     return;
@@ -772,24 +772,22 @@ function buildTransferModule() {
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
-  // Helper function to parse ratio strings (e.g. "3:1" => 3)
+  // Helper: parse ratio like "3:1" => 3
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
     const [lhs] = ratioStr.split(":");
     return parseFloat(lhs.trim()) || 1;
   }
 
-  // 4) Build a row of clickable logos + hidden tables
+  // 4) Build a row of clickable logos
   transferablePrograms.forEach(item => {
-    // item.recordId is the Airtable record ID, e.g. "recJ3yBrv5FctQRQw"
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
 
-    const logo = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"] || "Unnamed";
-    const userPoints = item.points || 0;
+    const logo         = prog["Brand Logo URL"] || "";
+    const programName  = prog["Program Name"]    || "Unnamed";
+    const userPoints   = item.points || 0;
 
-    // --- LOGO “CHIP” ---
     const chipHTML = `
       <div 
         class="transferable-program-chip" 
@@ -803,31 +801,45 @@ function buildTransferModule() {
       </div>
     `;
     $("#transferable-programs-row").append(chipHTML);
+  });
 
-    // 5) Find matching partners => *** includes(item.recordId) ***
+  // 4a) Add the two explanatory sentences below the logos
+  const transferInfoHTML = `
+    <div class="transfer-info-text" style="margin: 1rem 0; font-size: 0.9rem; line-height: 1.4;">
+      <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
+      <p>By leveraging partner programs, you may unlock higher-value awards and get more out of every point.</p>
+    </div>
+  `;
+  $("#transferable-programs-row").after(transferInfoHTML);
+
+  // 5) Build the hidden accordion tables for each program
+  transferablePrograms.forEach(item => {
+    const prog = loyaltyPrograms[item.recordId];
+    if (!prog) return;
+
+    const userPoints  = item.points || 0;
+    const programName = prog["Program Name"] || "Unnamed";
+
     const matchedPartners = transferPartners.filter(tp => {
       return tp.fromProgramIds.includes(item.recordId);
     });
 
-    // Build table rows
     let tableRowsHTML = "";
-
     matchedPartners.forEach(mp => {
-      const ratioStr = mp.ratio || "1:1";
-      const ratioVal = parseTransferRatio(ratioStr); 
+      const ratioStr     = mp.ratio || "1:1";
+      const ratioVal     = parseTransferRatio(ratioStr);
       const partnerPoints = Math.floor(userPoints * ratioVal);
 
-      // If “toProgramIds” is also an array, do a dictionary lookup to get the partner name
+      // If toProgramIds is an array of record IDs, look up the first for a name
       let partnerName = "Unnamed Partner";
       const toIds = mp.toProgramIds || [];
       if (toIds.length > 0) {
-        const firstToId = toIds[0]; // e.g. "recAbc123"
+        const firstToId = toIds[0];
         if (loyaltyPrograms[firstToId] && loyaltyPrograms[firstToId]["Program Name"]) {
           partnerName = loyaltyPrograms[firstToId]["Program Name"];
         }
       }
 
-      // If you store a separate “logoTo,” we can show that:
       const partnerLogo = mp.logoTo || "";
 
       tableRowsHTML += `
@@ -846,7 +858,6 @@ function buildTransferModule() {
       `;
     });
 
-    // If no partners matched
     if (!matchedPartners.length) {
       tableRowsHTML = `
         <tr>
@@ -855,7 +866,6 @@ function buildTransferModule() {
       `;
     }
 
-    // 6) Hidden table (accordion)
     const tableHTML = `
       <div 
         class="transfer-accordion" 
@@ -878,14 +888,14 @@ function buildTransferModule() {
     $("#transfer-accordion-container").append(tableHTML);
   });
 
-  // 7) Attach click handler to each chip => slideToggle the matching table
+  // 6) When user clicks a logo => remove the info text, toggle the matching table
   $(".transferable-program-chip").off("click").on("click", function() {
+    // Remove the two-sentence info text
+    $(".transfer-info-text").remove();
+
     const recordId = $(this).data("record-id");
-
-    // Optionally hide all others first (for an accordion style):
+    // Optionally hide other open tables for an “accordion” effect
     $(".transfer-accordion").not(`[data-record-id='${recordId}']`).slideUp();
-
-    // Then toggle the matching one
     $(`.transfer-accordion[data-record-id='${recordId}']`).slideToggle();
   });
 }
