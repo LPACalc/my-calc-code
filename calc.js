@@ -56,8 +56,8 @@ async function fetchClientIP() {
   try {
     const resp = await fetch("https://young-cute-neptune.glitch.me/getClientIP");
     if (!resp.ok) {
-      throw new Error(Failed to fetch IP. status: ${resp.status});
-    }
+  throw new Error(`Failed to fetch IP. status: ${resp.status}`);
+}
     const data = await resp.json();
     clientIP = data.ip;
     console.log("Client IP =>", clientIP);
