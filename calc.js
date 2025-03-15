@@ -4,8 +4,8 @@
  * CREATE/RETRIEVE SESSION ID
  *******************************************************/
 function generateSessionId() {
-  return 'xxxx-xxxx-xxxx-xxxx'.replace(/[x]/g, () => {
-    return (Math.random() * 16 | 0).toString(16);
+  return "xxxx-xxxx-xxxx-xxxx".replace(/[x]/g, () => {
+    return (Math.random() * 16) | 0.toString(16);
   });
 }
 
@@ -38,15 +38,14 @@ let pointsMap = {};
 let selectedCategories = new Set();
 let transferPartners = []; // or a dictionary
 
+/** Whether essential data is loaded: */
 let dataLoaded = false;
 let userClickedGetStarted = false;
 
-/** For the bar & donut charts: */
-let barChartInstance = null;
-let pieChartInstance = null;
-/** For the per-program bar chart (under highlight box) */
+/** For the bar chart instance (the multi-program bar) */
 let programsBarChart = null;
-/** For the use case slider: */
+
+/** For the use case slider (left column) */
 let useCaseSwiper = null;
 
 /*******************************************************
@@ -86,7 +85,7 @@ async function fetchApproxLocationFromIP() {
         region: data.regionName,
         city: data.city,
         lat: data.lat,
-        lon: data.lon
+        lon: data.lon,
       };
     }
     console.log("Approx location =>", approximateLocation);
@@ -105,7 +104,7 @@ function logSessionEvent(eventName, payload = {}) {
     eventName,
     approximateLocation,
     timestamp: Date.now(),
-    ...payload
+    ...payload,
   };
   if (userEmail) {
     eventData.email = userEmail;
@@ -114,13 +113,13 @@ function logSessionEvent(eventName, payload = {}) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(eventData),
-    keepalive: true
+    keepalive: true,
   });
 }
 
 // Remove localStorage item at session_end
 let sessionStartTime = Date.now();
-window.addEventListener('beforeunload', () => {
+window.addEventListener("beforeunload", () => {
   const sessionEndTime = Date.now();
   const durationMs = sessionEndTime - sessionStartTime;
   logSessionEvent("session_end", { durationMs });
@@ -191,21 +190,16 @@ async function fetchAirtableTable(tableName) {
 }
 
 /*******************************************************
- * loadTransferTableIfNeeded => Make sure it's above initializeApp()
+ * loadTransferTableIfNeeded
  *******************************************************/
 async function loadTransferTableIfNeeded() {
   if (transferPartners.length > 0) return; // already loaded
   try {
     const data = await fetchAirtableTable("Transfer Table");
     console.log("Raw transfer table =>", data);
-
-    // Suppose each record looks like: 
-    // fields["Transfer From Partner"] = "Marriott" 
-    // or maybe an array [ 'recXYZ' ] if it's a link
-    transferPartners = data.map(r => {
-      // see exactly how your data is shaped:
+    // Example structure:
+    transferPartners = data.map((r) => {
       const f = r.fields;
-
       return {
         id: r.id,
         fromProgram: f["Transfer From Partner"] || "",
@@ -213,28 +207,23 @@ async function loadTransferTableIfNeeded() {
         ratio: f["Transfer Ratio"] || "",
         logoFrom: f["Logo From Partner"]?.[0]?.url || "",
         logoTo: f["Logo To Partner"]?.[0]?.url || "",
-        typeFrom: f["Type (from Linked)"] || "", // if you want that
+        typeFrom: f["Type (from Linked)"] || "",
       };
     });
-
     console.log("Loaded Transfer Partners =>", transferPartners);
   } catch (err) {
     console.error("Error loading Transfer Table =>", err);
   }
 }
 
-
 /*******************************************************
  * loadUseCasesIfNeeded => BACKGROUND LOAD
  *******************************************************/
 async function loadUseCasesIfNeeded() {
   // Already fetched? skip
-  if (Object.keys(realWorldUseCases).length > 0) {
-    return;
-  }
+  if (Object.keys(realWorldUseCases).length > 0) return;
   try {
     const useCasesData = await fetchAirtableTable("Real-World Use Cases");
-    // Build the object
     realWorldUseCases = useCasesData.reduce((acc, record) => {
       acc[record.id] = { id: record.id, ...record.fields };
       return acc;
@@ -246,7 +235,7 @@ async function loadUseCasesIfNeeded() {
 }
 
 /*******************************************************
- * INIT APP => fetch loyalty programs, background load data
+ * INIT APP => fetch loyalty programs, then load extras
  *******************************************************/
 async function initializeApp() {
   console.log("=== initializeApp() ===");
@@ -285,16 +274,15 @@ async function initializeApp() {
     (async () => {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
-    })().catch(err => console.error("IP/Location fetch error =>", err));
+    })().catch((err) => console.error("IP/Location fetch error =>", err));
 
     // 6) Load real-world use cases in background
-    loadUseCasesIfNeeded().catch(err => {
-      console.error("Error fetching Real-World =>", err);
-    });
+    loadUseCasesIfNeeded().catch((err) =>
+      console.error("Error fetching Real-World =>", err)
+    );
 
     // 7) Also load Transfer Table in background
-    loadTransferTableIfNeeded().catch(err => console.error(err));
-
+    loadTransferTableIfNeeded().catch((err) => console.error(err));
   } catch (err) {
     console.error("Error fetching Points Calc =>", err);
   }
@@ -306,9 +294,9 @@ async function initializeApp() {
 function buildTopProgramsSection() {
   const container = document.getElementById("top-programs-grid");
   if (!container) return;
-  const topRecords = Object.keys(loyaltyPrograms).filter((id) => {
-    return !!loyaltyPrograms[id]["Top Programs"];
-  });
+  const topRecords = Object.keys(loyaltyPrograms).filter(
+    (id) => !!loyaltyPrograms[id]["Top Programs"]
+  );
   let html = "";
   topRecords.forEach((rid) => {
     const prog = loyaltyPrograms[rid];
@@ -329,6 +317,7 @@ function buildTopProgramsSection() {
   });
   container.innerHTML = html;
 }
+
 /*******************************************************
  * updateTopProgramSelection
  *******************************************************/
@@ -370,7 +359,9 @@ function filterPrograms() {
     const prog = loyaltyPrograms[id];
     if (!prog["Program Name"]) return false;
     if (chosenPrograms.includes(id)) return false;
-    const inCalc = $(`#program-container .program-row[data-record-id='${id}']`).length > 0;
+    const inCalc = $(
+      `#program-container .program-row[data-record-id='${id}']`
+    ).length > 0;
     if (inCalc) return false;
     return prog["Program Name"].toLowerCase().includes(val);
   });
@@ -390,16 +381,20 @@ function filterPrograms() {
     let typeIconUrl = "";
     switch ((prog.Type || "").toLowerCase()) {
       case "airline":
-        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/8a6ca255-cbeb-4300-b58e-597b98a0ff3b/512x512.png";
+        typeIconUrl =
+          "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/8a6ca255-cbeb-4300-b58e-597b98a0ff3b/512x512.png";
         break;
       case "cruise":
-        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/4ebf46e8-34e5-49a9-b0a1-1f769f55bf1b/512x512.png";
+        typeIconUrl =
+          "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/4ebf46e8-34e5-49a9-b0a1-1f769f55bf1b/512x512.png";
         break;
       case "hotel":
-        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/7a52dcc3-6776-4317-bb73-6bc231a87e63/512x512.png";
+        typeIconUrl =
+          "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/7a52dcc3-6776-4317-bb73-6bc231a87e63/512x512.png";
         break;
       case "credit card":
-        typeIconUrl = "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/02b7c79b-011f-47ab-8d26-a8df6cb4da55/512x512.png";
+        typeIconUrl =
+          "http://cdn.mcauto-images-production.sendgrid.net/f5e5a6724646c174/02b7c79b-011f-47ab-8d26-a8df6cb4da55/512x512.png";
         break;
       default:
         typeIconUrl = "";
@@ -465,7 +460,7 @@ function addProgramRow(recordId) {
     </div>
   `;
   $("#program-container").append(rowHTML);
-  calculateTotal(); // optional real-time sum
+  // optional real-time sum, if you want: calculateTotal();
 }
 
 /*******************************************************
@@ -553,7 +548,10 @@ function clearAllPrograms() {
   chosenPrograms = [];
   pointsMap = {};
   $("#program-container").empty();
-  $(".top-program-box.selected-state").removeClass("selected-state").find(".add-btn").text("+");
+  $(".top-program-box.selected-state")
+    .removeClass("selected-state")
+    .find(".add-btn")
+    .text("+");
   updateChosenProgramsDisplay();
   updateNextCTAVisibility();
   updateClearAllVisibility();
@@ -573,7 +571,7 @@ function updateClearAllVisibility() {
 /*******************************************************
  * FORMAT => auto commas
  *******************************************************/
-$(document).on("input", ".points-input", function(){
+$(document).on("input", ".points-input", function () {
   let raw = $(this).val().replace(/[^0-9]/g, "");
   if (!raw) {
     $(this).val("");
@@ -589,13 +587,6 @@ $(document).on("input", ".points-input", function(){
 });
 
 /*******************************************************
- * CALCULATE TOTAL
- *******************************************************/
-function calculateTotal() {
-  // optional real-time sum if needed
-}
-
-/*******************************************************
  * GATHER PROGRAM DATA
  *******************************************************/
 function gatherProgramData() {
@@ -609,7 +600,7 @@ function gatherProgramData() {
     data.push({
       recordId: rid,
       programName: prog["Program Name"] || "Unknown",
-      points
+      points,
     });
   });
   return data;
@@ -622,11 +613,11 @@ function buildUseCaseSlides(allUseCases) {
   let slideHTML = "";
 
   allUseCases.forEach((uc) => {
-    const imageURL  = uc["Use Case URL"]   || "";
-    const title     = uc["Use Case Title"] || "Untitled";
-    const body      = uc["Use Case Body"]  || "No description";
+    const imageURL = uc["Use Case URL"] || "";
+    const title = uc["Use Case Title"] || "Untitled";
+    const body = uc["Use Case Body"] || "No description";
     const pointsReq = uc["Points Required"] || 0;
-    const category  = uc["Category"]        || "";
+    const category = uc["Category"] || "";
 
     let programLogo = "";
     if (Array.isArray(uc["Program Logo"]) && uc["Program Logo"].length > 0) {
@@ -667,10 +658,9 @@ function buildUseCaseSlides(allUseCases) {
   document.getElementById("useCaseSlides").innerHTML = slideHTML;
 }
 
-/**
- * buildFilteredUseCaseSlides => filters realWorldUseCases by category
- * or shows all if category is null, then re-initializes Swiper
- */
+/*******************************************************
+ * buildFilteredUseCaseSlides => filters realWorldUseCases
+ *******************************************************/
 function buildFilteredUseCaseSlides(categories) {
   let allUseCasesArr = gatherAllRecommendedUseCases();
 
@@ -682,7 +672,7 @@ function buildFilteredUseCaseSlides(categories) {
 
   if (!allUseCasesArr.length) {
     $(".usecase-slider-section").hide();
-    hideUnusedPills(); 
+    hideUnusedPills();
     return;
   } else {
     $(".usecase-slider-section").show();
@@ -690,10 +680,7 @@ function buildFilteredUseCaseSlides(categories) {
 
   buildUseCaseSlides(allUseCasesArr);
 
-  let initialIndex = 0;
-  if (!categories || !categories.length) {
-    initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
-  }
+  let initialIndex = Math.floor(Math.random() * allUseCasesArr.length);
 
   if (useCaseSwiper) {
     useCaseSwiper.destroy(true, true);
@@ -706,255 +693,15 @@ function buildFilteredUseCaseSlides(categories) {
     initialSlide: initialIndex,
     pagination: {
       el: ".swiper-pagination",
-      clickable: true
+      clickable: true,
     },
     navigation: {
       nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev"
-    }
+      prevEl: ".swiper-button-prev",
+    },
   });
 
   hideUnusedPills();
-}
-
-
-function buildTransferModule() {
-  // 1) Gather user’s selected programs + points
-  const userData = gatherProgramData(); // your existing function => [{recordId, programName, points}, ...]
-  if (!userData || !userData.length) return;
-
-  // 2) Filter only those that have “Transferable” = true in loyaltyPrograms
-  const transferablePrograms = userData.filter(item => {
-    const rec = loyaltyPrograms[item.recordId];
-    return rec && rec["Transferable"] === true; 
-    // or if Airtable sets a checkbox as "1" or "checked", adapt accordingly
-  });
-
-  // If no transferables, hide the module or show a message
-  if (!transferablePrograms.length) {
-    $("#transfer-module").addClass("hidden");
-    return;
-  }
-
-  // 3) Build HTML for each
-  let html = "";
-  transferablePrograms.forEach(item => {
-    const prog = loyaltyPrograms[item.recordId];
-    const logo = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"] || "Unnamed";
-    const userPoints = item.points || 0;
-
-    // Find all matching “From Program” in transferPartners
-    const matchedPartners = transferPartners.filter(tp => tp.fromProgramId === item.recordId);
-
-    // Build a small block of partner logos
-    let partnersHTML = "";
-    if (!matchedPartners.length) {
-      partnersHTML = `<div class="no-partners-msg">No partners found.</div>`;
-    } else {
-      matchedPartners.forEach(p => {
-        partnersHTML += `
-          <div class="transfer-partner-logo">
-            <img src="${p.partnerLogo}" alt="${p.partnerName} Logo" />
-            <span>${p.partnerName}</span>
-          </div>
-        `;
-      });
-    }
-
-    // Each program row => an accordion “header” + “content” 
-    html += `
-      <div class="transfer-program-row">
-        <div class="transfer-header" data-record-id="${item.recordId}">
-          <div class="prog-info">
-            <img src="${logo}" alt="${programName} Logo" class="transfer-prog-logo" />
-            <span class="transfer-prog-name">${programName}</span>
-          </div>
-          <!-- Maybe an icon or down-arrow to indicate it’s clickable -->
-          <div class="accordion-toggle-arrow">▼</div>
-        </div>
-        <div class="transfer-content hidden">
-          <div class="user-points-row">
-            <strong>Total Points:</strong> ${userPoints.toLocaleString()}
-          </div>
-          <div class="transfer-partners-subheader">Transfer Partners</div>
-          <div class="transfer-partners-row">
-            ${partnersHTML}
-          </div>
-        </div>
-      </div>
-    `;
-  });
-
-  $("#transferable-programs-accordion").html(html);
-  $("#transfer-module").removeClass("hidden");
-}
-
-
-/*******************************************************
- * BAR CHART => Travel vs Cash
- *******************************************************/
-function renderValueComparisonChart(travelValue, cashValue) {
-  if (barChartInstance) {
-    barChartInstance.destroy();
-    barChartInstance = null;
-  }
-  const barCanvas = document.getElementById("valueComparisonChart");
-  if (!barCanvas) return;
-  const ctx = barCanvas.getContext("2d");
-
-  const data = {
-    labels: ["Travel", "Cash"],
-    datasets: [
-      {
-        label: "Value",
-        data: [travelValue, cashValue],
-        backgroundColor: ["#67829B", "#76F04F"],
-        hoverBackgroundColor: ["#5A7389", "#69DB47"],
-        borderRadius: 8,
-        borderSkipped: false
-      }
-    ]
-  };
-
-  const config = {
-    type: "bar",
-    data,
-    options: {
-      devicePixelRatio: 2,
-      responsive: true,
-      maintainAspectRatio: false,
-      indexAxis: 'y',
-      layout: {
-        padding: { top: 20, right: 20, bottom: 40, left: 20 }
-      },
-      scales: {
-        x: {
-          beginAtZero: true,
-          ticks: {
-            callback: function(value) {
-              return "$" + Number(value).toLocaleString();
-            },
-            maxTicksLimit: 4,
-            font: { size: 14, weight: '600' }
-          }
-        },
-        y: {
-          categoryPercentage: 0.8,
-          barPercentage: 0.8,
-          ticks: {
-            font: { size: 14, weight: '600' }
-          },
-          maxTicksLimit: 4,
-            font: { size: 14, weight: '600' }
-        }
-      },
-      plugins: {
-        title: {
-          display: true,
-          text: "Your Current Value",
-          font: {
-            size: 20,
-            weight: "bold"
-          },
-          padding: { bottom: 20 }
-        },
-        legend: { display: false },
-        tooltip: {
-          displayColors: false,
-          bodyFont: { size: 16 },
-          callbacks: {
-            label: function(context) {
-              const val = context.parsed.x || 0;
-              return "$" + val.toLocaleString(undefined, { 
-                minimumFractionDigits: 2 
-              });
-            }
-          }
-        }
-      }
-    }
-  };
-
-  barChartInstance = new Chart(ctx, config);
-}
-
-/*******************************************************
- * DONUT CHART => Program Share
- *******************************************************/
-function renderPieChartProgramShare(gatheredData) {
-  const dataArr   = gatheredData.map(item => item.points);
-  const labelsArr = gatheredData.map(item => item.programName);
-  const colorsArr = gatheredData.map(item => {
-    return loyaltyPrograms[item.recordId]?.Color || '#cccccc';
-  });
-
-  if (pieChartInstance) {
-    pieChartInstance.destroy();
-    pieChartInstance = null;
-  }
-
-  const ctx = document.getElementById("myPieCanvas").getContext("2d");
-  const config = {
-    type: "doughnut",
-    data: {
-      labels: labelsArr,
-      datasets: [
-        {
-          data: dataArr,
-          backgroundColor: colorsArr,
-          hoverOffset: 8,
-          borderWidth: 1,
-          borderColor: "#fff"
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      cutout: "50%",
-      plugins: {
-        legend: {
-          display: true,
-          position: 'bottom'
-        },
-        tooltip: {
-          displayColors: false
-        }
-      }
-    }
-  };
-
-  pieChartInstance = new Chart(ctx, config);
-}
-
-/*******************************************************
- * BUILD ALL PROGRAMS LIST (for 'Explore All' modal)
- *******************************************************/
-function buildAllProgramsList() {
-  const container = $("#all-programs-list");
-  container.empty();
-
-  const allIds = Object.keys(loyaltyPrograms);
-  allIds.forEach((rid) => {
-    const prog = loyaltyPrograms[rid];
-    const name = prog["Program Name"] || "Unknown Program";
-    const logo = prog["Brand Logo URL"] || "";
-    const isSelected = chosenPrograms.includes(rid);
-    const circleIcon = isSelected ? "✓" : "+";
-    const rowClass = isSelected ? "all-program-row selected-state" : "all-program-row";
-
-    const rowHtml = `
-      <div class="${rowClass}" data-record-id="${rid}">
-        <div class="row-left">
-          <img src="${logo}" alt="${name} logo" />
-          <span class="program-name">${name}</span>
-        </div>
-        <button class="circle-btn">${circleIcon}</button>
-      </div>
-    `;
-    container.append(rowHtml);
-  });
 }
 
 /*******************************************************
@@ -963,16 +710,16 @@ function buildAllProgramsList() {
 function gatherAllRecommendedUseCases() {
   const userProgramPoints = {};
   const data = gatherProgramData();
-  data.forEach(item => {
+  data.forEach((item) => {
     userProgramPoints[item.recordId] = item.points;
   });
 
   const results = [];
   const usedIds = new Set();
 
-  chosenPrograms.forEach(programId => {
+  chosenPrograms.forEach((programId) => {
     const userPoints = userProgramPoints[programId] || 0;
-    Object.values(realWorldUseCases).forEach(uc => {
+    Object.values(realWorldUseCases).forEach((uc) => {
       if (!uc.Recommended) return;
       if (!uc["Points Required"]) return;
       if (!uc["Program Name"]?.includes(programId)) return;
@@ -991,9 +738,9 @@ function gatherAllRecommendedUseCases() {
 }
 
 function hideUnusedPills() {
-  const recommended = gatherAllRecommendedUseCases(); 
+  const recommended = gatherAllRecommendedUseCases();
   const validCategories = new Set();
-  
+
   recommended.forEach((uc) => {
     if (uc.Category) validCategories.add(uc.Category);
   });
@@ -1018,10 +765,7 @@ function hideUnusedPills() {
     }
   });
 
-  const visiblePills = [...pillEls].filter(
-    (p) => p.style.display !== "none"
-  );
-
+  const visiblePills = [...pillEls].filter((p) => p.style.display !== "none");
   if (visiblePills.length > 1 && visiblePills.length < 4) {
     visiblePills.forEach((p) => {
       p.style.width = `calc(${100 / visiblePills.length}% - 8px)`;
@@ -1038,55 +782,281 @@ function hideUnusedPills() {
  * initUseCaseSwiper
  *******************************************************/
 function initUseCaseSwiper() {
-  useCaseSwiper = new Swiper('#useCaseSwiper', {
+  useCaseSwiper = new Swiper("#useCaseSwiper", {
     slidesPerView: 1,
     spaceBetween: 0,
     centeredSlides: false,
     loop: true,
     pagination: {
-      el: '.swiper-pagination',
+      el: ".swiper-pagination",
       clickable: true,
       dynamicBullets: true,
-      dynamicMainBullets: 5
+      dynamicMainBullets: 5,
     },
     navigation: {
-      nextEl: '.swiper-button-next',
-      prevEl: '.swiper-button-prev'
-    }
+      nextEl: ".swiper-button-next",
+      prevEl: ".swiper-button-prev",
+    },
   });
 }
 
 /*******************************************************
- * buildOutputRows => ensure use cases are loaded if Travel
+ * buildTransferModule
  *******************************************************/
-async function buildOutputRows(viewType) {
+function buildTransferModule() {
+  const userData = gatherProgramData();
+  if (!userData || !userData.length) return;
+
+  const transferablePrograms = userData.filter((item) => {
+    const rec = loyaltyPrograms[item.recordId];
+    return rec && rec["Transferable"] === true;
+  });
+
+  // If no transferables, hide the module
+  if (!transferablePrograms.length) {
+    $("#transfer-module").addClass("hidden");
+    return;
+  }
+
+  let html = "";
+  transferablePrograms.forEach((item) => {
+    const prog = loyaltyPrograms[item.recordId];
+    const logo = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unnamed";
+    const userPoints = item.points || 0;
+
+    // find all matching “From Program” in transferPartners
+    const matchedPartners = transferPartners.filter(
+      (tp) => tp.fromProgram === programName
+    );
+
+    let partnersHTML = "";
+    if (!matchedPartners.length) {
+      partnersHTML = `<div class="no-partners-msg">No partners found.</div>`;
+    } else {
+      matchedPartners.forEach((p) => {
+        partnersHTML += `
+          <div class="transfer-partner-logo">
+            <img src="${p.logoTo}" alt="${p.toProgram} Logo" />
+            <span>${p.toProgram}</span>
+          </div>
+        `;
+      });
+    }
+
+    html += `
+      <div class="transfer-program-row">
+        <div class="transfer-header" data-record-id="${item.recordId}">
+          <div class="prog-info">
+            <img src="${logo}" alt="${programName} Logo" class="transfer-prog-logo" />
+            <span class="transfer-prog-name">${programName}</span>
+          </div>
+          <div class="accordion-toggle-arrow">▼</div>
+        </div>
+        <div class="transfer-content hidden">
+          <div class="user-points-row">
+            <strong>Total Points:</strong> ${userPoints.toLocaleString()}
+          </div>
+          <div class="transfer-partners-subheader">Transfer Partners</div>
+          <div class="transfer-partners-row">
+            ${partnersHTML}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  $("#transferable-programs-accordion").html(html);
+  $("#transfer-module").removeClass("hidden");
+}
+
+/*******************************************************
+ * LOGO AXIS PLUGIN => for "programsBarChart"
+ *******************************************************/
+const logoAxisPlugin = {
+  id: "logoAxisPlugin",
+  beforeInit(chart, _args, options) {
+    const logoURLs = options.images || [];
+    options._imagesCache = logoURLs.map((url) => {
+      const img = new Image();
+      img.src = url;
+      return img;
+    });
+  },
+  afterDraw(chart, _args, options) {
+    const { ctx, chartArea, scales } = chart;
+    const xAxis = scales.x;
+    if (!xAxis) return;
+
+    const logoImages = options._imagesCache || [];
+    if (xAxis.ticks.length !== logoImages.length) return;
+
+    const { bottom } = chartArea;
+
+    let barWidth = 50; // fallback
+    if (xAxis.ticks.length > 1) {
+      barWidth = xAxis.getPixelForTick(1) - xAxis.getPixelForTick(0);
+    }
+
+    xAxis.ticks.forEach((tick, index) => {
+      const xPos = xAxis.getPixelForTick(index);
+      const img = logoImages[index];
+      if (!img) return;
+
+      const imgSize = Math.min(barWidth * 0.6, 50);
+      const half = imgSize / 2;
+      const yPos = bottom + 5;
+      ctx.drawImage(img, xPos - half, yPos, imgSize, imgSize);
+    });
+  },
+};
+
+Chart.register(logoAxisPlugin);
+
+/*******************************************************
+ * RENDER BAR CHART => One bar per selected program
+ *******************************************************/
+function renderProgramsBarChart(metric) {
+  const data = gatherProgramData();
+  const labels = [];
+  const values = [];
+  const colors = [];
+  const logos = [];
+
+  data.forEach((item) => {
+    const recordId = item.recordId;
+    const prog = loyaltyPrograms[recordId];
+    if (!prog) return;
+
+    labels.push(prog["Program Name"] || "Program");
+    logos.push(prog["Brand Logo URL"] || "");
+
+    let val = 0;
+    if (metric === "points") {
+      val = item.points;
+    } else {
+      // default: "travel"
+      const tv = prog["Travel Value"] || 0;
+      val = item.points * tv;
+    }
+    values.push(val);
+
+    const c = prog["Color"] || "#999999";
+    colors.push(c);
+  });
+
+  if (programsBarChart) {
+    programsBarChart.destroy();
+    programsBarChart = null;
+  }
+
+  const ctx = document.getElementById("programsBarChart")?.getContext("2d");
+  if (!ctx) return;
+
+  const maxVal = Math.max(...values, 0);
+  const rawStep = maxVal / 3;
+  const stepSize = Math.ceil(rawStep / 100) * 100 || 100;
+
+  programsBarChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "",
+          data: values,
+          backgroundColor: colors,
+          borderRadius: 8,
+          borderWidth: 0,
+        },
+      ],
+    },
+    options: {
+      indexAxis: "x",
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          maxTicksLimit: 4,
+          ticks: {
+            stepSize,
+            callback: function (value) {
+              if (metric === "points") {
+                return value.toLocaleString();
+              } else {
+                return "$" + value.toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                });
+              }
+            },
+            font: {
+              size: 14,
+              weight: 600,
+            },
+          },
+          grid: { color: "#eee" },
+        },
+        x: {
+          grid: { display: false },
+          ticks: {
+            display: false,
+          },
+        },
+      },
+      layout: {
+        padding: { bottom: 50 },
+      },
+      plugins: {
+        title: { display: false },
+        legend: { display: false },
+        logoAxisPlugin: {
+          images: logos,
+        },
+        tooltip: {
+          callbacks: {
+            label: function (ctx) {
+              const val = ctx.parsed.y || 0;
+              if (metric === "points") {
+                return val.toLocaleString() + " points";
+              } else {
+                return "$" + val.toLocaleString(undefined, {
+                  maximumFractionDigits: 2,
+                });
+              }
+            },
+          },
+        },
+      },
+    },
+  });
+}
+
+/*******************************************************
+ * buildOutputRows => shows only "travel" scenario
+ *******************************************************/
+async function buildOutputRows() {
   const data = gatherProgramData();
   $("#output-programs-list").empty();
 
   let scenarioTotal = 0;
   let totalTravelValue = 0;
-  let totalCashValue = 0;
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
     const travelMultiplier = prog["Travel Value"] || 0;
-    const cashMultiplier   = prog["Cash Value"]   || 0;
-
-    const tVal = item.points * travelMultiplier;
-    const cVal = item.points * cashMultiplier;
-    totalTravelValue += tVal;
-    totalCashValue   += cVal;
-
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
+    const rowVal = item.points * travelMultiplier;
+    totalTravelValue += rowVal;
 
     const logoUrl = prog["Brand Logo URL"] || "";
     const formattedVal = `$${rowVal.toLocaleString(undefined, {
       minimumFractionDigits: 2,
-      maximumFractionDigits: 2
+      maximumFractionDigits: 2,
     })}`;
+
+    scenarioTotal += rowVal;
 
     let rowHtml = `
       <div class="output-row" data-record-id="${item.recordId}">
@@ -1096,32 +1066,26 @@ async function buildOutputRows(viewType) {
         </div>
         <div class="output-value">${formattedVal}</div>
       </div>
+      <div class="usecase-accordion">
+        ${buildUseCaseAccordionContent(item.recordId, item.points)}
+      </div>
     `;
-
-    if (viewType === "travel") {
-      rowHtml += `
-        <div class="usecase-accordion">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>
-      `;
-    }
-
     $("#output-programs-list").append(rowHtml);
   });
 
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
+  // Show the total at the bottom
   const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
     minimumFractionDigits: 2,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2,
   })}`;
   $("#output-programs-list").append(`
     <div class="total-value-row" 
          style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
+      Travel Value: ${totalStr}
     </div>
   `);
 
-  // 4A) Update highlight box
+  // Possibly highlight if above a threshold
   const highlightBox = document.getElementById("valueHighlightBox");
   const highlightText = document.getElementById("highlight-text");
   if (highlightBox && highlightText) {
@@ -1129,50 +1093,21 @@ async function buildOutputRows(viewType) {
       const diff = scenarioTotal - 400;
       const rawPerc = (diff / 400) * 100;
       const roundedPerc = Math.round(rawPerc);
-      const commaPerc = roundedPerc.toLocaleString();
-      highlightText.innerHTML =
-        `Wow! You have over <strong>${commaPerc}%</strong> more in value than the average member.`;
+      highlightText.innerHTML = `Wow! You have over <strong>${roundedPerc}%</strong> more in value than the average member.`;
       highlightBox.style.display = "block";
     } else {
       highlightBox.style.display = "none";
     }
   }
 
-  // 5) Update the stat cards
+  // Update the stat cards
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
   $("#travel-value-card .card-value").text(
     "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
-  $("#cash-value-card .card-value").text(
-    "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
-  );
 
-  // 6) Render bar + donut
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
-
-  // 7) If Travel => load recommended use-case slides
-  if (viewType === "travel") {
-    await loadUseCasesIfNeeded();
-    const allUseCases = gatherAllRecommendedUseCases();
-    if (!allUseCases.length) {
-      $(".usecase-slider-section").hide();
-    } else {
-      $(".usecase-slider-section").show();
-      buildUseCaseSlides(allUseCases);
-      if (useCaseSwiper) {
-        useCaseSwiper.destroy(true, true);
-        useCaseSwiper = null;
-      }
-      initUseCaseSwiper();
-    }
-  } else {
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    $(".usecase-slider-section").hide();
-  }
+  // Build the per-program bar chart (travel)
+  renderProgramsBarChart("travel");
 }
 
 /*******************************************************
@@ -1190,7 +1125,7 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
     if (!uc["Use Case Body"]) return false;
 
     const linked = uc["Program Name"] || [];
-    const canAfford = (uc["Points Required"] <= userPoints);
+    const canAfford = uc["Points Required"] <= userPoints;
     return linked.includes(recordId) && canAfford;
   });
 
@@ -1200,8 +1135,8 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 
   const first = matching[0];
   const imageURL = first["Use Case URL"] || "";
-  const title    = first["Use Case Title"] || "Untitled";
-  const body     = first["Use Case Body"]  || "No description";
+  const title = first["Use Case Title"] || "Untitled";
+  const body = first["Use Case Body"] || "No description";
 
   return `
     <div style="padding:1rem;">
@@ -1217,203 +1152,9 @@ function buildUseCaseAccordionContent(recordId, userPoints) {
 }
 
 /*******************************************************
- * NEW PLUGIN => Draw program logos on x-axis
- *******************************************************/
-const logoAxisPlugin = {
-  id: 'logoAxisPlugin',
-
-  // 1. Preload images (store them as an array of Image objects in the plugin)
-  beforeInit(chart, _args, options) {
-    const logoURLs = options.images || [];
-    // We'll store the loaded Image objects in options._imagesCache
-    options._imagesCache = logoURLs.map((url) => {
-      const img = new Image();
-      img.src = url; // start loading
-      return img;
-    });
-  },
-
-  // 2. Draw the images after the chart has drawn all elements
-  afterDraw(chart, _args, options) {
-    const { ctx, chartArea, scales } = chart;
-    const xAxis = scales.x;
-    if (!xAxis) return;
-
-    const logoImages = options._imagesCache || [];  // the preloaded images
-    if (xAxis.ticks.length !== logoImages.length) return;
-
-    const { bottom } = chartArea;
-
-    let barWidth = 50; // fallback
-    if (xAxis.ticks.length > 1) {
-      barWidth = xAxis.getPixelForTick(1) - xAxis.getPixelForTick(0);
-    }
-
-    xAxis.ticks.forEach((tick, index) => {
-      const xPos = xAxis.getPixelForTick(index);
-      const img = logoImages[index];
-      if (!img) return;
-
-      // Choose a desired size for the logos
-      const imgSize = Math.min(barWidth * 0.6, 50);
-      const half = imgSize / 2;
-
-      // Draw them 5px below the chart’s bottom
-      const yPos = bottom + 5;
-      ctx.drawImage(img, xPos - half, yPos, imgSize, imgSize);
-    });
-  }
-};
-
-
-// Register plugin once
-Chart.register(logoAxisPlugin);
-
-/*******************************************************
- * RENDER NEW BAR CHART => One bar per selected program
- *******************************************************/
-function renderProgramsBarChart(metric) {
-  // 1) Gather the user's currently selected programs + points
-  const data = gatherProgramData();
-  const labels = [];
-  const values = [];
-  const colors = [];
-  const logos = [];
-
-  data.forEach(item => {
-    const recordId = item.recordId;
-    const prog = loyaltyPrograms[recordId];
-    if (!prog) return;
-
-    // Collect label & logo for each bar
-    labels.push(prog["Program Name"] || "Program");
-    logos.push(prog["Brand Logo URL"] || "");
-
-    // Decide which metric to use (points, travel, or cash)
-    let val = 0;
-    if (metric === "points") {
-      val = item.points;
-    } else if (metric === "travel") {
-      const tv = prog["Travel Value"] || 0;
-      val = item.points * tv;
-    } else if (metric === "cash") {
-      const cv = prog["Cash Value"] || 0;
-      val = item.points * cv;
-    }
-    values.push(val);
-
-    // Pick a color from the program record (or default)
-    const c = prog["Color"] || "#999999";
-    colors.push(c);
-  });
-
-  // 2) Clean up any old chart instance
-  if (programsBarChart) {
-    programsBarChart.destroy();
-    programsBarChart = null;
-  }
-
-  // 3) Get chart context
-  const ctx = document.getElementById("programsBarChart")?.getContext("2d");
-  if (!ctx) return;
-
-  // 4) Dynamically compute a “nice” stepSize to keep ~4 ticks
-  const maxVal = Math.max(...values, 0); // fallback to 0 if empty
-  // We'll aim for 3 steps from 0 -> maxVal, which gives about 4 labeled ticks total
-  const rawStep = maxVal / 3;
-  // Round up to a neat multiple (change 100 to 50, 500, etc. to suit your data)
-  const stepSize = Math.ceil(rawStep / 100) * 100 || 100;
-
-  // 5) Build the chart
-  programsBarChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [
-        {
-          label: "",
-          data: values,
-          backgroundColor: colors,
-          borderRadius: 8, // nice rounded corners
-          borderWidth: 0
-        }
-      ]
-    },
-    options: {
-      indexAxis: 'x', // vertical bars
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: {
-          beginAtZero: true,
-          // For ~4 ticks:
-          maxTicksLimit: 4,
-          // Force increments of stepSize
-          ticks: {
-            stepSize,
-            callback: function(value) {
-              // Points vs. currency
-              if (metric === "points") {
-                return value.toLocaleString();
-              } else {
-                return "$" + value.toLocaleString(undefined, {
-                  maximumFractionDigits: 2
-                });
-              }
-            },
-            font: {
-              size: 14,
-              weight: 600
-            }
-          },
-          grid: { color: "#eee" }
-        },
-        x: {
-          grid: { display: false },
-          ticks: {
-            // We draw logos with the plugin, so no text needed
-            display: false
-          }
-        }
-      },
-      layout: {
-        // Extra bottom padding so the plugin-drawn logos fit
-        padding: { bottom: 50 }
-      },
-      plugins: {
-        // No default title
-        title: { display: false },
-        legend: { display: false },
-        // Our custom logo plugin
-        logoAxisPlugin: {
-          images: logos
-        },
-        // Tooltip => points or currency
-        tooltip: {
-          callbacks: {
-            label: function(ctx) {
-              const val = ctx.parsed.y || 0;
-              if (metric === "points") {
-                return val.toLocaleString() + " points";
-              } else {
-                return "$" + val.toLocaleString(undefined, {
-                  maximumFractionDigits: 2
-                });
-              }
-            }
-          }
-        }
-      }
-    }
-  });
-}
-
-
-
-/*******************************************************
  * DOCUMENT READY => EVENT HANDLERS
  *******************************************************/
-$(document).ready(function() {
+$(document).ready(function () {
   // Immediately fetch IP, location, and main loyalty programs
   (async () => {
     try {
@@ -1437,7 +1178,8 @@ $(document).ready(function() {
 
   logSessionEvent("session_load");
 
-  $("#how-it-works-state, #input-state, #calculator-state, #output-state, #usecase-state, #send-report-state, #submission-takeover").addClass("hidden");
+  // Hide states by default
+  $("#how-it-works-state, #input-state, #calculator-state, #output-state").addClass("hidden");
   $("#default-hero").removeClass("hidden");
   $("#program-preview").addClass("hidden").empty();
   $(".left-column").addClass("hidden");
@@ -1445,9 +1187,8 @@ $(document).ready(function() {
   $("#default-hero img, #input-state img").attr("loading", "eager");
   $("img").not("#default-hero img, #input-state img").attr("loading", "lazy");
 
-
   // =============== HERO => GET STARTED =================
-  $("#hero-get-started-btn").on("click", function() {
+  $("#hero-get-started-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
 
@@ -1472,11 +1213,11 @@ $(document).ready(function() {
   });
 
   // =============== HERO => HOW IT WORKS =================
-  $("#hero-how-it-works-btn").on("click", function() {
+  $("#hero-how-it-works-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("hero_how_it_works_clicked");
-  
+
     if (window.innerWidth >= 992) {
       $(".left-column").removeClass("hidden");
       document.querySelector(".left-column").style.display = "flex !important";
@@ -1491,7 +1232,7 @@ $(document).ready(function() {
     $(".hiw-step").hide().removeClass("hiw-step-first");
     $(`.hiw-step[data-step='${stepNum}']`).show();
     $(".hiw-line").removeClass("active-line");
-    $(".hiw-line").each(function(idx) {
+    $(".hiw-line").each(function (idx) {
       if (idx < stepNum) {
         $(this).addClass("active-line");
       }
@@ -1499,77 +1240,70 @@ $(document).ready(function() {
   }
 
   $("#hiw-continue-1").on("click", () => showHowItWorksStep(2));
-$("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
+  $("#hiw-continue-2").on("click", () => showHowItWorksStep(3));
 
-$("#hiw-final-start-btn").on("click", function() {
-  if (isTransitioning) return;
-  isTransitioning = true;
-  logSessionEvent("hiw_final_get_started");
-  
-  // Hide the HIW state
-  $("#how-it-works-state").addClass("hidden");
+  $("#hiw-final-start-btn").on("click", function () {
+    if (isTransitioning) return;
+    isTransitioning = true;
+    logSessionEvent("hiw_final_get_started");
 
-  // Mark that user clicked “Get Started” from HIW
-  userClickedGetStarted = true;
+    $("#how-it-works-state").addClass("hidden");
+    userClickedGetStarted = true;
 
-  if (dataLoaded) {
-    // Hide hero, loading, etc.
-    $("#default-hero").addClass("hidden");
-    $("#loading-screen").addClass("hidden");
+    if (dataLoaded) {
+      $("#default-hero").addClass("hidden");
+      $("#loading-screen").addClass("hidden");
+      $("#input-state").removeClass("hidden");
 
-    // Show the next state (input or whichever is next)
-    $("#input-state").removeClass("hidden");
+      if ($(window).width() >= 992) {
+        $(".left-column").removeClass("hidden");
+        document.querySelector(".left-column").style.display = "flex";
+      }
 
-    // If it’s desktop, show the left column
-    if ($(window).width() >= 992) {
-      $(".left-column").removeClass("hidden");
-      document.querySelector(".left-column").style.display = "flex";
+      updateNextCTAVisibility();
+      updateClearAllVisibility();
+      isTransitioning = false;
+    } else {
+      $("#loading-screen").removeClass("hidden");
+      isTransitioning = false;
     }
-
-    updateNextCTAVisibility();
-    updateClearAllVisibility();
-    isTransitioning = false;
-
-  } else {
-    // If data isn’t loaded, show a loading screen
-    $("#loading-screen").removeClass("hidden");
-    isTransitioning = false;
-  }
-});
-
+  });
 
   // Input => BACK => hero
-  $("#input-back-btn").on("click", function() {
+  $("#input-back-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
 
     $("#input-state").addClass("hidden");
     $(".left-column").addClass("hidden");
     $("#default-hero").removeClass("hidden");
-    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container")
-      .removeClass("hidden");
+    $("#hero-how-it-works-btn, #hero-get-started-btn, .hero-inner h1, .hero-inner h2, .hero-cta-container").removeClass("hidden");
 
     isTransitioning = false;
   });
 
   // Input => NEXT => Calc
-  $("#input-next-btn").on("click", function() {
+  $("#input-next-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("input_next_clicked");
+
     $("#input-state").addClass("hidden");
     $("#calculator-state").removeClass("hidden");
     $("#program-container").empty();
+
     chosenPrograms.forEach((rid) => addProgramRow(rid));
     $("#to-output-btn").removeClass("hidden");
+
     isTransitioning = false;
   });
 
   // Calc => BACK => Input
-  $("#calc-back-btn").on("click", function() {
+  $("#calc-back-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("calc_back_clicked");
+
     $("#calculator-state").addClass("hidden");
     $("#input-state").removeClass("hidden");
     $("#to-output-btn").addClass("hidden");
@@ -1578,63 +1312,54 @@ $("#hiw-final-start-btn").on("click", function() {
   });
 
   // Calc => NEXT => Output
-  $("#to-output-btn").on("click", function() {
+  $("#to-output-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("calc_next_clicked");
+
     $("#calculator-state").addClass("hidden");
     $("#output-state").removeClass("hidden");
     $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
-    buildOutputRows("travel");
-    $(".tc-switch-btn").removeClass("active-tc");
-    $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
-    isTransitioning = false;
+
+    // Build the output
+    await buildOutputRows();
+    // Build the transfer module
     buildTransferModule();
 
-
-    // Build new bar chart of selected programs
-    renderProgramsBarChart("travel"); // or default to "points"
-    // Optionally set an active pill if you have them in the HTML
-   $(".bar-chart-pill").removeClass("active-bar-pill");
-   $(".bar-chart-pill[data-metric='travel']").addClass("active-bar-pill");
+    // Also build the recommended use-case slides (by selected categories)
     buildFilteredUseCaseSlides([...selectedCategories]);
+
+    isTransitioning = false;
   });
 
   // Output => BACK => Calc
-  $("#output-back-btn").on("click", function() {
+  $("#output-back-btn").on("click", function () {
     if (isTransitioning) return;
     isTransitioning = true;
     logSessionEvent("output_back_clicked");
+
     $("#output-state").addClass("hidden");
     $("#calculator-state").removeClass("hidden");
     isTransitioning = false;
   });
 
   // “Explore All” => open All Programs modal
-  $("#explore-all-btn").on("click", function() {
+  $("#explore-all-btn").on("click", function () {
     buildAllProgramsList();
     $("#all-programs-modal").removeClass("hidden");
   });
-  $("#all-programs-close-btn").on("click", function() {
+  $("#all-programs-close-btn").on("click", function () {
     $("#all-programs-modal").addClass("hidden");
   });
-  $("#all-programs-modal").on("click", function(e) {
+  $("#all-programs-modal").on("click", function (e) {
     if ($(e.target).attr("id") === "all-programs-modal") {
       $("#all-programs-modal").addClass("hidden");
     }
   });
 
-  // Switch Travel/Cash
-  $(".tc-switch-btn").on("click", function() {
-    $(".tc-switch-btn").removeClass("active-tc");
-    $(this).addClass("active-tc");
-    const viewType = $(this).data("view");
-    buildOutputRows(viewType);
-  });
-
   // Program search
   $("#program-search").on("input", filterPrograms);
-  $(document).on("keypress", "#program-search", function(e) {
+  $(document).on("keypress", "#program-search", function (e) {
     if (e.key === "Enter" && $(".preview-item").length === 1) {
       logSessionEvent("program_search_enter");
       $(".preview-item").click();
@@ -1642,21 +1367,21 @@ $("#hiw-final-start-btn").on("click", function() {
   });
 
   // Toggle program from search preview
-  $(document).on("click", ".preview-item", function() {
+  $(document).on("click", ".preview-item", function () {
     const rid = $(this).data("record-id");
     logSessionEvent("program_preview_item_clicked", { rid });
     toggleSearchItemSelection($(this));
   });
 
   // Toggle program from popular
-  $(document).on("click", ".top-program-box", function() {
+  $(document).on("click", ".top-program-box", function () {
     const rid = $(this).data("record-id");
     logSessionEvent("top_program_box_clicked", { rid });
     toggleProgramSelection($(this));
   });
 
   // Output => row click => expand/collapse next .usecase-accordion
-  $(document).on("click", ".output-row", function() {
+  $(document).on("click", ".output-row", function () {
     $(".usecase-accordion:visible").slideUp();
     const nextAcc = $(this).next(".usecase-accordion");
     if (nextAcc.is(":visible")) {
@@ -1667,7 +1392,7 @@ $("#hiw-final-start-btn").on("click", function() {
   });
 
   // Remove single row in calculator
-  $(document).on("click", ".remove-btn", function() {
+  $(document).on("click", ".remove-btn", function () {
     const rowEl = $(this).closest(".program-row");
     const recordId = rowEl.data("record-id");
     rowEl.remove();
@@ -1675,13 +1400,13 @@ $("#hiw-final-start-btn").on("click", function() {
   });
 
   // All Programs => row click
-  $(document).on("click", ".all-program-row", function() {
+  $(document).on("click", ".all-program-row", function () {
     const rowEl = $(this);
     const rid = rowEl.data("record-id");
     if (!rid) return;
 
     const index = chosenPrograms.indexOf(rid);
-    const isSelected = (index !== -1);
+    const isSelected = index !== -1;
 
     if (isSelected) {
       chosenPrograms.splice(index, 1);
@@ -1699,216 +1424,196 @@ $("#hiw-final-start-btn").on("click", function() {
     updateClearAllVisibility();
   });
 
-  // mini-pills => switch use case content
-// Always re-filter on toggle (select or deselect).
-$(document).on("click", ".usecase-pill", function() {
-  const $pill = $(this);
-  const category = $pill.data("category");
-  const wasActive = $pill.hasClass("active-pill");
+  // usecase-pill => switch recommended slides
+  $(document).on("click", ".usecase-pill", function () {
+    const $pill = $(this);
+    const category = $pill.data("category");
+    const wasActive = $pill.hasClass("active-pill");
 
-  // Toggle pill styling & icon
-  if (wasActive) {
-    // Pill was active => turn it off
-    $pill.removeClass("active-pill");
-    const blackIcon = $pill.data("iconBlack");
-    $pill.find(".pill-icon").attr("src", blackIcon);
-    selectedCategories.delete(category);
-  } else {
-    // Pill was inactive => turn it on
-    $pill.addClass("active-pill");
-    const whiteIcon = $pill.data("iconWhite");
-    $pill.find(".pill-icon").attr("src", whiteIcon);
-    selectedCategories.add(category);
-  }
-
-  // 1) Grab the current slide ID
-  const currentIndex = useCaseSwiper.activeIndex;
-  const $currentSlide = $(useCaseSwiper.slides[currentIndex]);
-  const currentUCId = $currentSlide.data("ucid");
-
-  // 2) Gather all recommended, then filter by selected categories
-  let newSlidesArr = gatherAllRecommendedUseCases();
-  if (selectedCategories.size > 0) {
-    newSlidesArr = newSlidesArr.filter(uc => selectedCategories.has(uc.Category));
-  }
-
-
-
-  // Step F: Rebuild slides
-  buildUseCaseSlides(newSlidesArr);
-
-  // Step G: Destroy & re-init Swiper, ensuring no loop
-  useCaseSwiper.destroy(true, true);
-  useCaseSwiper = new Swiper("#useCaseSwiper", {
-    slidesPerView: 1,
-    loop: false,
-    centeredSlides: false,
-    autoHeight: false,
-    pagination: {
-      el: ".swiper-pagination",
-      clickable: true
-    },
-    navigation: {
-      nextEl: ".swiper-button-next",
-      prevEl: ".swiper-button-prev"
+    if (wasActive) {
+      $pill.removeClass("active-pill");
+      const blackIcon = $pill.data("iconBlack");
+      $pill.find(".pill-icon").attr("src", blackIcon);
+      selectedCategories.delete(category);
+    } else {
+      $pill.addClass("active-pill");
+      const whiteIcon = $pill.data("iconWhite");
+      $pill.find(".pill-icon").attr("src", whiteIcon);
+      selectedCategories.add(category);
     }
+
+    const currentIndex = useCaseSwiper?.activeIndex || 0;
+    const $currentSlide = useCaseSwiper
+      ? $(useCaseSwiper.slides[currentIndex])
+      : null;
+    const currentUCId = $currentSlide?.data("ucid");
+
+    let newSlidesArr = gatherAllRecommendedUseCases();
+    if (selectedCategories.size > 0) {
+      newSlidesArr = newSlidesArr.filter((uc) =>
+        selectedCategories.has(uc.Category)
+      );
+    }
+
+    buildUseCaseSlides(newSlidesArr);
+
+    if (useCaseSwiper) {
+      useCaseSwiper.destroy(true, true);
+      useCaseSwiper = null;
+    }
+    useCaseSwiper = new Swiper("#useCaseSwiper", {
+      slidesPerView: 1,
+      loop: false,
+      centeredSlides: false,
+      autoHeight: false,
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+      navigation: {
+        nextEl: ".swiper-button-next",
+        prevEl: ".swiper-button-prev",
+      },
+    });
+
+    if ($(window).width() < 992) {
+      const chartTop = $(".chart-cards-row").offset().top;
+      $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
+    }
+
+    // Jump back to old slide if it exists
+    let matchingIndex = 0;
+    $(useCaseSwiper.slides).each(function (idx, slideEl) {
+      if ($(slideEl).data("ucid") === currentUCId) {
+        matchingIndex = idx;
+        return false;
+      }
+    });
+    useCaseSwiper.slideTo(matchingIndex, 0);
   });
 
-  // If on mobile, scroll up so the user sees the chart & new slides
-  if ($(window).width() < 992) {
-    const chartTop = $(".chart-cards-row").offset().top;
-    $("html, body").animate({ scrollTop: chartTop - 10 }, 600);
-  }
-
-  // Step H: Jump back to the old slide if it still exists
-  let matchingIndex = 0;
-  $(useCaseSwiper.slides).each(function(idx, slideEl) {
-    if ($(slideEl).data("ucid") === currentUCId) {
-      matchingIndex = idx;
-      return false; // break loop
+  // Transfer module => click expand/collapse
+  $(document).on("click", ".transfer-header", function () {
+    const contentEl = $(this).next(".transfer-content");
+    $(".transfer-content").not(contentEl).slideUp();
+    if (contentEl.is(":visible")) {
+      contentEl.slideUp();
+    } else {
+      contentEl.slideDown();
     }
   });
-  useCaseSwiper.slideTo(matchingIndex, 0);
-});
-
-$(document).on("click", ".transfer-header", function() {
-  const contentEl = $(this).next(".transfer-content");
-  // Hide any other open content if you want a single-open accordion:
-  $(".transfer-content").not(contentEl).slideUp();
-  if (contentEl.is(":visible")) {
-    contentEl.slideUp();
-  } else {
-    contentEl.slideDown();
-  }
-});
-
 
   // Unlock => show email modal
-  $("#unlock-report-btn").on("click", function() {
+  $("#unlock-report-btn").on("click", function () {
     logSessionEvent("unlock_report_clicked");
     $("#report-modal").removeClass("hidden");
   });
-  $("#modal-close-btn").on("click", function() {
+  $("#modal-close-btn").on("click", function () {
     logSessionEvent("modal_close_clicked");
     $("#report-modal").addClass("hidden");
   });
-  $("#report-modal").on("click", function(e) {
+  $("#report-modal").on("click", function (e) {
     if ($(e.target).attr("id") === "report-modal") {
       $("#report-modal").addClass("hidden");
     }
   });
 
   // Send from modal
-  $("#modal-send-btn").on("click", async function() {
+  $("#modal-send-btn").on("click", async function () {
     const emailInput = $("#modal-email-input").val().trim();
     logSessionEvent("modal_send_clicked", { email: emailInput });
     await sendReportFromModal();
   });
 
-  async function sendReportFromModal() {
-    const emailInput = $("#modal-email-input").val().trim();
-    const errorEl = $("#modal-email-error");
-    const sentMsgEl = $("#email-sent-message");
-    const sendBtn = $("#modal-send-btn");
-
-    errorEl.addClass("hidden").text("");
-    sentMsgEl.addClass("hidden");
-
-    if (!isValidEmail(emailInput)) {
-      errorEl.text("Invalid email address.").removeClass("hidden");
-      return;
-    }
-
-    sendBtn.prop("disabled", true).text("Sending...");
-    try {
-      await sendReport(emailInput);
-      sentMsgEl.removeClass("hidden");
-      hasSentReport = true;
-      userEmail = emailInput;
-      logSessionEvent("email_submitted", { email: userEmail });
-
-      setTimeout(() => {
-        $("#report-modal").addClass("hidden");
-        sentMsgEl.addClass("hidden");
-        $("#unlock-report-btn").removeClass("cta-dark cta-light-border").addClass("cta-light-border");
-        $("#explore-concierge-lower").removeClass("cta-dark cta-light-border").addClass("cta-dark");
-      }, 700);
-    } catch (err) {
-      console.error("Failed to send =>", err);
-      errorEl.text(err.message || "Error sending report").removeClass("hidden");
-    } finally {
-      sendBtn.prop("disabled", false).text("Send Report");
-    }
-  }
-
-  // explore => open services modal
-  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function() {
+  // Explore => open services modal
+  $("#explore-concierge-lower, #explore-concierge-btn").on("click", function () {
     logSessionEvent("explore_concierge_clicked");
     $("#services-modal").removeClass("hidden");
   });
-  $("#services-modal-close-btn").on("click", function() {
+  $("#services-modal-close-btn").on("click", function () {
     $("#services-modal").addClass("hidden");
   });
 
-  // usecase => back => output
-  $("#usecase-back-btn").on("click", function() {
-    $("#usecase-state").addClass("hidden");
-    $("#output-state").removeClass("hidden");
-  });
-
-  // send-report => back => output
-  $("#send-report-back-btn").on("click", function() {
-    $("#send-report-state").addClass("hidden");
-    $("#output-state").removeClass("hidden");
-  });
-
-  // submission => back => output
-  $("#go-back-btn").on("click", function() {
-    $("#submission-takeover").addClass("hidden");
-    $("#output-state").removeClass("hidden");
-  });
-
   // Clear All
-  $("#clear-all-btn").on("click", function() {
+  $("#clear-all-btn").on("click", function () {
     logSessionEvent("clear_all_clicked");
     clearAllPrograms();
   });
 
- $(document).on("click", ".bar-chart-pill", function() {
-  // reset all
-  $(".bar-chart-pill").each(function() {
-    const darkIcon = $(this).data("iconDark");
-    $(this).removeClass("active-bar-pill");
-    $(this).find(".pill-icon").attr("src", darkIcon);
-  });
-  // activate the clicked pill
-  $(this).addClass("active-bar-pill");
-  $(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
+  // Bar chart metric pills
+  $(document).on("click", ".bar-chart-pill", function () {
+    $(".bar-chart-pill").each(function () {
+      const darkIcon = $(this).data("iconDark");
+      $(this).removeClass("active-bar-pill");
+      $(this).find(".pill-icon").attr("src", darkIcon);
+    });
+    $(this).addClass("active-bar-pill");
+    $(this).find(".pill-icon").attr("src", $(this).data("iconWhite"));
 
-  // update chart
-  const newMetric = $(this).data("metric");
-  renderProgramsBarChart(newMetric);
+    const newMetric = $(this).data("metric");
+    renderProgramsBarChart(newMetric);
+  });
 });
 
 /*******************************************************
  * SEND REPORT
  *******************************************************/
+async function sendReportFromModal() {
+  const emailInput = $("#modal-email-input").val().trim();
+  const errorEl = $("#modal-email-error");
+  const sentMsgEl = $("#email-sent-message");
+  const sendBtn = $("#modal-send-btn");
+
+  errorEl.addClass("hidden").text("");
+  sentMsgEl.addClass("hidden");
+
+  if (!isValidEmail(emailInput)) {
+    errorEl.text("Invalid email address.").removeClass("hidden");
+    return;
+  }
+
+  sendBtn.prop("disabled", true).text("Sending...");
+  try {
+    await sendReport(emailInput);
+    sentMsgEl.removeClass("hidden");
+    hasSentReport = true;
+    userEmail = emailInput;
+    logSessionEvent("email_submitted", { email: userEmail });
+
+    setTimeout(() => {
+      $("#report-modal").addClass("hidden");
+      sentMsgEl.addClass("hidden");
+      $("#unlock-report-btn")
+        .removeClass("cta-dark cta-light-border")
+        .addClass("cta-light-border");
+      $("#explore-concierge-lower")
+        .removeClass("cta-dark cta-light-border")
+        .addClass("cta-dark");
+    }, 700);
+  } catch (err) {
+    console.error("Failed to send =>", err);
+    errorEl.text(err.message || "Error sending report").removeClass("hidden");
+  } finally {
+    sendBtn.prop("disabled", false).text("Send Report");
+  }
+}
+
 async function sendReport(email) {
   if (!email) return;
   if (!isValidEmail(email)) {
     throw new Error("Invalid email format");
   }
   const fullData = gatherProgramData();
-  const programsToSend = fullData.map(x => ({
+  const programsToSend = fullData.map((x) => ({
     programName: x.programName,
-    points: x.points
+    points: x.points,
   }));
   console.log("Sending =>", { email, programsToSend });
 
   const response = await fetch("https://young-cute-neptune.glitch.me/proxySubmitData", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, programs: programsToSend })
+    body: JSON.stringify({ email, programs: programsToSend }),
   });
   if (!response.ok) {
     const result = await response.json();
@@ -1916,4 +1621,3 @@ async function sendReport(email) {
   }
   return true;
 }
-});  
