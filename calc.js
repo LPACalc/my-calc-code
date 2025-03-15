@@ -746,14 +746,12 @@ async function buildTransferModule() {
   // userData => [{ recordId, programName, points }, ...]
 
   // Filter only those that have Transferable = true AND userPoints > 0
-  // (Requirement #1: If no points, we do not show that program in the transfer module)
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
     const userPoints = item.points || 0;
     return rec && rec["Transferable"] === true && userPoints > 0;
   });
 
-  // If none remain, hide the entire module
   if (!transferablePrograms.length) {
     $("#transfer-module").addClass("hidden");
     return;
@@ -766,8 +764,8 @@ async function buildTransferModule() {
   $("#transfer-accordion-container").empty();
 
   /**
-   * UPDATED parseTransferRatio so “2:1” => ratioVal = 0.5
-   * If ratio is “X:Y”, interpret it as (Y / X).
+   * Convert ratio strings like “2:1” => numeric factor 0.5
+   * So 1,000 points => 500 after transfer
    */
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
@@ -780,19 +778,16 @@ async function buildTransferModule() {
     return 1;
   }
 
-  // 2) Build the “chips” row
+  // 2) Build “chips” row
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
 
     const logo = prog["Brand Logo URL"] || "";
-    const programName = prog["Program Name"] || "Unnamed";
     const userPoints = item.points || 0;
 
-    // Requirement #3: If userPoints > 0, highlight the chip.
-    // We’ll add a “selected-chip” class if > 0
+    // We'll highlight the chip if it has points
     const isSelectedClass = userPoints > 0 ? "selected-chip" : "";
-
     const chipHTML = `
       <div 
         class="transferable-program-chip ${isSelectedClass}"
@@ -801,8 +796,8 @@ async function buildTransferModule() {
       >
         <img 
           src="${logo}" 
-          alt="${programName} logo"
-          style="width: 70%; height: auto;"
+          alt="${prog["Program Name"] || "N/A"}"
+          style="width:70%; height:auto;"
         />
       </div>
     `;
@@ -811,7 +806,7 @@ async function buildTransferModule() {
 
   // Optional: short info paragraphs
   const transferInfoHTML = `
-    <div class="transfer-info-text" style="margin: 1rem 0; font-size: 0.9rem; line-height: 1.4;">
+    <div class="transfer-info-text" style="margin:1rem 0; font-size:0.9rem; line-height:1.4;">
       <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
       <p>By leveraging partner programs, you may unlock higher-value awards and get more out of every point.</p>
     </div>
@@ -819,38 +814,51 @@ async function buildTransferModule() {
   $("#transferable-programs-row").after(transferInfoHTML);
 
 
-  // 3) On chip click => build the partner table.  
+  // 3) Clicking a chip => build or toggle the partner table
   $(".transferable-program-chip").off("click").on("click", function() {
-    // Remove info paragraphs the first time
-    $(".transfer-info-text").remove();
+    $(".transfer-info-text").remove(); // remove the paragraphs once a chip is clicked
 
-    // Hide any other open tables (for accordion effect)
-    $(".transfer-accordion").slideUp();
-
+    // Hide any other open tables if you want single-accordion behavior
+    // Then toggle this one
     const recordId = $(this).data("record-id");
     let $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
+
+    // If it already exists, just slideToggle
     if ($accordion.length) {
-      // If we already built it, just toggle
       $accordion.slideToggle();
       return;
     }
 
-    // Not built yet => build it
+    // Not built yet => create the table
     const userPoints = parseInt($(this).data("user-points"), 10) || 0;
     const fromProg = loyaltyPrograms[recordId] || {};
-    const fromName = fromProg["Program Name"] || "Unnamed";
-    const fromLogo = fromProg["Brand Logo URL"] || "";
+    const fromName = fromProg["Program Name"] || "Unnamed Program";
 
-    // Filter out the matching partners
-    const matchedPartners = transferPartners.filter(tp => {
-      return tp.fromProgramIds.includes(recordId);
-    });
+    // Make sure to hide any other open tables if you want only one open at a time:
+    $(".transfer-accordion:visible").slideUp();
 
-    // Build each partner row => columns: [ Logo + Program, Ratio, Points Earned ]
+    // UPDATED => create a titled “h2” between the row of chips & the slider table
+    // We’ll store it in a variable so it’s easy to insert:
+    const titleHTML = `
+      <div class="selected-program-title" 
+           style="text-align:center; font-size:1.2rem; font-weight:bold; margin:1rem 0;">
+        ${fromName}
+      </div>
+    `;
+
+    // Find matching transfer partners
+    const matchedPartners = transferPartners.filter(tp =>
+      tp.fromProgramIds.includes(recordId)
+    );
+
+    // Build rows
     let tableRowsHTML = "";
     matchedPartners.forEach(mp => {
       const ratioStr = mp.ratio || "1:1";
       const ratioVal = parseTransferRatio(ratioStr);
+
+      // If “2:1” => ratioVal = 0.5 => userPoints * 0.5 => half
+      const initialPointsReceived = Math.floor(userPoints * ratioVal);
 
       let partnerName = "Unnamed Partner";
       let partnerLogo = "";
@@ -865,45 +873,34 @@ async function buildTransferModule() {
 
       tableRowsHTML += `
         <tr data-ratio="${ratioVal}">
-          <!-- Requirement #4: Show the partner’s logo and name in a single inline cell -->
-          <td style="white-space: nowrap; display:flex; align-items:center; gap:6px;">
+          <td style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
             <img 
-              src="${partnerLogo}" 
-              alt="Partner Logo"
+              src="${partnerLogo}"
+              alt="${partnerName}"
               style="width:24px; height:auto;"
             />
             <span>${partnerName}</span>
           </td>
           <td>${ratioStr}</td>
-          <td class="pointsValueCell" style="font-weight:600; text-align:right;">0</td>
+          <td class="pointsValueCell" style="font-weight:600; text-align:right;">
+            ${initialPointsReceived.toLocaleString()}
+          </td>
         </tr>
       `;
     });
 
-    // If no partners, show a message
     if (!matchedPartners.length) {
       tableRowsHTML = `
-        <tr>
-          <td colspan="3">No transfer partners found for ${fromName}.</td>
-        </tr>
+        <tr><td colspan="3">No transfer partners found for ${fromName}.</td></tr>
       `;
     }
 
-    // Requirement #2: Remove the “(You have XXX points)” text
-    // Just show the program name or logo. 
-    const newAccordionHtml = `
+    // UPDATED => column header from “To Program” => “Transfer To”
+    // UPDATED => default slider set to “max” points => value="${userPoints}"
+    const tableHTML = `
       <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
+        ${titleHTML} 
         <table class="transfer-partner-table" style="width:100%;">
-          <!-- Show the fromProgram’s name/logo in the caption, no points count -->
-          <caption style="font-weight:600; text-align:left; padding:4px; display:flex; align-items:center; gap:8px;">
-            <img 
-              src="${fromLogo}" 
-              alt="${fromName} logo"
-              style="width:24px; height:auto;"
-            />
-            <span>${fromName}</span>
-          </caption>
-
           <thead>
             <tr>
               <th colspan="3" style="padding:6px 12px;">
@@ -914,7 +911,7 @@ async function buildTransferModule() {
                     class="transfer-program-slider"
                     min="0"
                     max="${userPoints}"
-                    value="0"
+                    value="${userPoints}"
                     style="flex:1; margin:0 8px;"
                   />
                   <span>${userPoints.toLocaleString()}</span>
@@ -922,7 +919,7 @@ async function buildTransferModule() {
               </th>
             </tr>
             <tr>
-              <th style="white-space:nowrap;">To Program</th>
+              <th style="white-space:nowrap;">Transfer To</th>
               <th>Ratio</th>
               <th style="white-space:nowrap; text-align:right;">Points Received</th>
             </tr>
@@ -934,23 +931,27 @@ async function buildTransferModule() {
       </div>
     `;
 
-    $("#transfer-accordion-container").append(newAccordionHtml);
+    $("#transfer-accordion-container").append(tableHTML);
     $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
     $accordion.slideDown();
 
-    // Attach local slider event
+    // Because we set the slider default to userPoints, we also need to
+    // immediately set the “pointsValueCell” text for each row. We did
+    // that via “initialPointsReceived” above, so it’s correct at load.
+
+    // Hook up the slider => recalc on input
     const $slider = $accordion.find(".transfer-program-slider");
     $slider.on("input", function() {
       const val = parseInt($(this).val(), 10) || 0;
       $accordion.find("tbody tr").each(function() {
         const ratioVal = parseFloat($(this).data("ratio")) || 1;
-        // If ratioVal is 0.5 for “2:1”, then 1000 => 500
         const totalTransferred = Math.floor(val * ratioVal);
         $(this).find(".pointsValueCell").text(totalTransferred.toLocaleString());
       });
     });
   });
 }
+
 
 
 
