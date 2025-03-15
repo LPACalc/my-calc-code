@@ -1589,6 +1589,8 @@ $("#hiw-final-start-btn").on("click", function() {
     $(".tc-switch-btn").removeClass("active-tc");
     $(".tc-switch-btn[data-view='travel']").addClass("active-tc");
     isTransitioning = false;
+    buildTransferModule();
+
 
     // Build new bar chart of selected programs
     renderProgramsBarChart("travel"); // or default to "points"
