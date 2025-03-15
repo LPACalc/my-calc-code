@@ -1311,26 +1311,27 @@ $(document).ready(function () {
     isTransitioning = false;
   });
 
-  // Calc => NEXT => Output
-  $("#to-output-btn").on("click", function () {
-    if (isTransitioning) return;
-    isTransitioning = true;
-    logSessionEvent("calc_next_clicked");
+$("#to-output-btn").on("click", async function () {
+  if (isTransitioning) return;
+  isTransitioning = true;
+  logSessionEvent("calc_next_clicked");
 
-    $("#calculator-state").addClass("hidden");
-    $("#output-state").removeClass("hidden");
-    $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
+  $("#calculator-state").addClass("hidden");
+  $("#output-state").removeClass("hidden");
+  $("#unlock-report-btn, #explore-concierge-lower").removeClass("hidden");
 
-    // Build the output
-    await buildOutputRows();
-    // Build the transfer module
-    buildTransferModule();
+  // Build the output
+  await buildOutputRows();
 
-    // Also build the recommended use-case slides (by selected categories)
-    buildFilteredUseCaseSlides([...selectedCategories]);
+  // Build the transfer module
+  buildTransferModule();
 
-    isTransitioning = false;
-  });
+  // Build recommended use-case slides
+  buildFilteredUseCaseSlides([...selectedCategories]);
+
+  isTransitioning = false;
+});
+
 
   // Output => BACK => Calc
   $("#output-back-btn").on("click", function () {
