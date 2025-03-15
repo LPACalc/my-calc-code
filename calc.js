@@ -36,6 +36,8 @@ let chosenPrograms = [];
 let isTransitioning = false;
 let pointsMap = {};
 let selectedCategories = new Set();
+let transferPartners = []; // or a dictionary
+
 
 let dataLoaded = false;
 let userClickedGetStarted = false;
@@ -221,21 +223,18 @@ async function initializeApp() {
   console.log("=== initializeApp() ===");
 
   try {
-    // 1) Fetch loyalty programs (the "blocking" data)
+    // 1) Fetch loyalty programs (the “blocking” data)
     const resp = await fetchWithTimeout(
       "https://young-cute-neptune.glitch.me/fetchPointsCalcData",
       {},
       10000
     );
-
     if (!resp.ok) {
       throw new Error("Network not OK => " + resp.statusText);
     }
 
-    // Parse JSON
+    // 2) Parse & store in global loyaltyPrograms
     const programsData = await resp.json();
-
-    // Store them in the global loyaltyPrograms object
     loyaltyPrograms = programsData.reduce((acc, record) => {
       const fields = { ...record.fields };
       if (record.logoAttachmentUrl) {
@@ -246,27 +245,32 @@ async function initializeApp() {
     }, {});
     console.log("loyaltyPrograms =>", loyaltyPrograms);
 
-    // 2) Mark that essential data is loaded so user can proceed
+    // 3) Mark data loaded
     dataLoaded = true;
     console.log("Data fully loaded => dataLoaded = true");
 
-    // Build popular programs UI
+    // 4) Build popular programs UI
     buildTopProgramsSection();
 
-    // 3) Kick off other tasks in the background:
+    // 5) Kick off IP & location fetch in the background
     (async () => {
       await fetchClientIP();
       await fetchApproxLocationFromIP();
     })().catch(err => console.error("IP/Location fetch error =>", err));
 
-    // 4) Load real-world use cases in background
+    // 6) Load real-world use cases in background
     loadUseCasesIfNeeded().catch(err => {
       console.error("Error fetching Real-World =>", err);
     });
+
+    // 7) ALSO load transfer table in the background
+    loadTransferTableIfNeeded().catch(err => console.error(err));
+
   } catch (err) {
     console.error("Error fetching Points Calc =>", err);
   }
 }
+
 
 
 /*******************************************************
@@ -686,6 +690,80 @@ function buildFilteredUseCaseSlides(categories) {
 
   hideUnusedPills();
 }
+
+
+function buildTransferModule() {
+  // 1) Gather user’s selected programs + points
+  const userData = gatherProgramData(); // your existing function => [{recordId, programName, points}, ...]
+  if (!userData || !userData.length) return;
+
+  // 2) Filter only those that have “Transferable” = true in loyaltyPrograms
+  const transferablePrograms = userData.filter(item => {
+    const rec = loyaltyPrograms[item.recordId];
+    return rec && rec["Transferable"] === true; 
+    // or if Airtable sets a checkbox as "1" or "checked", adapt accordingly
+  });
+
+  // If no transferables, hide the module or show a message
+  if (!transferablePrograms.length) {
+    $("#transfer-module").addClass("hidden");
+    return;
+  }
+
+  // 3) Build HTML for each
+  let html = "";
+  transferablePrograms.forEach(item => {
+    const prog = loyaltyPrograms[item.recordId];
+    const logo = prog["Brand Logo URL"] || "";
+    const programName = prog["Program Name"] || "Unnamed";
+    const userPoints = item.points || 0;
+
+    // Find all matching “From Program” in transferPartners
+    const matchedPartners = transferPartners.filter(tp => tp.fromProgramId === item.recordId);
+
+    // Build a small block of partner logos
+    let partnersHTML = "";
+    if (!matchedPartners.length) {
+      partnersHTML = `<div class="no-partners-msg">No partners found.</div>`;
+    } else {
+      matchedPartners.forEach(p => {
+        partnersHTML += `
+          <div class="transfer-partner-logo">
+            <img src="${p.partnerLogo}" alt="${p.partnerName} Logo" />
+            <span>${p.partnerName}</span>
+          </div>
+        `;
+      });
+    }
+
+    // Each program row => an accordion “header” + “content” 
+    html += `
+      <div class="transfer-program-row">
+        <div class="transfer-header" data-record-id="${item.recordId}">
+          <div class="prog-info">
+            <img src="${logo}" alt="${programName} Logo" class="transfer-prog-logo" />
+            <span class="transfer-prog-name">${programName}</span>
+          </div>
+          <!-- Maybe an icon or down-arrow to indicate it’s clickable -->
+          <div class="accordion-toggle-arrow">▼</div>
+        </div>
+        <div class="transfer-content hidden">
+          <div class="user-points-row">
+            <strong>Total Points:</strong> ${userPoints.toLocaleString()}
+          </div>
+          <div class="transfer-partners-subheader">Transfer Partners</div>
+          <div class="transfer-partners-row">
+            ${partnersHTML}
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  $("#transferable-programs-accordion").html(html);
+  $("#transfer-module").removeClass("hidden");
+}
+
 
 /*******************************************************
  * BAR CHART => Travel vs Cash
@@ -1665,6 +1743,16 @@ $(document).on("click", ".usecase-pill", function() {
   useCaseSwiper.slideTo(matchingIndex, 0);
 });
 
+$(document).on("click", ".transfer-header", function() {
+  const contentEl = $(this).next(".transfer-content");
+  // Hide any other open content if you want a single-open accordion:
+  $(".transfer-content").not(contentEl).slideUp();
+  if (contentEl.is(":visible")) {
+    contentEl.slideUp();
+  } else {
+    contentEl.slideDown();
+  }
+});
 
 
   // Unlock => show email modal
