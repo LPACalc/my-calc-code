@@ -1271,84 +1271,41 @@ function initUseCaseSwiper() {
 /*******************************************************
  * buildOutputRows => ensure use cases are loaded if Travel
  *******************************************************/
+/*******************************************************
+ * buildOutputRows - Removes #output-programs-container & .total-value-row
+ *******************************************************/
 async function buildOutputRows(viewType) {
+  // 1) Gather the user’s program data
   const data = gatherProgramData();
-  $("#output-programs-list").empty();
 
+  // 2) Initialize totals
   let scenarioTotal = 0;
   let totalTravelValue = 0;
   let totalCashValue = 0;
+
+  // 3) Sum total points
   const totalPoints = data.reduce((acc, item) => acc + item.points, 0);
 
+  // 4) Calculate travel & cash values
   data.forEach((item) => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
+
     const travelMultiplier = prog["Travel Value"] || 0;
     const cashMultiplier   = prog["Cash Value"]   || 0;
 
     const tVal = item.points * travelMultiplier;
     const cVal = item.points * cashMultiplier;
+
     totalTravelValue += tVal;
     totalCashValue   += cVal;
 
-    const rowVal = (viewType === "travel") ? tVal : cVal;
-    scenarioTotal += rowVal;
-
-    const logoUrl = prog["Brand Logo URL"] || "";
-    const formattedVal = `$${rowVal.toLocaleString(undefined, {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    })}`;
-
-    let rowHtml = 
-      `<div class="output-row" data-record-id="${item.recordId}">
-        <div style="display:flex; align-items:center; gap:0.75rem;">
-          <img src="${logoUrl}" alt="logo" style="width:50px;">
-          <span class="program-name">${item.programName}</span>
-        </div>
-        <div class="output-value">${formattedVal}</div>
-      </div>`;
-
-    if (viewType === "travel") {
-      rowHtml += 
-        `<div class="usecase-accordion">
-          ${buildUseCaseAccordionContent(item.recordId, item.points)}
-        </div>`;
-    }
-
-    $("#output-programs-list").append(rowHtml);
+    // scenarioTotal is whichever user clicked, travel vs. cash
+    scenarioTotal += (viewType === "travel") ? tVal : cVal;
   });
 
-  const label = (viewType === "travel") ? "Travel Value" : "Cash Value";
-  const totalStr = `$${scenarioTotal.toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  })}`;
-  $("#output-programs-list").append(
-    `<div class="total-value-row" 
-         style="text-align:center; margin-top:1rem; font-weight:600;">
-      ${label}: ${totalStr}
-    </div>`
-  );
-
-  // 4A) Update highlight box
-  const highlightBox = document.getElementById("valueHighlightBox");
-  const highlightText = document.getElementById("highlight-text");
-  if (highlightBox && highlightText) {
-    if (scenarioTotal > 400) {
-      const diff = scenarioTotal - 400;
-      const rawPerc = (diff / 400) * 100;
-      const roundedPerc = Math.round(rawPerc);
-      const commaPerc = roundedPerc.toLocaleString();
-      highlightText.innerHTML =
-        `Wow! You have over <strong>${commaPerc}%</strong> more in value than the average member.`;
-      highlightBox.style.display = "block";
-    } else {
-      highlightBox.style.display = "none";
-    }
-  }
-
-  // 5) Update the stat cards
+  // 5) (Optional) Update stat cards
+  // Example: #total-points-card, #travel-value-card, #cash-value-card
   $("#total-points-card .card-value").text(totalPoints.toLocaleString());
   $("#travel-value-card .card-value").text(
     "$" + totalTravelValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
@@ -1357,33 +1314,33 @@ async function buildOutputRows(viewType) {
     "$" + totalCashValue.toLocaleString(undefined, { minimumFractionDigits: 2 })
   );
 
-  // 6) Render bar + donut
-  renderValueComparisonChart(totalTravelValue, totalCashValue);
-  renderPieChartProgramShare(data);
-
-  // 7) If Travel => load recommended use-case slides
-  if (viewType === "travel") {
-    await loadUseCasesIfNeeded();
-    const allUseCases = gatherAllRecommendedUseCases();
-    if (!allUseCases.length) {
-      $(".usecase-slider-section").hide();
+  // 6) (Optional) Update highlight box if you’re still using it
+  const highlightBox = document.getElementById("valueHighlightBox");
+  const highlightText = document.getElementById("highlight-text");
+  if (highlightBox && highlightText) {
+    if (scenarioTotal > 400) {
+      const diff = scenarioTotal - 400;
+      const rawPerc = (diff / 400) * 100;
+      const roundedPerc = Math.round(rawPerc);
+      highlightText.innerHTML =
+        `Wow! You have over <strong>${roundedPerc}%</strong> more in value than the average member.`;
+      highlightBox.style.display = "block";
     } else {
-      $(".usecase-slider-section").show();
-      buildUseCaseSlides(allUseCases);
-      if (useCaseSwiper) {
-        useCaseSwiper.destroy(true, true);
-        useCaseSwiper = null;
-      }
-      initUseCaseSwiper();
+      highlightBox.style.display = "none";
     }
-  } else {
-    if (useCaseSwiper) {
-      useCaseSwiper.destroy(true, true);
-      useCaseSwiper = null;
-    }
-    $(".usecase-slider-section").hide();
   }
+
+  // 7) (Optional) Re-render the Travel vs. Cash bar
+  renderValueComparisonChart(totalTravelValue, totalCashValue);
+
+  // 8) (Optional) Re-render your donut or program bar chart
+  renderPieChartProgramShare(data);
+  // or renderProgramsBarChart("travel") if needed.
+
+  // Notice: No references to "#output-programs-container" or ".total-value-row"
+  // This means we don’t build or insert any HTML listing programs or row totals.
 }
+
 
 /*******************************************************
  * buildUseCaseAccordionContent
