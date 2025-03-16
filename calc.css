@@ -1655,6 +1655,7 @@ width:100px;
   text-align: center;     /* center your title */
   margin-bottom: 1rem;    /* spacing below the heading */
 }
+/* 1) Transfer pills */
 .transfer-pill {
   padding: 6px 12px;
   border-radius: 20px;
@@ -1662,14 +1663,29 @@ width:100px;
   color: #333;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, color 0.2s;
 }
-
 .transfer-pill:hover {
   background-color: #e0e0e0;
 }
-
 .active-transfer-pill {
-  background-color: #1a2732;
+  background-color: #1a2732; /* Dark navy */
   color: #fff;
+}
+
+/* 2) Transfer program chips */
+.transferable-program-chip {
+  /* Remove border; no outline by default */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%; /* if you want them circular */
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s; /* so scaling is smooth */
+}
+/* When a chip is selected => scale 125% */
+.transferable-program-chip.selected-chip {
+  transform: scale(1.25);
 }
