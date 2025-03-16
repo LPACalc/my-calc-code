@@ -200,38 +200,65 @@ async function loadTransferTableIfNeeded() {
     const data = await fetchAirtableTable("Transfer Table");
     console.log("Raw transfer table =>", data);
 
-   transferPartners = data.map(record => {
-  const f = record.fields;
-  const fromProgramIds = Array.isArray(f["Transfer From Partner"]) ? f["Transfer From Partner"] : [];
-  const toProgramIds   = Array.isArray(f["Transfer To Partner"])   ? f["Transfer To Partner"]   : [];
+    const now = new Date();  // current time
 
-  let transferTypes = f["Transfer Type"] || [];
-  if (!Array.isArray(transferTypes)) {
-    transferTypes = [transferTypes];
-  }
+    transferPartners = data.map(record => {
+      const f = record.fields;
+      const fromProgramIds = Array.isArray(f["Transfer From Partner"]) ? f["Transfer From Partner"] : [];
+      const toProgramIds   = Array.isArray(f["Transfer To Partner"])   ? f["Transfer To Partner"]   : [];
 
-  // If this record is "Featured" in Airtable, add "Featured" to the transferTypes array
-  if (f["Featured"] === true) {
-    transferTypes.push("Featured");
-  }
+      // Base “transferTypes” from Airtable
+      let transferTypes = f["Transfer Type"] || [];
+      if (!Array.isArray(transferTypes)) {
+        transferTypes = [transferTypes];
+      }
 
-  return {
-    id: record.id,
-    fromProgramIds,
-    toProgramIds,
-    ratio: f["Transfer Ratio"] || "1:1",
-    logoFrom: f["Logo From Partner"]?.[0]?.url || "",
-    logoTo: f["Logo To Partner"]?.[0]?.url || "",
-    typeFrom: f["Type (from Linked)"] || "",
-    transferTypes,
-  };
-});
+      // If "Featured" checkbox is set, store that as well
+      if (f["Featured"] === true) {
+        transferTypes.push("Featured");
+      }
+
+      // --- NEW: Bonus logic ---
+      let bonusRatio = f["Bonus Ratio"] || "";    // e.g. "1.2:1" or "30% Bonus"
+      let startDateStr = f["Start Date"] || null; // e.g. "2025-03-01"
+      let endDateStr   = f["End Date"]   || null;
+      let hasActiveBonus = false;
+
+      if (bonusRatio && startDateStr && endDateStr) {
+        const startDate = new Date(startDateStr);
+        const endDate   = new Date(endDateStr);
+        // Are we currently in the bonus window?
+        if (now >= startDate && now <= endDate) {
+          hasActiveBonus = true;
+          // Mark this partner as having a bonus transfer type
+          transferTypes.push("Bonus");
+        }
+      }
+
+      return {
+        id: record.id,
+        fromProgramIds,
+        toProgramIds,
+        ratio: f["Transfer Ratio"] || "1:1",
+        logoFrom: f["Logo From Partner"]?.[0]?.url || "",
+        logoTo: f["Logo To Partner"]?.[0]?.url || "",
+        typeFrom: f["Type (from Linked)"] || "",
+        transferTypes,
+        // Keep some metadata for later:
+        hasActiveBonus,
+        bonusRatio,       // raw string from Airtable
+        bonusStart: startDateStr,
+        bonusEnd: endDateStr
+      };
+    });
+
     console.log("Loaded Transfer Partners =>", transferPartners);
 
   } catch (err) {
     console.error("Error loading Transfer Table =>", err);
   }
 }
+
 
 
 
@@ -755,7 +782,7 @@ function buildFilteredUseCaseSlides(categories) {
  *******************************************************/
 async function buildTransferModule() {
   // 1) Gather user’s chosen programs + points
-  const userData = gatherProgramData();
+  const userData = gatherProgramData(); // e.g. returns [{ recordId, programName, points }, ...]
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
     return rec && rec["Transferable"] === true && (item.points || 0) > 0;
@@ -773,36 +800,13 @@ async function buildTransferModule() {
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
-  // 3) Create or ensure the #transfer-info-text container is in place
-  let $infoBlock = $("#transfer-info-text");
-  if (!$infoBlock.length) {
-    // If the block doesn't exist, append it after #transferable-programs-row
-    const infoHTML = `
-      <div id="transfer-info-text">
-        <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
-        <p>By leveraging partner programs, you may unlock higher-value awards and get more out of every point.</p>
-      </div>
-    `;
-    $("#transferable-programs-row").after(infoHTML);
-    $infoBlock = $("#transfer-info-text");
+  // Show the informational text by default (will hide if user picks a chip)
+  const $infoBlock = $("#transfer-info-text");
+  if ($infoBlock.length) {
+    $infoBlock.removeClass("hidden-info");
   }
 
-  // Initially, no program is selected => show the info block
-  $infoBlock.removeClass("hidden-info");
-
-  // Helper: parse ratio "3:1" => numeric factor
-  function parseTransferRatio(ratioStr) {
-    if (!ratioStr || !ratioStr.includes(":")) return 1;
-    const [lhs, rhs] = ratioStr.split(":");
-    const num = parseFloat(lhs.trim());
-    const den = parseFloat(rhs.trim());
-    if (!isNaN(num) && !isNaN(den) && num !== 0) {
-      return den / num;
-    }
-    return 1;
-  }
-
-  // 4) Build a chip for each user's “from” program
+  // 3) Build a chip for each user’s “from” program
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
@@ -826,7 +830,7 @@ async function buildTransferModule() {
     $("#transferable-programs-row").append(chipHTML);
   });
 
-  // 5) Clicking a chip => show that program’s accordion
+  // 4) Chip click => show that program’s accordion
   $(".transferable-program-chip").off("click").on("click", function() {
     const $this = $(this);
     const wasSelected = $this.hasClass("selected-chip");
@@ -836,13 +840,13 @@ async function buildTransferModule() {
     // Clear any existing accordion
     $("#transfer-accordion-container").empty();
 
-    // If the user clicked the same chip => toggle off => show info again
+    // If user clicked the same chip => toggle off => show info again
     if (wasSelected) {
       $infoBlock.removeClass("hidden-info");
       return;
     }
 
-    // Otherwise, mark the newly clicked chip as selected & hide info
+    // Otherwise, mark newly clicked chip as selected & hide info
     $this.addClass("selected-chip");
     $infoBlock.addClass("hidden-info");
 
@@ -864,17 +868,21 @@ async function buildTransferModule() {
       });
     });
 
-    // Suppose all possible types
-    const allPossibleTypes = ["Featured", "Hotel", "Intl. Airline", "Domestic Airline"];
+    // Potential single-select pills we allow (including Bonus)
+    const allPossibleTypes = ["Bonus", "Featured", "Hotel", "Intl. Airline", "Domestic Airline"];
     const relevantTypes = allPossibleTypes.filter(x => categoriesFound.has(x));
 
-    // Start “Featured” active if present
+    // Decide which pill(s) are active by default
+    // If Bonus is present, use it first; else if Featured is present, use that, etc.
     const selectedTypes = new Set();
-    if (relevantTypes.includes("Featured")) {
+    if (relevantTypes.includes("Bonus")) {
+      selectedTypes.add("Bonus");
+    } else if (relevantTypes.includes("Featured")) {
       selectedTypes.add("Featured");
     }
+    // (If you want additional fallback logic for "Hotel," etc., add it here.)
 
-    // 6) Build single-select pill row
+    // Build single-select pill row
     let filterPillsHTML = "";
     if (relevantTypes.length > 0) {
       filterPillsHTML = `
@@ -892,31 +900,44 @@ async function buildTransferModule() {
     }
 
     // Build table rows
+    // We'll look for the normal ratio AND a bonus ratio if it exists + is active
     const rowHTML = matchedPartners.map(mp => {
       const ratioStr = mp.ratio || "1:1";
-      const ratioVal = parseTransferRatio(ratioStr);
-      const initialPoints = Math.floor(userPoints * ratioVal);
+      // If there's an active bonus ratio, store it
+      const bonusRatioStr = mp.hasActiveBonus ? mp.bonusRatio : null;
 
-      const rowCats = (mp.transferTypes || []).join(",");
+      // Parse both ratio strings
+      const ratioVal = parseTransferRatio(ratioStr);
+      const bonusVal = bonusRatioStr ? parseTransferRatio(bonusRatioStr) : ratioVal;
+
+      // Identify the "to" program for name & logo
+      const toId = mp.toProgramIds[0] || null;
       let partnerName = "Unnamed Partner";
       let partnerLogo = "";
-      if ((mp.toProgramIds || []).length) {
-        const toId = mp.toProgramIds[0];
-        if (loyaltyPrograms[toId]) {
-          partnerName = loyaltyPrograms[toId]["Program Name"] || partnerName;
-          partnerLogo = loyaltyPrograms[toId]["Brand Logo URL"] || "";
-        }
+      if (toId && loyaltyPrograms[toId]) {
+        partnerName = loyaltyPrograms[toId]["Program Name"] || partnerName;
+        partnerLogo = loyaltyPrograms[toId]["Brand Logo URL"] || "";
       }
 
+      const rowCats = (mp.transferTypes || []).join(",");
+
+      // We'll default to normal ratio in the displayed text, 
+      // but if mp.hasActiveBonus => show the bonus ratio in the Ratio cell by default
+      const displayedRatio = mp.hasActiveBonus ? bonusRatioStr : ratioStr;
+
       return `
-        <tr data-transfer-type="${rowCats}" data-ratio="${ratioVal}">
+        <tr
+          data-transfer-type="${rowCats}"
+          data-normal-ratio="${ratioVal}"
+          data-bonus-ratio="${bonusVal}"
+        >
           <td style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
             <img src="${partnerLogo}" alt="${partnerName}" style="width:24px; height:auto;" />
             <span>${partnerName}</span>
           </td>
-          <td>${ratioStr}</td>
+          <td class="ratioCell">${displayedRatio}</td>
           <td class="pointsValueCell" style="font-weight:600; text-align:right;">
-            ${initialPoints.toLocaleString()}
+            0
           </td>
         </tr>
       `;
@@ -926,6 +947,7 @@ async function buildTransferModule() {
       <tr><td colspan="3">No transfer partners found for ${fromName}.</td></tr>
     `;
 
+    // Title for selected “From” program
     const titleHTML = `
       <div class="selected-program-title"
            style="text-align:center; font-size:1.2rem; font-weight:bold; margin:1rem 0;">
@@ -933,6 +955,7 @@ async function buildTransferModule() {
       </div>
     `;
 
+    // Combine everything into an accordion
     const accordionHTML = `
       <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
         ${titleHTML}
@@ -968,50 +991,64 @@ async function buildTransferModule() {
       </div>
     `;
 
+    // Insert into DOM
     $("#transfer-accordion-container").append(accordionHTML);
     const $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
     $accordion.slideDown();
 
-    // 7) Hook up slider => recalc
+    // 5) Hook up slider => recalc
     const $slider = $accordion.find(".transfer-program-slider");
     $slider.on("input", function() {
       const val = parseInt($(this).val(), 10) || 0;
       $accordion.find(".transfer-slider-amount").text(val.toLocaleString());
+
+      // Which pill is active => normal or bonus?
+      const activeType = $accordion.find(".transfer-pill.active-transfer-pill").data("type");
+
       $accordion.find("tbody tr").each(function() {
-        const ratioVal = parseFloat($(this).data("ratio")) || 1;
-        const totalTransferred = Math.floor(val * ratioVal);
+        const normalRatio = parseFloat($(this).data("normal-ratio")) || 1;
+        const bonusRatio  = parseFloat($(this).data("bonus-ratio"))  || normalRatio;
+        // If user selected the Bonus pill & this row is in "Bonus", use bonus ratio
+        const rowCats = $(this).data("transfer-type").split(",");
+        const usingBonus = (activeType === "Bonus" && rowCats.includes("Bonus"));
+        const ratioUsed = usingBonus ? bonusRatio : normalRatio;
+        const totalTransferred = Math.floor(val * ratioUsed);
         $(this).find(".pointsValueCell").text(totalTransferred.toLocaleString());
       });
     });
 
-    // 8) Single-select pill logic => remove active from all others
+    // 6) Single‐select pill logic => remove active from all others
     const pillEls = $accordion.find(".transfer-pill");
     pillEls.on("click", function() {
-      const $thisPill = $(this);
-
-      // If it's already active => do nothing, or we could allow toggling off
       pillEls.removeClass("active-transfer-pill");
-      $thisPill.addClass("active-transfer-pill");
+      $(this).addClass("active-transfer-pill");
 
-      const selectedCategory = $thisPill.data("type");
+      const selectedCategory = $(this).data("type");
+
       $accordion.find("tbody tr").each(function() {
         const rowCats = $(this).data("transfer-type").split(",");
         const hasOverlap = rowCats.includes(selectedCategory);
+        // Only show if the row is in the selected category
         $(this).toggle(hasOverlap);
+
+        // Also highlight the row if it’s “Bonus”
+        if (selectedCategory === "Bonus" && rowCats.includes("Bonus")) {
+          $(this).addClass("bonus-row");
+        } else {
+          $(this).removeClass("bonus-row");
+        }
       });
+
+      // Re-trigger the slider input so it recalculates
+      $slider.trigger("input");
     });
 
-    // 9) Apply initial filter for default pill (so “Featured” is truly honored)
-    if (selectedTypes.size > 0) {
-      $accordion.find("tbody tr").each(function() {
-        const rowCats = $(this).data("transfer-type").split(",");
-        // Only show if it overlaps with something in selectedTypes
-        const hasOverlap = rowCats.some(cat => selectedTypes.has(cat));
-        $(this).toggle(hasOverlap);
-      });
-    }
+    // 7) Apply initial filter so the default pill is used right away
+    //    e.g. “Bonus” or “Featured” or whichever we decided
+    pillEls.filter(".active-transfer-pill").trigger("click");
   });
 }
+
 
 
 
