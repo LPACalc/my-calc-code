@@ -200,33 +200,32 @@ async function loadTransferTableIfNeeded() {
     const data = await fetchAirtableTable("Transfer Table");
     console.log("Raw transfer table =>", data);
 
-    transferPartners = data.map(record => {
-      const f = record.fields;
+   transferPartners = data.map(record => {
+  const f = record.fields;
+  const fromProgramIds = Array.isArray(f["Transfer From Partner"]) ? f["Transfer From Partner"] : [];
+  const toProgramIds   = Array.isArray(f["Transfer To Partner"])   ? f["Transfer To Partner"]   : [];
 
-      // "Transfer From Partner" + "Transfer To Partner"
-      const fromProgramIds = Array.isArray(f["Transfer From Partner"]) ? f["Transfer From Partner"] : [];
-      const toProgramIds   = Array.isArray(f["Transfer To Partner"])   ? f["Transfer To Partner"]   : [];
+  let transferTypes = f["Transfer Type"] || [];
+  if (!Array.isArray(transferTypes)) {
+    transferTypes = [transferTypes];
+  }
 
-      // If “Transfer Type” is a lookup field, it often comes as an array
-      let transferTypes = f["Transfer Type"] || [];
-      if (!Array.isArray(transferTypes)) {
-        transferTypes = [transferTypes]; // ensure it's an array
-      }
+  // If this record is "Featured" in Airtable, add "Featured" to the transferTypes array
+  if (f["Featured"] === true) {
+    transferTypes.push("Featured");
+  }
 
-      console.log(`Record ${record.id} => transferTypes:`, transferTypes);
-
-      return {
-        id: record.id,
-        fromProgramIds,
-        toProgramIds,
-        ratio: f["Transfer Ratio"] || "",
-        logoFrom: f["Logo From Partner"]?.[0]?.url || "",
-        logoTo: f["Logo To Partner"]?.[0]?.url || "",
-        typeFrom: f["Type (from Linked)"] || "",
-        transferTypes // store the array
-      };
-    });
-
+  return {
+    id: record.id,
+    fromProgramIds,
+    toProgramIds,
+    ratio: f["Transfer Ratio"] || "1:1",
+    logoFrom: f["Logo From Partner"]?.[0]?.url || "",
+    logoTo: f["Logo To Partner"]?.[0]?.url || "",
+    typeFrom: f["Type (from Linked)"] || "",
+    transferTypes,
+  };
+});
     console.log("Loaded Transfer Partners =>", transferPartners);
 
   } catch (err) {
@@ -747,13 +746,20 @@ function buildFilteredUseCaseSlides(categories) {
  * Helper: parse ratio strings like "3:1" or "1.25:1" -> numeric factor
  * If ratio is "3:1", returns 3.  If "1.25:1", returns 1.25.
  */
+/*******************************************************
+ * buildTransferModule()
+ *******************************************************/
 async function buildTransferModule() {
-  const userData = gatherProgramData(); 
+  // 1) Gather the user’s selected programs + points
+  const userData = gatherProgramData();
+
+  // 2) Filter to only programs that are “Transferable” & have > 0 points
   const transferablePrograms = userData.filter(item => {
     const rec = loyaltyPrograms[item.recordId];
     return rec && rec["Transferable"] === true && (item.points || 0) > 0;
   });
 
+  // If no transferable programs, hide the module
   if (!transferablePrograms.length) {
     $("#transfer-module").addClass("hidden");
     return;
@@ -761,10 +767,11 @@ async function buildTransferModule() {
     $("#transfer-module").removeClass("hidden");
   }
 
-  // Clear out existing
+  // 3) Clear out existing chips & accordions
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
+  // Helper to parse ratio strings like "3:1" or "1.25:1"
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
     const [lhs, rhs] = ratioStr.split(":");
@@ -776,7 +783,7 @@ async function buildTransferModule() {
     return 1;
   }
 
-  // Build chips for each "from" program
+  // 4) Build a chip for each user’s chosen “from” program
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
@@ -786,13 +793,13 @@ async function buildTransferModule() {
     const isSelectedClass = userPoints > 0 ? "selected-chip" : "";
 
     const chipHTML = `
-      <div 
+      <div
         class="transferable-program-chip ${isSelectedClass}"
         data-record-id="${item.recordId}"
         data-user-points="${userPoints}"
       >
-        <img 
-          src="${logo}" 
+        <img
+          src="${logo}"
           alt="${prog["Program Name"] || "N/A"}"
           style="width:70%; height:auto;"
         />
@@ -801,6 +808,7 @@ async function buildTransferModule() {
     $("#transferable-programs-row").append(chipHTML);
   });
 
+  // 5) Optional info paragraphs placed under the chip row
   const transferInfoHTML = `
     <div class="transfer-info-text" style="margin:1rem 0; font-size:0.9rem; line-height:1.4;">
       <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
@@ -809,150 +817,167 @@ async function buildTransferModule() {
   `;
   $("#transferable-programs-row").after(transferInfoHTML);
 
-  // On chip click => build or toggle
+  // 6) On clicking a chip => build or toggle the accordion
   $(".transferable-program-chip").off("click").on("click", function() {
-    $(".transfer-info-text").remove(); // remove the paragraphs
+    // Remove the info paragraphs once user starts exploring
+    $(".transfer-info-text").remove();
 
     const recordId = $(this).data("record-id");
     let $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
+
+    // If an accordion for this program already exists, just slide-toggle it
     if ($accordion.length) {
       $accordion.slideToggle();
       return;
     }
 
+    // Retrieve some info
     const userPoints = parseInt($(this).data("user-points"), 10) || 0;
     const fromProg = loyaltyPrograms[recordId] || {};
     const fromName = fromProg["Program Name"] || "Unnamed Program";
 
-    // Hide other open tables if you only want one open
+    // Hide any open accordion if you only want one at a time
     $(".transfer-accordion:visible").slideUp();
 
-    // matchedPartners => from transferPartners
-    const matchedPartners = transferPartners.filter(tp => 
+    // 7) matchedPartners => from your global transferPartners data
+    const matchedPartners = transferPartners.filter(tp =>
       tp.fromProgramIds.includes(recordId)
     );
 
-    // 1) Gather all categories from all mp.transferTypes
-    //    E.g. if one partner has ["Hotel"], another has ["Domestic Airline"],
-    //    the result = ["Hotel", "Domestic Airline"]
+    // 8) Gather all categories from these matchedPartners (including Featured)
     const categoriesFound = new Set();
     matchedPartners.forEach(mp => {
-      // mp.transferTypes might be an array like ["Hotel", "Domestic Airline"]
       (mp.transferTypes || []).forEach(cat => {
         if (cat) categoriesFound.add(cat);
       });
     });
 
-    // We want to show pills only for categories we expect
-    const allPossibleTypes = ["Hotel", "Intl. Airline", "Domestic Airline"];
+    // 9) Suppose you define all possible categories (including “Featured”)
+    const allPossibleTypes = ["Featured", "Hotel", "Intl. Airline", "Domestic Airline"];
     const relevantTypes = allPossibleTypes.filter(x => categoriesFound.has(x));
 
+    // 10) Make “Featured” active by default if present
+    const selectedTypes = new Set();
+    if (relevantTypes.includes("Featured")) {
+      selectedTypes.add("Featured");
+    }
+
+    // 11) Build the pill row
     let filterPillsHTML = "";
     if (relevantTypes.length > 0) {
       filterPillsHTML = `
         <div class="transfer-filter-pills" style="display:flex; gap:10px; justify-content:center; margin:0.5rem 0;">
-          ${relevantTypes.map(typeVal => `
-            <div class="transfer-pill" data-type="${typeVal}" style="
-                 padding:6px 12px; 
-                 border-radius:20px; 
-                 background-color:#f0f0f0; 
-                 color:#333; 
-                 font-weight:600; 
-                 cursor:pointer;">
-              ${typeVal}
-            </div>
-          `).join("")}
+          ${relevantTypes
+            .map(typeVal => {
+              const isActive = selectedTypes.has(typeVal) ? "active-transfer-pill" : "";
+              return `
+                <div class="transfer-pill ${isActive}" data-type="${typeVal}" style="
+                  padding:6px 12px;
+                  border-radius:20px;
+                  background-color:#f0f0f0;
+                  color:#333;
+                  font-weight:600;
+                  cursor:pointer;
+                ">
+                  ${typeVal}
+                </div>
+              `;
+            })
+            .join("")}
         </div>
       `;
     }
 
-    // 2) Build table rows => note we can store multiple categories in data-transfer-type
-    //    e.g. data-transfer-type="Hotel,Domestic Airline"
-    //    if the record has multiple. Then our filter logic must check
-    //    whether there's an overlap with the user’s selected pill set.
-    const rowHTML = matchedPartners.map(mp => {
-      const ratioStr = mp.ratio || "1:1";
-      const ratioVal = parseTransferRatio(ratioStr);
-      const initialPoints = Math.floor(userPoints * ratioVal);
+    // 12) Build table rows => each partner row has data-transfer-type="Featured,Hotel,etc."
+    const rowHTML = matchedPartners
+      .map(mp => {
+        const ratioStr = mp.ratio || "1:1";
+        const ratioVal = parseTransferRatio(ratioStr);
+        const initialPoints = Math.floor(userPoints * ratioVal);
 
-      // If mp.transferTypes is ["Hotel", "Domestic Airline"] => join them with commas
-      const rowCategories = (mp.transferTypes || []).join(",");
+        // Join multiple categories for filter logic
+        const rowCategories = (mp.transferTypes || []).join(",");
 
-      let partnerName = "Unnamed Partner";
-      let partnerLogo = "";
-      if ((mp.toProgramIds || []).length) {
-        const toId = mp.toProgramIds[0];
-        if (loyaltyPrograms[toId]) {
-          partnerName = loyaltyPrograms[toId]["Program Name"] || partnerName;
-          partnerLogo = loyaltyPrograms[toId]["Brand Logo URL"] || "";
+        // Figure out the “To Program” name/logo
+        let partnerName = "Unnamed Partner";
+        let partnerLogo = "";
+        if ((mp.toProgramIds || []).length) {
+          const toId = mp.toProgramIds[0];
+          if (loyaltyPrograms[toId]) {
+            partnerName = loyaltyPrograms[toId]["Program Name"] || partnerName;
+            partnerLogo = loyaltyPrograms[toId]["Brand Logo URL"] || "";
+          }
         }
-      }
 
-      return `
-        <tr data-transfer-type="${rowCategories}" data-ratio="${ratioVal}">
-          <td style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
-            <img src="${partnerLogo}" alt="${partnerName}" style="width:24px; height:auto;" />
-            <span>${partnerName}</span>
-          </td>
-          <td>${ratioStr}</td>
-          <td class="pointsValueCell" style="font-weight:600; text-align:right;">
-            ${initialPoints.toLocaleString()}
-          </td>
-        </tr>
-      `;
-    }).join("");
+        return `
+          <tr data-transfer-type="${rowCategories}" data-ratio="${ratioVal}">
+            <td style="white-space:nowrap; display:flex; align-items:center; gap:6px;">
+              <img src="${partnerLogo}" alt="${partnerName}" style="width:24px; height:auto;" />
+              <span>${partnerName}</span>
+            </td>
+            <td>${ratioStr}</td>
+            <td class="pointsValueCell" style="font-weight:600; text-align:right;">
+              ${initialPoints.toLocaleString()}
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
 
+    // If there are no matches, show a default row
     const tableRowsHTML = rowHTML || `
       <tr><td colspan="3">No transfer partners found for ${fromName}.</td></tr>
     `;
 
+    // 13) Title & table HTML
     const titleHTML = `
-      <div class="selected-program-title" 
+      <div class="selected-program-title"
            style="text-align:center; font-size:1.2rem; font-weight:bold; margin:1rem 0;">
         ${fromName}
       </div>
     `;
 
-   const tableHTML = `
-  <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
-    ${titleHTML}
-    ${filterPillsHTML}
-    <table class="transfer-partner-table" style="width:100%;">
-      <thead>
-        <tr>
-          <th colspan="3" style="padding:6px 12px;">
-            <div style="display:flex; align-items:center; justify-content:space-between;">
-              <span>0</span>
-              <input 
-                type="range"
-                class="transfer-program-slider"
-                min="0"
-                max="${userPoints}"
-                value="${userPoints}"
-                style="flex:1; margin:0 8px;"
-              />
-              <span>${userPoints.toLocaleString()}</span>
-            </div>
-          </th>
-        </tr>
-        <tr>
-          <th style="white-space:nowrap;">Transfer To</th>
-          <th>Ratio</th>
-          <th style="white-space:nowrap; text-align:right;">Points Received</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${tableRowsHTML}
-      </tbody>
-    </table>
-  </div>
-`;
+    const tableHTML = `
+      <div class="transfer-accordion" data-record-id="${recordId}" style="display:none;">
+        ${titleHTML}
+        ${filterPillsHTML}
+        <table class="transfer-partner-table" style="width:100%;">
+          <thead>
+            <tr>
+              <th colspan="3" style="padding:6px 12px;">
+                <div style="display:flex; align-items:center; justify-content:space-between;">
+                  <span>0</span>
+                  <input
+                    type="range"
+                    class="transfer-program-slider"
+                    min="0"
+                    max="${userPoints}"
+                    value="${userPoints}"
+                    style="flex:1; margin:0 8px;"
+                  />
+                  <span>${userPoints.toLocaleString()}</span>
+                </div>
+              </th>
+            </tr>
+            <tr>
+              <th style="white-space:nowrap;">Transfer To</th>
+              <th>Ratio</th>
+              <th style="white-space:nowrap; text-align:right;">Points Received</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRowsHTML}
+          </tbody>
+        </table>
+      </div>
+    `;
 
+    // 14) Append the new accordion & reveal it
     $("#transfer-accordion-container").append(tableHTML);
     $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
     $accordion.slideDown();
 
-    // Hook up slider => recalc
+    // 15) Hook up the range slider => recalc the points for each row
     const $slider = $accordion.find(".transfer-program-slider");
     $slider.on("input", function() {
       const val = parseInt($(this).val(), 10) || 0;
@@ -963,39 +988,42 @@ async function buildTransferModule() {
       });
     });
 
-    // If we have pill filters => attach logic
-    // each row has data-transfer-type="Hotel,Domestic Airline" (for example)
-    const selectedTypes = new Set();
-    $accordion.find(".transfer-pill").on("click", function() {
-      const typeVal = $(this).data("type");
-      const isActive = $(this).hasClass("active-transfer-pill");
+    // 16) Pill filter logic => show/hide rows for categories
+    const pillEls = $accordion.find(".transfer-pill");
+    pillEls.on("click", function() {
+      const $this = $(this);
+      const typeVal = $this.data("type");
+      const isActive = $this.hasClass("active-transfer-pill");
 
+      // Toggle pill state
       if (isActive) {
-        $(this).removeClass("active-transfer-pill");
-        selectedTypes.delete(typeVal);
+        $this.removeClass("active-transfer-pill");
       } else {
-        $(this).addClass("active-transfer-pill");
-        selectedTypes.add(typeVal);
+        $this.addClass("active-transfer-pill");
       }
 
-      const $rows = $accordion.find("tbody tr");
-      if (selectedTypes.size === 0) {
-        // no filters => show all
-        $rows.show();
-      } else {
-        // show rows that contain ANY selected type
-        // e.g. rowHas = "Hotel,Domestic Airline" => split => ["Hotel","Domestic Airline"]
-        $rows.each(function() {
-          const rowVal = $(this).data("transfer-type"); // "Hotel,Domestic Airline"
-          const rowCats = rowVal.split(",");
-          // If there's overlap => show
-          const hasOverlap = rowCats.some(cat => selectedTypes.has(cat));
-          $(this).toggle(hasOverlap);
-        });
+      // Build new set of active categories
+      const activeSet = new Set();
+      pillEls.filter(".active-transfer-pill").each(function() {
+        activeSet.add($(this).data("type"));
+      });
+
+      // If no filters are active, show all rows
+      if (activeSet.size === 0) {
+        $accordion.find("tbody tr").show();
+        return;
       }
+
+      // Otherwise, show only rows that overlap with at least one active category
+      $accordion.find("tbody tr").each(function() {
+        const rowCats = $(this).data("transfer-type").split(",");
+        const hasOverlap = rowCats.some(cat => activeSet.has(cat));
+        $(this).toggle(hasOverlap);
+      });
     });
   });
 }
+
 
 
 
