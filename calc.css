@@ -1258,6 +1258,9 @@ button {
   font-size: 1.5rem; /* requested size */
   font-weight: 600; /* optional, if you want a bolder look */
    margin-bottom: 0;
+     background-color: #fff;
+     text-align: center;
+
 }
 
 
