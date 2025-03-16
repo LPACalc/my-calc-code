@@ -1643,3 +1643,15 @@ width:100px;
   vertical-align: middle;
 }
 
+.chart-module {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1rem;           /* Adjust as needed */
+  margin-bottom: 1.5rem;  /* Some spacing below if you want */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* optional drop shadow */
+}
+
+.chart-module .usecase-filter-title {
+  text-align: center;     /* center your title */
+  margin-bottom: 1rem;    /* spacing below the heading */
+}
