@@ -262,7 +262,18 @@ async function loadTransferTableIfNeeded() {
 
 
 
-
+function parseTransferRatio(ratioStr) {
+  if (!ratioStr || !ratioStr.includes(":")) {
+    return 1;
+  }
+  const [lhs, rhs] = ratioStr.split(":");
+  const num = parseFloat(lhs.trim());
+  const den = parseFloat(rhs.trim());
+  if (!isNaN(num) && !isNaN(den) && den !== 0) {
+    return num / den;
+  }
+  return 1;
+}
 
 
 /*******************************************************
