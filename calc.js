@@ -1061,11 +1061,11 @@ function renderValueComparisonChart(travelValue, cashValue) {
           ticks: {
             font: { size: 14, weight: '600' }
           },
-          maxTicksLimit: 4,
-            font: { size: 14, weight: '600' }
+          maxTicksLimit: 4
         }
       },
-
+      // Wrap legend & tooltip inside plugins:
+      plugins: {
         legend: { display: false },
         tooltip: {
           displayColors: false,
@@ -1073,8 +1073,8 @@ function renderValueComparisonChart(travelValue, cashValue) {
           callbacks: {
             label: function(context) {
               const val = context.parsed.x || 0;
-              return "$" + val.toLocaleString(undefined, { 
-                minimumFractionDigits: 2 
+              return "$" + val.toLocaleString(undefined, {
+                minimumFractionDigits: 2
               });
             }
           }
@@ -1085,6 +1085,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
 
   barChartInstance = new Chart(ctx, config);
 }
+
 
 /*******************************************************
  * DONUT CHART => Program Share
