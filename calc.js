@@ -774,8 +774,6 @@ async function buildTransferModule() {
   $("#transfer-accordion-container").empty();
 
   // 3) Create or ensure the #transfer-info-text container is in place
-  //    We won't remove it entirely—only toggle a .hidden-info class
-  //    That way the layout won't jump. 
   let $infoBlock = $("#transfer-info-text");
   if (!$infoBlock.length) {
     // If the block doesn't exist, append it after #transferable-programs-row
@@ -792,7 +790,7 @@ async function buildTransferModule() {
   // Initially, no program is selected => show the info block
   $infoBlock.removeClass("hidden-info");
 
-  // Helper: parse ratio "3:1" => numeric
+  // Helper: parse ratio "3:1" => numeric factor
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
     const [lhs, rhs] = ratioStr.split(":");
@@ -804,7 +802,7 @@ async function buildTransferModule() {
     return 1;
   }
 
-  // 4) Build a chip for each user’s “from” program
+  // 4) Build a chip for each user's “from” program
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
@@ -840,7 +838,7 @@ async function buildTransferModule() {
 
     // If the user clicked the same chip => toggle off => show info again
     if (wasSelected) {
-      $infoBlock.removeClass("hidden-info"); // re-show info text
+      $infoBlock.removeClass("hidden-info");
       return;
     }
 
@@ -848,18 +846,17 @@ async function buildTransferModule() {
     $this.addClass("selected-chip");
     $infoBlock.addClass("hidden-info");
 
-    // Build out the partner table
     const recordId = $this.data("record-id");
     const userPoints = parseInt($this.data("user-points"), 10) || 0;
     const fromProg = loyaltyPrograms[recordId] || {};
     const fromName = fromProg["Program Name"] || "Unnamed Program";
 
-    // matchedPartners => from transferPartners
+    // matchedPartners => filter from transferPartners
     const matchedPartners = transferPartners.filter(tp =>
       tp.fromProgramIds.includes(recordId)
     );
 
-    // Gather categories 
+    // Gather categories found
     const categoriesFound = new Set();
     matchedPartners.forEach(mp => {
       (mp.transferTypes || []).forEach(cat => {
@@ -992,12 +989,10 @@ async function buildTransferModule() {
     pillEls.on("click", function() {
       const $thisPill = $(this);
 
-      // If it's already active => do nothing (or remove?), but typically single select => we
-      // remove from everyone else
+      // If it's already active => do nothing, or we could allow toggling off
       pillEls.removeClass("active-transfer-pill");
       $thisPill.addClass("active-transfer-pill");
 
-      // Show only rows matching that pill category
       const selectedCategory = $thisPill.data("type");
       $accordion.find("tbody tr").each(function() {
         const rowCats = $(this).data("transfer-type").split(",");
@@ -1005,10 +1000,18 @@ async function buildTransferModule() {
         $(this).toggle(hasOverlap);
       });
     });
+
+    // 9) Apply initial filter for default pill (so “Featured” is truly honored)
+    if (selectedTypes.size > 0) {
+      $accordion.find("tbody tr").each(function() {
+        const rowCats = $(this).data("transfer-type").split(",");
+        // Only show if it overlaps with something in selectedTypes
+        const hasOverlap = rowCats.some(cat => selectedTypes.has(cat));
+        $(this).toggle(hasOverlap);
+      });
+    }
   });
 }
-
-
 
 
 
