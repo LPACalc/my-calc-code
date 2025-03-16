@@ -1710,3 +1710,11 @@ width:100px;
   padding: 0 !important;
   overflow: hidden;
 }
+
+.bonus-row {
+  background-color: #1a2732;
+  color: #fff;
+}
+.bonus-row td {
+  border-color: #1a2732 !important; /* or your preference */
+}
