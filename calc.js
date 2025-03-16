@@ -751,7 +751,7 @@ function buildFilteredUseCaseSlides(categories) {
  *******************************************************/
 
 /*******************************************************
- * buildTransferModule() - Updated
+ * buildTransferModule() - Addresses layout snap & single-pill
  *******************************************************/
 async function buildTransferModule() {
   // 1) Gather user’s chosen programs + points
@@ -769,21 +769,30 @@ async function buildTransferModule() {
     $("#transfer-module").removeClass("hidden");
   }
 
-  // 2) Clear existing chip row + accordion container
+  // 2) Clear existing chips + accordion container
   $("#transferable-programs-row").empty();
   $("#transfer-accordion-container").empty();
 
-  // 2a) We also control the info text. Let’s define it once here:
-  const infoHTML = `
-    <div id="transfer-info-text" class="transfer-info-text" style="margin:1rem 0; font-size:0.9rem; line-height:1.4;">
-      <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
-      <p>By leveraging partner programs, you may unlock higher-value awards and get more out of every point.</p>
-    </div>
-  `;
+  // 3) Create or ensure the #transfer-info-text container is in place
+  //    We won't remove it entirely—only toggle a .hidden-info class
+  //    That way the layout won't jump. 
+  let $infoBlock = $("#transfer-info-text");
+  if (!$infoBlock.length) {
+    // If the block doesn't exist, append it after #transferable-programs-row
+    const infoHTML = `
+      <div id="transfer-info-text">
+        <p>Transferring points can open up new redemption opportunities you won't find in your primary program.</p>
+        <p>By leveraging partner programs, you may unlock higher-value awards and get more out of every point.</p>
+      </div>
+    `;
+    $("#transferable-programs-row").after(infoHTML);
+    $infoBlock = $("#transfer-info-text");
+  }
 
-  // We’ll decide below whether to show or hide it initially
+  // Initially, no program is selected => show the info block
+  $infoBlock.removeClass("hidden-info");
 
-  // Helper to parse ratio "3:1" => numeric factor
+  // Helper: parse ratio "3:1" => numeric
   function parseTransferRatio(ratioStr) {
     if (!ratioStr || !ratioStr.includes(":")) return 1;
     const [lhs, rhs] = ratioStr.split(":");
@@ -795,7 +804,7 @@ async function buildTransferModule() {
     return 1;
   }
 
-  // 3) Build a chip for each user’s “from” program
+  // 4) Build a chip for each user’s “from” program
   transferablePrograms.forEach(item => {
     const prog = loyaltyPrograms[item.recordId];
     if (!prog) return;
@@ -803,7 +812,6 @@ async function buildTransferModule() {
     const logo = prog["Brand Logo URL"] || "";
     const userPoints = item.points || 0;
 
-    // Initially, none are “selected-chip”
     const chipHTML = `
       <div
         class="transferable-program-chip"
@@ -820,44 +828,38 @@ async function buildTransferModule() {
     $("#transferable-programs-row").append(chipHTML);
   });
 
-  // 4) If no program is selected, show the info text
-  $("#transferable-programs-row").after(infoHTML);
-
-  // 5) Click behavior for each chip
+  // 5) Clicking a chip => show that program’s accordion
   $(".transferable-program-chip").off("click").on("click", function() {
     const $this = $(this);
     const wasSelected = $this.hasClass("selected-chip");
 
-    // Deselect all chips
+    // Remove selected state from all chips
     $(".transferable-program-chip").removeClass("selected-chip");
     // Clear any existing accordion
     $("#transfer-accordion-container").empty();
 
+    // If the user clicked the same chip => toggle off => show info again
     if (wasSelected) {
-      // User clicked the same chip => *deselect* => show info text again
-      $("#transfer-info-text").remove(); // remove if it’s there
-      $("#transferable-programs-row").after(infoHTML);
+      $infoBlock.removeClass("hidden-info"); // re-show info text
       return;
     }
 
-    // Otherwise, mark this one as selected
+    // Otherwise, mark the newly clicked chip as selected & hide info
     $this.addClass("selected-chip");
+    $infoBlock.addClass("hidden-info");
 
-    // Once a chip is selected => remove the info text
-    $("#transfer-info-text").remove();
-
-    // Now proceed to build the partner accordion for this chip
+    // Build out the partner table
     const recordId = $this.data("record-id");
     const userPoints = parseInt($this.data("user-points"), 10) || 0;
     const fromProg = loyaltyPrograms[recordId] || {};
     const fromName = fromProg["Program Name"] || "Unnamed Program";
 
-    // matchedPartners => from your global transferPartners
+    // matchedPartners => from transferPartners
     const matchedPartners = transferPartners.filter(tp =>
       tp.fromProgramIds.includes(recordId)
     );
 
-    // Gather categories
+    // Gather categories 
     const categoriesFound = new Set();
     matchedPartners.forEach(mp => {
       (mp.transferTypes || []).forEach(cat => {
@@ -865,17 +867,17 @@ async function buildTransferModule() {
       });
     });
 
-    // Suppose all possible types:
+    // Suppose all possible types
     const allPossibleTypes = ["Featured", "Hotel", "Intl. Airline", "Domestic Airline"];
     const relevantTypes = allPossibleTypes.filter(x => categoriesFound.has(x));
 
-    // Start with “Featured” active if present
+    // Start “Featured” active if present
     const selectedTypes = new Set();
     if (relevantTypes.includes("Featured")) {
       selectedTypes.add("Featured");
     }
 
-    // Build pill row
+    // 6) Build single-select pill row
     let filterPillsHTML = "";
     if (relevantTypes.length > 0) {
       filterPillsHTML = `
@@ -957,9 +959,9 @@ async function buildTransferModule() {
               </th>
             </tr>
             <tr>
-              <th style="white-space:nowrap;">Transfer To</th>
+              <th>Transfer To</th>
               <th>Ratio</th>
-              <th style="white-space:nowrap; text-align:right;">Points Received</th>
+              <th style="text-align:right;">Points Received</th>
             </tr>
           </thead>
           <tbody>
@@ -969,12 +971,11 @@ async function buildTransferModule() {
       </div>
     `;
 
-    // Add & show the new accordion
     $("#transfer-accordion-container").append(accordionHTML);
     const $accordion = $(`.transfer-accordion[data-record-id='${recordId}']`);
     $accordion.slideDown();
 
-    // Hook up the slider => recalc
+    // 7) Hook up slider => recalc
     const $slider = $accordion.find(".transfer-program-slider");
     $slider.on("input", function() {
       const val = parseInt($(this).val(), 10) || 0;
@@ -986,32 +987,27 @@ async function buildTransferModule() {
       });
     });
 
-    // Pill filters => show/hide rows
+    // 8) Single-select pill logic => remove active from all others
     const pillEls = $accordion.find(".transfer-pill");
     pillEls.on("click", function() {
-      const $p = $(this);
-      const isActive = $p.hasClass("active-transfer-pill");
-      if (isActive) {
-        $p.removeClass("active-transfer-pill");
-      } else {
-        $p.addClass("active-transfer-pill");
-      }
-      const activeSet = new Set();
-      pillEls.filter(".active-transfer-pill").each(function() {
-        activeSet.add($(this).data("type"));
+      const $thisPill = $(this);
+
+      // If it's already active => do nothing (or remove?), but typically single select => we
+      // remove from everyone else
+      pillEls.removeClass("active-transfer-pill");
+      $thisPill.addClass("active-transfer-pill");
+
+      // Show only rows matching that pill category
+      const selectedCategory = $thisPill.data("type");
+      $accordion.find("tbody tr").each(function() {
+        const rowCats = $(this).data("transfer-type").split(",");
+        const hasOverlap = rowCats.includes(selectedCategory);
+        $(this).toggle(hasOverlap);
       });
-      if (activeSet.size === 0) {
-        $accordion.find("tbody tr").show();
-      } else {
-        $accordion.find("tbody tr").each(function() {
-          const rowCats = $(this).data("transfer-type").split(",");
-          const hasOverlap = rowCats.some(cat => activeSet.has(cat));
-          $(this).toggle(hasOverlap);
-        });
-      }
     });
   });
 }
+
 
 
 
