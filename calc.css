@@ -1578,20 +1578,26 @@ width:100px;
   margin-bottom: 1rem;
 }
 .transferable-program-chip {
+  /* Previously you might have had border or box-shadow here */
+  border: none;
+  background-color: transparent; /* or #fff if you like */
   width: 60px;
   height: 60px;
-  border: 2px solid #dce3eb;
   border-radius: 50%;
-  background-color: #fff;
-  overflow: hidden;
-  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: border-color 0.2s;
+  transition: transform 0.2s;
 }
+
 .transferable-program-chip:hover {
-  border-color: #1a2732;
+  /* If you want a slight hover highlight: */
+  transform: scale(1.05);
+}
+
+/* If you still want a 25% scale-up when selected: */
+.transferable-program-chip.selected-chip {
+  transform: scale(1.25);
 }
 
 .transfer-accordion-container {
