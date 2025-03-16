@@ -1655,3 +1655,21 @@ width:100px;
   text-align: center;     /* center your title */
   margin-bottom: 1rem;    /* spacing below the heading */
 }
+.transfer-pill {
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #f0f0f0;
+  color: #333;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.transfer-pill:hover {
+  background-color: #e0e0e0;
+}
+
+.active-transfer-pill {
+  background-color: #1a2732;
+  color: #fff;
+}
