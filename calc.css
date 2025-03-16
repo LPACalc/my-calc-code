@@ -1666,7 +1666,7 @@ width:100px;
   transition: background-color 0.2s, color 0.2s;
 }
 .transfer-pill:hover {
-  background-color: #e0e0e0;
+  background-color: #1a2732;
 }
 .active-transfer-pill {
   background-color: #1a2732; /* Dark navy */
