@@ -1065,16 +1065,7 @@ function renderValueComparisonChart(travelValue, cashValue) {
             font: { size: 14, weight: '600' }
         }
       },
-      plugins: {
-        title: {
-          display: true,
-          text: "Your Current Value",
-          font: {
-            size: 20,
-            weight: "bold"
-          },
-          padding: { bottom: 20 }
-        },
+
         legend: { display: false },
         tooltip: {
           displayColors: false,
